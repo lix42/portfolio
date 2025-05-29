@@ -13,7 +13,7 @@ create table chunks (
 -- Add a GIN index for full-text search on content
 create index if not exists chunks_content_gin_idx on chunks using gin(to_tsvector('english', content));
 
-create index on chunks using ivfflat (embedding vector_cosine_ops) with (lists = 100);
+create index on chunks using hnsw (embedding vector_cosine_ops);
 
 create or replace function match_chunks (
   query_embedding vector,
@@ -32,6 +32,6 @@ language sql stable as $$
     1 - (embedding <=> query_embedding) as similarity
   from chunks
   where embedding <=> query_embedding < 1 - match_threshold
-  order by embedding <=> query_embedding
+  order by embedding <=> query_embedding asc
   limit match_count;
 $$;
