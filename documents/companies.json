@@ -1,0 +1,30 @@
+[
+  {
+    "company": "Databricks",
+    "startDate": "2022-10-01",
+    "endDate": "2025-01-01",
+    "title": "Senior Frontend Engineer",
+    "description": "- Led the Network Request Middleware project to unify over 10 fragmented network request patterns into a single, type-safe API, supporting multi-workspace architecture under one URL.\n- Designed a robust request system supporting CSRF refresh, session handling, streaming responses, and micro-frontend isolation.\n- Built a multi-level error monitoring system to improve internal reliability despite low test coverage, spanning from fetch adapters to React Query and GraphQL clients.\n- Designed and launched the Top Navigation Bar and the new homepage.\n- Contributed to the File Browser, improving user experience and reliability."
+  },
+  {
+    "company": "DocuSign",
+    "startDate": "2021-10-01",
+    "endDate": "2022-10-01",
+    "title": "Principal Frontend Engineer",
+    "description": "- As the most senior frontend engineer on the founding team, designed and implemented core architecture for WebForms, a no-code app builder.\n- Built high-performance rendering logic, key features like dynamic schema updates and user logic flows, and contributed to the drag-and-drop UX.\n- Defined frontend coding standards and mentored new engineers.\n- Collaborated with backend, design, and QA teams to launch on schedule with strong product feedback."
+  },
+  {
+    "company": "Amazon",
+    "startDate": "2016-01-01",
+    "endDate": "2021-10-01",
+    "title": "Senior Frontend Engineer",
+    "description": "- Led the UI platform team for AWS SageMaker, delivering foundational components used across the product.\n- Created a frontend sync engine for collaborative app editing in the Honeycode builder: handled real-time sync, optimistic updates, conflict resolution, and offline fallback.\n- Improved frontend performance for Honeycode by optimizing rendering and data sync.\n- Enhanced Amazon.com performance by refining caching strategies."
+  },
+  {
+    "company": "Microsoft",
+    "startDate": "2005-01-01",
+    "endDate": "2016-01-01",
+    "title": "Senior Software Design Engineer",
+    "description": "-Built frontend features and developer tools for Azure ML and Windows 8 apps.\n- Early contributor to JavaScript-based Windows Store apps and internal design system tooling."
+  }
+]
