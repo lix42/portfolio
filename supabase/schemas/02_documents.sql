@@ -4,7 +4,7 @@ create table documents (
   content_hash text unique not null,
   company_id uuid not null references companies(id),
   tags text[],
-  project text,
+  project text unique not null,
   created_at timestamp with time zone default now() not null,
   updated_at timestamp with time zone default now() not null
 );
