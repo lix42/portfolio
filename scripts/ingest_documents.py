@@ -12,6 +12,7 @@ import os
 import glob
 import hashlib
 from supabase_client import get_supabase_client
+from chunk import chunk_markdown
 
 # Determine Supabase target
 use_remote = "--remote" in sys.argv
@@ -89,6 +90,14 @@ def ingest_documents():
             continue
 
         content_hash = compute_content_hash(content, tags)
+        # TODO: Implement document chunking, embedding, and ingestion
+        # 1. Chunk the markdown content into smaller pieces
+        # 2. Generate embeddings for each chunk
+        # 3. Store chunks and embeddings in the database
+        chunks = chunk_markdown(content)
+        for chunk in chunks:
+            print(chunk, "\n\n")
+
         company_id = get_company_id(company_name)
         if not company_id:
             print(
