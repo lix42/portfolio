@@ -9,12 +9,12 @@ nltk.download("punkt_tab")
 def add_chunk_metadata(content: str, metadata: dict, optional: str = "") -> str:
     result = "\n".join(metadata[k] for k in ["h1", "h2", "h3"] if k in metadata)
     if optional:
-        result += optional
+        result += f" {optional}"
     return result + f"\n{content}"
 
 
 def chunk_text_by_sentences(text: str, max_tokens: int = 300) -> list[str]:
-    enc = tiktoken.get_encoding("cl100k_base")
+    enc = tiktoken.encoding_for_model("gpt-4o")
     sentences = sent_tokenize(text)
 
     chunks = []

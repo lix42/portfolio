@@ -49,7 +49,7 @@ The project had to support a wide range of request use cases:
 - Multipart file uploads
 - Legacy data formats (e.g., `application/x-www-form-urlencoded`)
 
-I implemented dual backends for the unified API:
+I implemented dual low-level implementation for the unified API:
 
 - **Axios**: used when upload progress tracking is required
 - **fetch**: used for streaming and modern workflows
