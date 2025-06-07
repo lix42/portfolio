@@ -1,5 +1,5 @@
 # Usage:
-#   python ingestCompanies.py [--remote]
+#   python ingest_companies.py [--remote]
 #
 # By default, connects to local Supabase instance using LOCAL_SUPABASE_URL and LOCAL_SUPABASE_SERVICE_ROLE_KEY from .env.
 # If --remote is passed, connects to remote Supabase using SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY from .env.
