@@ -4,7 +4,7 @@
 
 ## Overview
 
-The Network Request Middleware project was a foundational initiative at Databricks to support **multi-workspace routing** under a single URL—a core requirement of the company's long-term vision for **SPOG (Single Panel Of Glass)**. The middleware introduced a unified, extensible request layer that transparently injected `workspaceId` into all outgoing network requests and centralized the handling of CSRF tokens, session expiration, streaming, binary response handling, and observability.
+The Network Request Middleware project was a foundational initiative at Databricks to support **multi-workspace routing** under a single URL—a core requirement of the company's long-term vision for **SPOG (Single Pane Of Glass)**. The middleware introduced a unified, extensible request layer that transparently injected `workspaceId` into all outgoing network requests and centralized the handling of CSRF tokens, session expiration, streaming, binary response handling, and observability.
 
 ## Background and Motivation
 
