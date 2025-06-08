@@ -66,7 +66,7 @@ def test_add_chunk_metadata():
     # All headers present, with optional
     metadata = {"h1": "# Title", "h2": "## Subtitle", "h3": "### Section"}
     content = "Body text."
-    result = add_chunk_metadata(content, metadata, optional=" [opt]")
+    result = add_chunk_metadata(content, metadata, optional="[opt]")
     assert result.startswith("# Title\n## Subtitle\n### Section [opt]\nBody text."), (
         "All headers + optional failed"
     )
@@ -78,7 +78,7 @@ def test_add_chunk_metadata():
 
     # No headers, with optional
     metadata = {}
-    result = add_chunk_metadata(content, metadata, optional=" [opt]")
+    result = add_chunk_metadata(content, metadata, optional="[opt]")
     assert result.startswith(" [opt]\nBody text."), "No headers + optional failed"
 
     print("test_add_chunk_metadata passed.")
