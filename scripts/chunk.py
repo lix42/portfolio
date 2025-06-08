@@ -3,7 +3,6 @@ import tiktoken
 from nltk.tokenize import sent_tokenize
 import nltk
 
-nltk.download("punkt_tab")
 
 
 def add_chunk_metadata(content: str, metadata: dict, optional: str = "") -> str:
@@ -15,6 +14,7 @@ def add_chunk_metadata(content: str, metadata: dict, optional: str = "") -> str:
 
 def chunk_text_by_sentences(text: str, max_tokens: int = 300) -> list[str]:
     enc = tiktoken.encoding_for_model("gpt-4o")
+    nltk.download("punkt")
     sentences = sent_tokenize(text)
 
     chunks = []
