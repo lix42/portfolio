@@ -81,8 +81,9 @@ Each `content` path should point to a `.md` file with detailed content.
 ### Run ingestion
 
 ```bash
-cd scripts
-python ingest.py
+pip3 install -r requirements.txt
+python ./scripts/ingest_companies.py
+python ./scripts/ingest_documents.py
 ```
 
 This will:
