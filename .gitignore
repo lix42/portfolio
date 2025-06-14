@@ -92,5 +92,6 @@ coverage/
 .env.production.local
 .sass-cache/
 .temp
+supabase/.temp
 *.swp
 
