@@ -1,5 +1,7 @@
 # WebForms at DocuSign: Architecture, Implementation, and Leadership Reflections
 
+**Project Duration: October 2021 - October 2022**
+
 ## Background & Motivation
 
 Before WebForms, DocuSign already supported **PDF templates**—dynamic PDFs embedded with fillable fields that users could complete before finalizing and signing the document. While this approach worked well on desktop, it posed serious usability challenges on mobile. Interacting with form fields inside a PDF—especially on small screens—was often frustrating, slow, and error-prone.
@@ -24,8 +26,8 @@ WebForms is a no-code application builder that enables users to create responsiv
 
 The Builder is a form-authoring environment that allows authors to create **multi-page forms** using a library of configurable components:
 
-- Text input, number input, date picker  
-- Checkbox list, dropdown selector  
+- Text input, number input, date picker
+- Checkbox list, dropdown selector
 - Section titles, layout blocks, and more
 
 Authors can:
