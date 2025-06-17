@@ -1,6 +1,6 @@
 # WebForms at DocuSign: Architecture, Implementation, and Leadership Reflections
 
-**Project Duration: October 2021 - October 2022**
+Project Duration: October 2021 - October 2022
 
 ## Background & Motivation
 

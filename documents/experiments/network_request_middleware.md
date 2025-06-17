@@ -1,6 +1,6 @@
 # Network Request Middleware at Databricks
 
-**Project Duration: June 2024 – January 2025**
+Project Duration: June 2024 – January 2025
 
 ## Overview
 

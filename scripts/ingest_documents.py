@@ -51,6 +51,15 @@ def get_existing_document(project: str):
     return None
 
 
+def delete_chunks_by_document_id(document_id: str) -> None:
+    """Delete all chunks associated with a document ID from the database."""
+    try:
+        supabase.table("chunks").delete().eq("document_id", document_id).execute()
+    except Exception as e:
+        print(f"[ERROR] Failed to delete chunks for document {document_id}: {e}")
+        raise
+
+
 def upsert_document(data: dict):
     """Upsert document into the documents table."""
     resp = supabase.table("documents").upsert(data, on_conflict="project").execute()
@@ -98,21 +107,15 @@ def ingest_documents():
             )
             continue
 
-        # TODO: Implement document chunking, embedding, and ingestion
-        # 1. Chunk the markdown content into smaller pieces
-        # 2. Generate embeddings for each chunk
-        # 3. Store chunks and embeddings in the database
-        chunks = chunk_markdown(content)
-        embeddings = embed_texts(chunks)
-        embed_chunks = zip(chunks, embeddings)
-        for chunk, embedding in embed_chunks:
-            print(chunk, "\n\n")
-            print("embedding:", len(embedding), "\n\n")
-
         existing_doc = get_existing_document(project)
         if existing_doc and existing_doc["content_hash"] == content_hash:
             print(f"[SKIP] {project}: No changes detected (hash match).")
             continue
+
+        if existing_doc and existing_doc["content_hash"] != content_hash:
+            # Delete existing chunks for this document before re-ingesting
+            delete_chunks_by_document_id(existing_doc["id"])
+            print(f"[DELETE] {project}: Removed existing chunks for re-ingestion.")
 
         data = {
             "content": content,
@@ -124,8 +127,49 @@ def ingest_documents():
         resp = upsert_document(data)
         if hasattr(resp, "status_code") and resp.status_code >= 400:
             print(f"[ERROR] Upserting {project}: {resp}")
+            continue
         else:
             print(f"[UPSERT] {project}: Document upserted.")
+
+        # Fetch document ID (from upsert response or by querying)
+        doc_id = None
+        if hasattr(resp, "data") and resp.data and "id" in resp.data[0]:
+            doc_id = resp.data[0]["id"]
+        else:
+            # Fallback: query for document by project name
+            doc_row = get_existing_document(project)
+            if doc_row and "id" in doc_row:
+                doc_id = doc_row["id"]
+        if not doc_id:
+            print(
+                f"[ERROR] Could not determine document ID for {project}, skipping chunk insert."
+            )
+            continue
+
+        # Prepare chunk records for batch insert
+        chunks = chunk_markdown(content)
+        embeddings = embed_texts(chunks)
+        chunk_records = []
+        for chunk, embedding in zip(chunks, embeddings):
+            chunk_records.append(
+                {
+                    "content": chunk,
+                    "embedding": embedding,
+                    "document_id": doc_id,
+                    "type": "markdown",
+                }
+            )
+        if chunk_records:
+            try:
+                chunk_resp = supabase.table("chunks").insert(chunk_records).execute()
+                if hasattr(chunk_resp, "status_code") and chunk_resp.status_code >= 400:
+                    print(f"[ERROR] Inserting chunks for {project}: {chunk_resp}")
+                else:
+                    print(f"[CHUNKS] {project}: Inserted {len(chunk_records)} chunks.")
+            except Exception as e:
+                print(f"[ERROR] Exception during chunk insert for {project}: {e}")
+        else:
+            print(f"[CHUNKS] {project}: No chunks to insert.")
 
     print("Ingestion complete.")
 
