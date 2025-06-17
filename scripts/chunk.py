@@ -12,7 +12,7 @@ def add_chunk_metadata(content: str, metadata: dict, optional: str = "") -> str:
     return result + f"\n{content}"
 
 
-def chunk_text_by_sentences(text: str, max_tokens: int = 300) -> list[str]:
+def chunk_text_by_sentences(text: str, max_tokens: int = 800) -> list[str]:
     enc = tiktoken.encoding_for_model("gpt-4o")
     nltk.download("punkt")
     sentences = sent_tokenize(text)
@@ -35,7 +35,7 @@ def chunk_text_by_sentences(text: str, max_tokens: int = 300) -> list[str]:
     return chunks
 
 
-def chunk_markdown(markdown_text: str, max_tokens: int = 300) -> list[str]:
+def chunk_markdown(markdown_text: str, max_tokens: int = 800) -> list[str]:
     result = []
     splitter = MarkdownHeaderTextSplitter(
         headers_to_split_on=[("#", "h1"), ("##", "h2"), ("###", "h3")]
