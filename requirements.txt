@@ -4,3 +4,4 @@ langchain
 tiktoken
 nltk
 dotenv
+openai
