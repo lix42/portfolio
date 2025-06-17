@@ -11,6 +11,7 @@ import json
 import os
 import glob
 import hashlib
+from embedding import embed_texts
 from supabase_client import get_supabase_client
 from chunk import chunk_markdown
 
@@ -90,20 +91,23 @@ def ingest_documents():
             continue
 
         content_hash = compute_content_hash(content, tags)
-        # TODO: Implement document chunking, embedding, and ingestion
-        # 1. Chunk the markdown content into smaller pieces
-        # 2. Generate embeddings for each chunk
-        # 3. Store chunks and embeddings in the database
-        chunks = chunk_markdown(content)
-        for chunk in chunks:
-            print(chunk, "\n\n")
-
         company_id = get_company_id(company_name)
         if not company_id:
             print(
                 f"[ERROR] Company '{company_name}' not found in DB, skipping {project}."
             )
             continue
+
+        # TODO: Implement document chunking, embedding, and ingestion
+        # 1. Chunk the markdown content into smaller pieces
+        # 2. Generate embeddings for each chunk
+        # 3. Store chunks and embeddings in the database
+        chunks = chunk_markdown(content)
+        embeddings = embed_texts(chunks)
+        embed_chunks = zip(chunks, embeddings)
+        for chunk, embedding in embed_chunks:
+            print(chunk, "\n\n")
+            print("embedding:", len(embedding), "\n\n")
 
         existing_doc = get_existing_document(project)
         if existing_doc and existing_doc["content_hash"] == content_hash:
