@@ -81,6 +81,7 @@ def ingest_documents():
         document_path = doc_meta.get("document")
         company_name = doc_meta.get("company")
         tags = doc_meta.get("tags", [])
+        tags_embedding = embed_texts([" ".join(tags)])[0] if tags else None
 
         if not (project and document_path and company_name):
             print(f"[ERROR] Missing required fields in {json_file}, skipping.")
@@ -155,6 +156,8 @@ def ingest_documents():
                 {
                     "content": chunk,
                     "embedding": embedding,
+                    "tags": tags,
+                    "tags_embedding": tags_embedding,
                     "document_id": doc_id,
                     "type": "markdown",
                 }
