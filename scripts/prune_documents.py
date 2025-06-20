@@ -22,7 +22,7 @@ def confirm():
 
 def delete_all_rows(table_name):
     try:
-        resp = supabase.table(table_name).delete().gt("id", MOCK_UUID).execute()
+        supabase.table(table_name).delete().gt("id", MOCK_UUID).execute()
         print(f"[DELETE] All rows deleted from '{table_name}'.")
     except Exception as e:
         print(f"[ERROR] Failed to delete from '{table_name}': {e}")
