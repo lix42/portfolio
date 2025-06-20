@@ -4,6 +4,8 @@ create table chunks (
   id uuid primary key default gen_random_uuid(),
   content text not null,
   embedding vector(1536) not null,
+  tags text[],
+  tags_embedding vector(1536),
   document_id uuid not null references documents(id) on delete cascade,
   type text not null,
   created_at timestamp with time zone default now() not null,
@@ -14,6 +16,9 @@ create table chunks (
 create index if not exists chunks_content_gin_idx on chunks using gin(to_tsvector('english', content));
 
 create index on chunks using hnsw (embedding vector_cosine_ops);
+
+create index if not exists chunks_tags_gin_idx on chunks using gin(tags);
+create index on chunks using hnsw (tags_embedding vector_cosine_ops);
 
 create or replace function match_chunks (
   query_embedding vector,
