@@ -1,0 +1,24 @@
+{
+  "name": "portfolio",
+  "version": "0.0.1",
+  "description": "My portfolio",
+  "main": "index.js",
+  "scripts": {
+    "dev:service": "pnpm --filter @portfolio/service dev",
+    "dev:ui": "pnpm --filter @portfolio/ui dev",
+    "dev": "concurrently \"pnpm run dev:service\" \"pnpm run dev:ui\"",
+    "build:service": "pnpm --filter @portfolio/service build",
+    "build:ui": "pnpm --filter @portfolio/ui build",
+    "build": "concurrently \"pnpm run build:service\" \"pnpm run build:ui\"",
+    "preview:service": "pnpm --filter @portfolio/service preview",
+    "preview:ui": "pnpm --filter @portfolio/ui preview",
+    "preview": "concurrently \"pnpm run preview:service\" \"pnpm run preview:ui\""
+  },
+  "keywords": [],
+  "author": "i@xuli.dev",
+  "license": "ISC",
+  "packageManager": "pnpm@10.12.4",
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  }
+}
