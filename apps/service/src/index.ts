@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import chat from "./chat";
 
-const app = new Hono();
+const app = new Hono().basePath("/v1");
 
 // Custom Not Found Message
 app.notFound((c) => {
