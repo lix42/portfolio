@@ -51,6 +51,9 @@ importers:
       hono:
         specifier: ^4.8.4
         version: 4.8.4
+      openai:
+        specifier: ^5.8.3
+        version: 5.8.3(ws@8.18.0)(zod@3.25.71)
       zod:
         specifier: ^3.25.71
         version: 3.25.71
@@ -1622,6 +1625,18 @@ packages:
 
   ohash@2.0.11:
     resolution: {integrity: sha512-RdR9FQrFwNBNXAr4GixM8YaRZRJ5PUWbKYbE5eOsrwAjJW0q2REGcf79oYPsLyskQCZG1PLN+S/K1V00joZAoQ==}
+
+  openai@5.8.3:
+    resolution: {integrity: sha512-IdotKmquCnpouTRvF9xRXVhMx6K5Sc8zkD6Usf+so+NTQ+qiJ8bLSCd7LBb8b/Rof7uYltlSxJhNp+spphKI4Q==}
+    hasBin: true
+    peerDependencies:
+      ws: ^8.18.0
+      zod: ^3.23.8
+    peerDependenciesMeta:
+      ws:
+        optional: true
+      zod:
+        optional: true
 
   path-to-regexp@6.3.0:
     resolution: {integrity: sha512-Yhpw4T9C6hPpgPeA28us07OJeqZ5EzQTkbfwuhsUg0c237RomFoETJgmp2sa3F/41gfLE6G5cqcYwznmeEeOlQ==}
@@ -3390,6 +3405,11 @@ snapshots:
   node-releases@2.0.19: {}
 
   ohash@2.0.11: {}
+
+  openai@5.8.3(ws@8.18.0)(zod@3.25.71):
+    optionalDependencies:
+      ws: 8.18.0
+      zod: 3.25.71
 
   path-to-regexp@6.3.0: {}
 
