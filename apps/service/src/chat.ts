@@ -3,6 +3,7 @@ import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import OpenAI from "openai";
 import { embed } from "./embed";
+import { createClient } from "@supabase/supabase-js";
 
 const app = new Hono<{ Bindings: CloudflareBindings }>();
 
@@ -13,6 +14,11 @@ const schema = z.object({
 app.post("/", zValidator("json", schema), async (c) => {
   const { message } = c.req.valid("json");
   const openai = new OpenAI({ apiKey: c.env.OPENAI_API_KEY });
+  const supabaseClient = createClient(c.env.SUPABASE_URL, c.env.SUPABASE_KEY, {
+    global: {
+      fetch: (...args) => fetch(...args),
+    },
+  });
 
   const embedding = await embed(message, openai);
 
@@ -20,10 +26,16 @@ app.post("/", zValidator("json", schema), async (c) => {
     return c.json({ error: "Failed to create embedding" }, 500);
   }
 
-  return c.text(`
-post a message: ${message}
-embedding: ${embedding.map((num) => num.toFixed(6)).join(", ")}
-`);
+  const response = await supabaseClient.rpc("match_chunks", {
+    query_embedding: embedding, // Pass the embedding you want to compare
+    match_threshold: 0.2, // Choose an appropriate threshold for your data
+    match_count: 5, // Choose the number of matches
+  });
+
+  return c.json({
+    message,
+    response,
+  });
 });
 
 export default app;
