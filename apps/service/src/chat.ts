@@ -4,6 +4,7 @@ import { zValidator } from "@hono/zod-validator";
 import OpenAI from "openai";
 import { embed } from "./embed";
 import { createClient } from "@supabase/supabase-js";
+import { generateTags } from "./generateTags";
 
 const app = new Hono<{ Bindings: CloudflareBindings }>();
 
@@ -20,7 +21,14 @@ app.post("/", zValidator("json", schema), async (c) => {
     },
   });
 
-  const embedding = await embed(message, openai);
+  const [tags, embedding] = await Promise.all([
+    generateTags(message, openai),
+    embed(message, openai),
+  ]);
+
+  if (!tags?.is_valid) {
+    return c.json({ error: "Invalid question" }, 400);
+  }
 
   if (!embedding) {
     return c.json({ error: "Failed to create embedding" }, 500);
@@ -34,7 +42,8 @@ app.post("/", zValidator("json", schema), async (c) => {
 
   return c.json({
     message,
-    response,
+    tags: tags.tags,
+    response: response.data || [],
   });
 });
 
