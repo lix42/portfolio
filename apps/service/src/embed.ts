@@ -1,5 +1,12 @@
 import OpenAI from "openai";
 
+/**
+ * Generates an embedding vector for the given message using the provided OpenAI client.
+ *
+ * @param message - The input string to generate an embedding for.
+ * @param openai - An instance of the OpenAI client.
+ * @returns A Promise that resolves to an array of numbers representing the embedding, or null if embedding fails.
+ */
 export const embed = async (
   message: string,
   openai: OpenAI
