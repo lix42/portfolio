@@ -1,3 +1,7 @@
+/**
+ * This file is required for the hono cloudflare-vite template.
+ * It provides the JSX renderer setup for server-side rendering.
+ */
 import { jsxRenderer } from "hono/jsx-renderer";
 import { Link, ViteClient } from "vite-ssr-components/hono";
 
