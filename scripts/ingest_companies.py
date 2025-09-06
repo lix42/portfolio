@@ -7,46 +7,47 @@
 import sys
 import json
 import os
+from datetime import date
 from supabase_client import get_supabase_client
+from supabase_data_access import SupabaseDataAccessProvider
+from data_access import Company, DataAccessProvider
 
 __all__ = ["ingest_companies"]
 
 
-def ingest_companies(use_remote: bool = False) -> None:
+def ingest_companies(use_remote: bool = False, data_provider: DataAccessProvider = None) -> None:
     """
-    Ingest company data from companies.json into Supabase.
+    Ingest company data from companies.json into database.
     
     Args:
         use_remote: If True, use remote Supabase instance. Otherwise use local.
+        data_provider: Optional data access provider. If None, creates Supabase provider.
     """
-    supabase = get_supabase_client(use_remote=use_remote)
+    if data_provider is None:
+        supabase = get_supabase_client(use_remote=use_remote)
+        data_provider = SupabaseDataAccessProvider(supabase)
 
     # Load company data from JSON
     with open(
         os.path.join(os.path.dirname(__file__), "../documents/companies.json"), "r"
     ) as f:
-        companies = json.load(f)
+        companies_data = json.load(f)
 
-    for company in companies:
-        # Map JSON fields to table columns
-        data = {
-            "name": company["company"],
-            "start_time": company["startDate"],
-            "end_time": company["endDate"],
-            "title": company["title"],
-            "description": company["description"],
-        }
-        # Upsert: replace if (name, start_time) exists
-        resp = (
-            supabase.table("companies")
-            .upsert(data, on_conflict="name, start_time")
-            .execute()
+    for company_json in companies_data:
+        # Create Company model from JSON
+        company = Company(
+            name=company_json["company"],
+            start_time=date.fromisoformat(company_json["startDate"]) if company_json["startDate"] else None,
+            end_time=date.fromisoformat(company_json["endDate"]) if company_json["endDate"] else None,
+            title=company_json["title"],
+            description=company_json["description"],
         )
-
-        if hasattr(resp, 'status_code') and resp.status_code >= 400:
-            print(f"Error upserting {data['name']}: {resp}")
-        else:
-            print(f"Upserted: {data['name']}")
+        
+        try:
+            upserted_company = data_provider.companies.upsert_company(company)
+            print(f"Upserted: {upserted_company.name}")
+        except Exception as e:
+            print(f"Error upserting {company.name}: {e}")
 
     print("Ingestion complete.")
 
