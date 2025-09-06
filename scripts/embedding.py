@@ -1,5 +1,7 @@
 from openai_client import get_openai
 
+__all__ = ["embed_texts"]
+
 def embed_texts(texts: list[str]) -> list[list[float]]:
     """
     Generate embeddings for a list of input texts using the OpenAI API.
