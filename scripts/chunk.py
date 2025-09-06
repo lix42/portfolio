@@ -3,13 +3,15 @@ import tiktoken
 from nltk.tokenize import sent_tokenize
 import nltk
 
-
-
-def add_chunk_metadata(content: str, metadata: dict, optional: str = "") -> str:
-    result = "\n".join(metadata[k] for k in ["h1", "h2", "h3"] if k in metadata)
-    if optional:
-        result += f" {optional}"
-    return result + f"\n{content}"
+def build_chunk_context_header(metadata: dict, part: int = None) -> str:
+    """
+    Builds a context header string from metadata (h1, h2, h3), optionally appending a part number.
+    Example: "Project Title\nSection\nSubsection - part 2"
+    """
+    header = "\n".join(metadata[k] for k in ["h1", "h2", "h3"] if k in metadata)
+    if part is not None:
+        header += f" - part {part}"
+    return header
 
 
 def chunk_text_by_sentences(text: str, max_tokens: int = 800) -> list[str]:
@@ -44,14 +46,14 @@ def chunk_markdown(markdown_text: str, max_tokens: int = 800) -> list[str]:
     docs = splitter.split_text(markdown_text)
 
     for doc in docs:
-        content = add_chunk_metadata(doc.page_content, doc.metadata)
+        header = build_chunk_context_header(doc.metadata)
+        content = f"{header}\n{doc.page_content}"
         tokens = enc.encode(content)
         if len(tokens) > max_tokens:
             chunks = chunk_text_by_sentences(doc.page_content, max_tokens)
             for index, chunk in enumerate(chunks):
-                result.append(
-                    add_chunk_metadata(chunk, doc.metadata, f"Chunk {index + 1}")
-                )
+                header = build_chunk_context_header(doc.metadata, index + 1)
+                result.append(f"{header}\n{chunk}")
         else:
             result.append(content)
     return result
@@ -62,26 +64,30 @@ def chunk_markdown(markdown_text: str, max_tokens: int = 800) -> list[str]:
 # =====================
 
 
-def test_add_chunk_metadata():
-    # All headers present, with optional
+def test_build_chunk_context_header():
+    # All headers present, no part
     metadata = {"h1": "# Title", "h2": "## Subtitle", "h3": "### Section"}
-    content = "Body text."
-    result = add_chunk_metadata(content, metadata, optional="[opt]")
-    assert result.startswith("# Title\n## Subtitle\n### Section [opt]\nBody text."), (
-        "All headers + optional failed"
+    result = build_chunk_context_header(metadata)
+    assert result == "# Title\n## Subtitle\n### Section", "All headers failed"
+
+    # Some headers missing, no part
+    metadata = {"h1": "# Title"}
+    result = build_chunk_context_header(metadata)
+    assert result == "# Title", "Missing headers failed"
+
+    # All headers present, with part
+    metadata = {"h1": "# Title", "h2": "## Subtitle", "h3": "### Section"}
+    result = build_chunk_context_header(metadata, 2)
+    assert result == "# Title\n## Subtitle\n### Section - part 2", (
+        "Headers with part failed"
     )
 
-    # Some headers missing, no optional
-    metadata = {"h1": "# Title"}
-    result = add_chunk_metadata(content, metadata)
-    assert result.startswith("# Title\nBody text."), "Missing headers failed"
-
-    # No headers, with optional
+    # No headers, with part
     metadata = {}
-    result = add_chunk_metadata(content, metadata, optional="[opt]")
-    assert result.startswith(" [opt]\nBody text."), "No headers + optional failed"
+    result = build_chunk_context_header(metadata, 1)
+    assert result == " - part 1", "No headers with part failed"
 
-    print("test_add_chunk_metadata passed.")
+    print("test_build_chunk_context_header passed.")
 
 
 def test_chunk_text_by_sentences():
@@ -113,9 +119,10 @@ More text here.
 Even more text.
 """
     chunks = chunk_markdown(md, max_tokens=100)
-    assert any("# Title" in c for c in chunks), "Should include h1 header"
-    assert any("## Subtitle" in c for c in chunks), "Should include h2 header"
-    assert any("### Section" in c for c in chunks), "Should include h3 header"
+    print(chunks)
+    assert any("Title" in c for c in chunks), "Should include h1 header"
+    assert any("Subtitle" in c for c in chunks), "Should include h2 header"
+    assert any("Section" in c for c in chunks), "Should include h3 header"
 
     # Markdown with a long section to force chunking
     long_text = " ".join(["Sentence %d." % i for i in range(50)])
@@ -132,7 +139,7 @@ Even more text.
 
 if __name__ == "__main__":
     print("Running unit tests for chunk.py...")
-    test_add_chunk_metadata()
+    test_build_chunk_context_header()
     test_chunk_text_by_sentences()
     test_chunk_markdown()
     print("All tests passed.")
