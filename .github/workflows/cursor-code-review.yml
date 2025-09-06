@@ -16,16 +16,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Install Cursor CLI
-        run: npm install -g cursor-cli
+        run: |
+          curl https://cursor.com/install -fsS | bash
+          echo "$HOME/.cursor/bin" >> $GITHUB_PATH
       - name: Run Cursor Code Review
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.REPO_LLM_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           cursor-agent --force --output-format=text --print 'You are operating in a GitHub Actions runner performing automated code review. The gh CLI is available and authenticated via GH_TOKEN. You may comment on pull requests.
 
