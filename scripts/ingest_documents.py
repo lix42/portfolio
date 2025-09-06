@@ -13,11 +13,11 @@ import glob
 import hashlib
 from embedding import embed_texts
 from supabase_client import get_supabase_client
+from supabase_data_access import SupabaseDataAccessProvider
+from data_access import DataAccessProvider, Document, Chunk
 from chunk import chunk_markdown
 
-# Determine Supabase target
-use_remote = "--remote" in sys.argv
-supabase = get_supabase_client(use_remote=use_remote)
+__all__ = ["ingest_documents"]
 
 EXPERIMENTS_DIR = os.path.join(os.path.dirname(__file__), "../documents/experiments")
 
@@ -30,43 +30,17 @@ def compute_content_hash(content: str, tags: list) -> str:
     return m.hexdigest()
 
 
-def get_company_id(company_name: str):
-    """Look up company by name and return its id, or None if not found."""
-    resp = supabase.table("companies").select("id").eq("name", company_name).execute()
-    if hasattr(resp, "data") and resp.data:
-        return resp.data[0]["id"]
-    return None
-
-
-def get_existing_document(project: str):
-    """Look up document by project name."""
-    resp = (
-        supabase.table("documents")
-        .select("id, content_hash")
-        .eq("project", project)
-        .execute()
-    )
-    if hasattr(resp, "data") and resp.data:
-        return resp.data[0]
-    return None
-
-
-def delete_chunks_by_document_id(document_id: str) -> None:
-    """Delete all chunks associated with a document ID from the database."""
-    try:
-        supabase.table("chunks").delete().eq("document_id", document_id).execute()
-    except Exception as e:
-        print(f"[ERROR] Failed to delete chunks for document {document_id}: {e}")
-        raise
-
-
-def upsert_document(data: dict):
-    """Upsert document into the documents table."""
-    resp = supabase.table("documents").upsert(data, on_conflict="project").execute()
-    return resp
-
-
-def ingest_documents():
+def ingest_documents(use_remote: bool = False, data_provider: DataAccessProvider = None) -> None:
+    """
+    Ingest documents from experiments directory into database.
+    
+    Args:
+        use_remote: If True, use remote Supabase instance. Otherwise use local.
+        data_provider: Optional data access provider. If None, creates Supabase provider.
+    """
+    if data_provider is None:
+        supabase = get_supabase_client(use_remote=use_remote)
+        data_provider = SupabaseDataAccessProvider(supabase)
     json_files = glob.glob(os.path.join(EXPERIMENTS_DIR, "*.json"))
     for json_file in json_files:
         try:
@@ -81,7 +55,6 @@ def ingest_documents():
         document_path = doc_meta.get("document")
         company_name = doc_meta.get("company")
         tags = doc_meta.get("tags", [])
-        # tags_embedding = embed_texts([" ".join(tags)])[0] if tags else None
 
         if not (project and document_path and company_name):
             print(f"[ERROR] Missing required fields in {json_file}, skipping.")
@@ -101,74 +74,65 @@ def ingest_documents():
             continue
 
         content_hash = compute_content_hash(content, tags)
-        company_id = get_company_id(company_name)
+        
+        # Get company ID using data access layer
+        company_id = data_provider.companies.get_company_id_by_name(company_name)
         if not company_id:
             print(
                 f"[ERROR] Company '{company_name}' not found in DB, skipping {project}."
             )
             continue
 
-        existing_doc = get_existing_document(project)
-        if existing_doc and existing_doc["content_hash"] == content_hash:
+        # Check for existing document
+        existing_doc = data_provider.documents.get_document_by_project(project)
+        if existing_doc and existing_doc.content_hash == content_hash:
             print(f"[SKIP] {project}: No changes detected (hash match).")
             continue
 
-        if existing_doc and existing_doc["content_hash"] != content_hash:
+        if existing_doc and existing_doc.content_hash != content_hash:
             # Delete existing chunks for this document before re-ingesting
-            delete_chunks_by_document_id(existing_doc["id"])
+            data_provider.chunks.delete_chunks_by_document_id(existing_doc.id)
             print(f"[DELETE] {project}: Removed existing chunks for re-ingestion.")
 
-        data = {
-            "content": content,
-            "content_hash": content_hash,
-            "company_id": company_id,
-            "tags": tags,
-            "project": project,
-        }
-        resp = upsert_document(data)
-        if hasattr(resp, "status_code") and resp.status_code >= 400:
-            print(f"[ERROR] Upserting {project}: {resp}")
-            continue
-        else:
+        # Create document model
+        document = Document(
+            content=content,
+            content_hash=content_hash,
+            company_id=company_id,
+            tags=tags,
+            project=project,
+        )
+        
+        try:
+            upserted_doc = data_provider.documents.upsert_document(document)
             print(f"[UPSERT] {project}: Document upserted.")
+        except Exception as e:
+            print(f"[ERROR] Upserting {project}: {e}")
+            continue
 
-        # Fetch document ID (from upsert response or by querying)
-        doc_id = None
-        if hasattr(resp, "data") and resp.data and "id" in resp.data[0]:
-            doc_id = resp.data[0]["id"]
-        else:
-            # Fallback: query for document by project name
-            doc_row = get_existing_document(project)
-            if doc_row and "id" in doc_row:
-                doc_id = doc_row["id"]
-        if not doc_id:
+        if not upserted_doc.id:
             print(
                 f"[ERROR] Could not determine document ID for {project}, skipping chunk insert."
             )
             continue
 
         # Prepare chunk records for batch insert
-        chunks = chunk_markdown(content)
-        embeddings = embed_texts(chunks)
-        chunk_records = []
-        for chunk, embedding in zip(chunks, embeddings):
-            chunk_records.append(
-                {
-                    "content": chunk,
-                    "embedding": embedding,
-                    "tags": [],
-                    # "tags_embedding": tags_embedding,
-                    "document_id": doc_id,
-                    "type": "markdown",
-                }
-            )
-        if chunk_records:
+        chunks_text = chunk_markdown(content)
+        embeddings = embed_texts(chunks_text)
+        chunk_models = []
+        for chunk_text, embedding in zip(chunks_text, embeddings):
+            chunk_models.append(Chunk(
+                content=chunk_text,
+                embedding=embedding,
+                tags=[],
+                document_id=upserted_doc.id,
+                type="markdown",
+            ))
+        
+        if chunk_models:
             try:
-                chunk_resp = supabase.table("chunks").insert(chunk_records).execute()
-                if hasattr(chunk_resp, "status_code") and chunk_resp.status_code >= 400:
-                    print(f"[ERROR] Inserting chunks for {project}: {chunk_resp}")
-                else:
-                    print(f"[CHUNKS] {project}: Inserted {len(chunk_records)} chunks.")
+                inserted_chunks = data_provider.chunks.insert_chunks(chunk_models)
+                print(f"[CHUNKS] {project}: Inserted {len(inserted_chunks)} chunks.")
             except Exception as e:
                 print(f"[ERROR] Exception during chunk insert for {project}: {e}")
         else:
@@ -194,9 +158,12 @@ def test_update_on_hash_change():
 
 
 if __name__ == "__main__":
+    # Determine Supabase target
+    use_remote = "--remote" in sys.argv
+    
     if "--test" in sys.argv:
         test_ingest_new_document()
         test_skip_on_hash_match()
         test_update_on_hash_change()
     else:
-        ingest_documents()
+        ingest_documents(use_remote)
