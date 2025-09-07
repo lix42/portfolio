@@ -11,7 +11,9 @@ const joinPrompts = (prompts: unknown) =>
 export const systemPromptTags = joinPrompts(prompts.defineTags);
 
 // Prompt for evaluating and tagging software engineering behavioral interview questions.
-export const developerPromptTagQuestion = joinPrompts(prompts.judgeQuestionAndAddTags);
+export const developerPromptTagQuestion = joinPrompts(
+  prompts.preprocessQuestion
+);
 
 // Generates a user prompt for evaluating a behavioral interview question.
 export const generateUserPromptTagQuestion = (
