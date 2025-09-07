@@ -1,5 +1,4 @@
 import sys
-import os
 from supabase_client import get_supabase_client
 
 # Parse arguments
