@@ -1,11 +1,12 @@
 import json
 import os
 import re
+import tiktoken
 
 from openai_client import get_openai
-from config import MODEL
+from config import MODEL, INPUT_MAX_TOKENS
 
-__all__ = ["generate_tags"]
+__all__ = ["generate_tags", "batch_generate_tags"]
 
 
 PROMPTS_FILE = os.path.join(os.path.dirname(__file__), "../documents/prompts.json")
@@ -91,3 +92,151 @@ def generate_tags(content: str) -> list[str]:
     except Exception as e:
         print(f"[ERROR] OpenAI tag generation failed: {e}")
         return []
+
+def batch_generate_tags(contents: list[str]) -> list[list[str]]:
+    """
+    Generate tags for a list of document contents.
+
+    - Batches inputs into multiple API calls when combined token count would
+      exceed INPUT_MAX_TOKENS.
+    - If an individual item exceeds INPUT_MAX_TOKENS by itself, it will be skipped
+      and an empty tag list will be returned for that position.
+
+    Args:
+        contents (list[str]): A list of document contents.
+
+    Returns:
+        list[list[str]]: A list where each element is the list of tags for the
+        corresponding input content (same order/length as inputs).
+    """
+    if not contents:
+        return []
+
+    try:
+        enc = tiktoken.encoding_for_model(MODEL)
+
+        # Precompute token counts for each content
+        content_token_counts: list[int] = [
+            len(enc.encode(text or "")) for text in contents
+        ]
+
+        # Reserve some headroom for instructions/system and model response
+        FIXED_OVERHEAD_TOKENS = 800  # Estimated tokens for system prompt, user prompt instructions, and response formatting.
+        PER_ITEM_OVERHEAD_TOKENS = 24  # Estimated token overhead for each item's metadata in the batch prompt.
+
+        MAX_INPUT_BUDGET = max(1024, INPUT_MAX_TOKENS - FIXED_OVERHEAD_TOKENS)
+
+        # Prepare result buffer aligned to input indices
+        results: list[list[str]] = [[] for _ in contents]
+
+        # Identify items that are individually too large; skip them with a warning
+        indices_and_tokens = list(enumerate(content_token_counts))
+        process_queue = [
+            idx for idx, tks in indices_and_tokens if tks <= MAX_INPUT_BUDGET
+        ]
+        skipped_too_large = [
+            idx for idx, tks in indices_and_tokens if tks > MAX_INPUT_BUDGET
+        ]
+        for idx in skipped_too_large:
+            print(
+                f"[WARN] batch_generate_tags: Item {idx} tokens {content_token_counts[idx]} exceed limit {MAX_INPUT_BUDGET}; returning empty tags."
+            )
+
+        if not process_queue:
+            return results
+
+        system_prompt = _load_define_tags_prompt()
+        openai = get_openai()
+
+        # Pack items into batches under the token budget
+        batch: list[int] = []
+        batch_tokens = 0
+
+        def flush_batch(batch_indices: list[int]):
+            if not batch_indices:
+                return
+
+            # Build user prompt with explicit indexes to preserve mapping
+            parts: list[str] = [
+                "Generate suitable tags for each of the following document contents.",
+                "Return ONLY a JSON object with a 'results' array, where each item is",
+                'an object { "index": number, "tags": string[] }.',
+                "Use the provided index for each item. Do not include any text outside the JSON.",
+                "\n\nDocument contents:\n",
+            ]
+            for i in batch_indices:
+                parts.append(f"---\nindex: {i}\ncontent:\n{contents[i]}\n")
+            user_prompt = "\n".join(parts)
+
+            try:
+                response = openai.chat.completions.create(
+                    model=MODEL,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    response_format={"type": "json_object"},
+                    temperature=0.2,
+                )
+
+                content_str = (
+                    response.choices[0].message.content if response.choices else "{}"
+                )
+                try:
+                    data = json.loads(content_str)
+                except json.JSONDecodeError:
+                    match = re.search(r"\{[\s\S]*\}", content_str)
+                    try:
+                        data = json.loads(match.group(0)) if match else {"results": []}
+                    except json.JSONDecodeError:
+                        print(
+                            f"[ERROR] Could not parse extracted JSON from OpenAI response (batch {batch_indices}): {content_str}"
+                        )
+                        data = {"results": []}
+
+                raw_results = data.get("results", [])
+                if isinstance(raw_results, list):
+                    for item in raw_results:
+                        if isinstance(item, dict):
+                            idx = item.get("index")
+                            raw_tags = item.get("tags", [])
+                            if isinstance(idx, int) and 0 <= idx < len(results):
+                                results[idx] = _sanitize_tags(raw_tags)
+                        elif isinstance(item, list):
+                            # Fallback: results is list of tag lists in same order
+                            for j, tags in enumerate(raw_results):
+                                idx = (
+                                    batch_indices[j] if j < len(batch_indices) else None
+                                )
+                                if idx is not None:
+                                    results[idx] = _sanitize_tags(tags)
+                            break
+                else:
+                    print(
+                        f"[WARN] Unexpected 'results' format from OpenAI for batch {batch_indices}: {type(raw_results)}"
+                    )
+            except Exception as e:
+                print(
+                    f"[ERROR] OpenAI batch tag generation failed for batch {batch_indices}: {e}"
+                )
+
+        for idx in process_queue:
+            item_tokens = content_token_counts[idx] + PER_ITEM_OVERHEAD_TOKENS
+            if batch and batch_tokens + item_tokens > MAX_INPUT_BUDGET:
+                flush_batch(batch)
+                batch = []
+                batch_tokens = 0
+            batch.append(idx)
+            batch_tokens += item_tokens
+
+        # Flush any remaining items
+        flush_batch(batch)
+
+        return results
+    except Exception as e:
+        print(f"[ERROR] batch_generate_tags failed: {e}")
+        # Return empty lists on failure, preserving length
+        return [[] for _ in contents]
+
+
+# TODO: Implement more tests
