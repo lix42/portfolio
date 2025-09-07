@@ -10,7 +10,7 @@ const joinPrompts = (prompts: unknown) =>
 // System prompt describing the format and examples of tags for software engineering behavioral or leadership values.
 export const systemPromptTags = joinPrompts(prompts.defineTags);
 
-// Prompt for evaluating and tagging software engineering behavioral interview questions.
+// Prompt for evaluating and tagging software engineering interview questions.
 export const developerPromptTagQuestion = joinPrompts(
   prompts.preprocessQuestion
 );
