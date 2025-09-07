@@ -1,7 +1,6 @@
 import json
 import os
 import re
-from typing import List
 
 from openai_client import get_openai
 from config import MODEL
@@ -39,7 +38,7 @@ def _sanitize_tags(raw_tags) -> list[str]:
         return []
 
     seen = set()
-    result: List[str] = []
+    result: list[str] = []
     for item in raw_tags:
         if not isinstance(item, str):
             continue
