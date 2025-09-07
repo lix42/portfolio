@@ -3,6 +3,7 @@ import tiktoken
 from nltk.tokenize import sent_tokenize
 import nltk
 from config import MODEL, CHUNK_MAX_TOKENS
+from generate_tags import batch_generate_tags
 from data_access import DataAccessProvider, Chunk
 from embedding import embed_texts
 
@@ -143,14 +144,16 @@ def ingest_chunks(
         return 0
 
     embeddings = embed_texts(chunks_text)
+    # Generate tags for each chunk in token-aware batches
+    chunk_tags: list[list[str]] = batch_generate_tags(chunks_text)
+
     chunk_models: list[Chunk] = []
-    for chunk_text, embedding in zip(chunks_text, embeddings):
+    for index, (chunk_text, embedding) in enumerate(zip(chunks_text, embeddings)):
         chunk_models.append(
             Chunk(
                 content=chunk_text,
                 embedding=embedding,
-                # TODO: use OpenAI to generate tags
-                tags=[],
+                tags=chunk_tags[index] if index < len(chunk_tags) else [],
                 document_id=document_id,
                 type=chunk_type,
             )
@@ -224,7 +227,7 @@ More text here.
 ### Section
 Even more text.
 """
-    chunks = chunk_markdown(md, max_tokens=100)
+    chunks = _chunk_markdown(md, max_tokens=100)
     print(chunks)
     assert any("Title" in c for c in chunks), "Should include h1 header"
     assert any("Subtitle" in c for c in chunks), "Should include h2 header"
@@ -233,11 +236,11 @@ Even more text.
     # Markdown with a long section to force chunking
     long_text = " ".join(["Sentence %d." % i for i in range(50)])
     md = f"# Title\n{long_text}"
-    chunks = chunk_markdown(md, max_tokens=10)  # Force small chunks
+    chunks = _chunk_markdown(md, max_tokens=10)  # Force small chunks
     assert len(chunks) > 1, "Long markdown should be chunked"
 
     # Edge: empty markdown
-    chunks = chunk_markdown("", max_tokens=10)
+    chunks = _chunk_markdown("", max_tokens=10)
     assert chunks == [], "Empty markdown should return empty list"
 
     print("test_chunk_markdown passed.")
