@@ -29,7 +29,7 @@ class OpenAIChatCompletionService(ChatCompletionService):
         self, request: ChatCompletionRequest
     ) -> ChatCompletionResponse:
         """Create a chat completion using OpenAI API."""
-        client = self._client()
+        client = self._client
 
         # Convert our message format to OpenAI format
         openai_messages = [
@@ -54,7 +54,6 @@ class OpenAIChatCompletionService(ChatCompletionService):
             content = response.choices[0].message.content if response.choices else ""
             usage = response.usage.model_dump() if response.usage else None
 
-            # TODO: This implementation is waiting for a manual test to verify
             return ChatCompletionResponse(
                 content=content, model=response.model, usage=usage
             )
@@ -70,7 +69,7 @@ class OpenAIEmbeddingService(EmbeddingService):
 
     def create_embeddings(self, request: EmbeddingRequest) -> EmbeddingResponse:
         """Generate embeddings using OpenAI API."""
-        client = self._client()
+        client = self._client
 
         try:
             response = client.embeddings.create(
