@@ -1,32 +1,5 @@
 {
   "project": "WebForms",
   "document": "./webforms.md",
-  "company": "DocuSign",
-  "tags": [
-    "frontend-architecture",
-    "react-performance",
-    "typescript-advanced-types",
-    "expression-engine",
-    "component-rendering",
-    "form-builder",
-    "json-data-model",
-    "monorepo-structure",
-    "design-principles",
-    "scalable-architecture",
-    "data-validation",
-    "modular-design",
-    "performance-optimization",
-    "cross-functional-collaboration",
-    "technical-ownership",
-    "conflict-resolution",
-    "communication-skills",
-    "mentorship",
-    "a11y",
-    "inclusive-design",
-    "keyboard-navigation",
-    "mobile-optimization",
-    "user-centered-design",
-    "product-launch",
-    "docusign-integration"
-  ]
+  "company": "DocuSign"
 }
