@@ -8,7 +8,7 @@ making it perfect for unit testing without requiring API calls.
 import json
 import hashlib
 from typing import Dict, List, Any, Optional, Callable
-from llm_service import (
+from llm_provider import (
     LLMServiceProvider,
     ChatCompletionService,
     EmbeddingService, 
@@ -67,7 +67,7 @@ class FakeChatCompletionService(ChatCompletionService):
         
         return ChatCompletionResponse(
             content=content,
-            model=request.model,
+            model="fake-model",
             usage={"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15}
         )
     
@@ -129,7 +129,7 @@ class FakeEmbeddingService(EmbeddingService):
         
         return EmbeddingResponse(
             embeddings=embeddings,
-            model=request.model,
+            model="fake-embedding-model",
             usage={"prompt_tokens": len(request.texts), "total_tokens": len(request.texts)}
         )
     

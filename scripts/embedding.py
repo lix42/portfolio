@@ -1,5 +1,5 @@
-from openai_llm_service import OpenAIServiceProvider
-from llm_service import EmbeddingRequest
+from openai_llm_provider import OpenAIServiceProvider
+from llm_provider import EmbeddingRequest
 
 __all__ = ["embed_texts"]
 
@@ -19,8 +19,7 @@ def embed_texts(texts: list[str], llm_provider=None) -> list[list[float]]:
         llm_provider = OpenAIServiceProvider()
     
     request = EmbeddingRequest(
-        texts=texts,
-        model="text-embedding-3-small"
+        texts=texts
     )
     
     response = llm_provider.embeddings.create_embeddings(request)

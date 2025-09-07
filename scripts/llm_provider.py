@@ -28,8 +28,6 @@ class ChatMessage:
 class ChatCompletionRequest:
     """Request parameters for chat completions."""
     messages: List[ChatMessage]
-    model: str
-    temperature: float = 0.7
     response_format: Optional[ResponseFormat] = None
 
 
@@ -45,7 +43,6 @@ class ChatCompletionResponse:
 class EmbeddingRequest:
     """Request parameters for text embeddings."""
     texts: List[str]
-    model: str = "text-embedding-3-small"
 
 
 @dataclass

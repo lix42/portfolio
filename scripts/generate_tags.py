@@ -76,8 +76,6 @@ def generate_tags(content: str, llm_provider=None) -> list[str]:
                 ChatMessage(role="system", content=system_prompt),
                 ChatMessage(role="user", content=user_prompt),
             ],
-            model=MODEL,
-            temperature=0.2,
             response_format=ResponseFormat.JSON_OBJECT,
         )
 

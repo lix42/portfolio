@@ -1,3 +1,4 @@
 MODEL = "gpt-4o"
+EMBEDDING_MODEL = "text-embedding-3-small"
 CHUNK_MAX_TOKENS = 800
 INPUT_MAX_TOKENS = 64000
