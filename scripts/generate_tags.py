@@ -121,8 +121,9 @@ def batch_generate_tags(contents: list[str]) -> list[list[str]]:
         ]
 
         # Reserve some headroom for instructions/system and model response
-        FIXED_OVERHEAD_TOKENS = 800
-        PER_ITEM_OVERHEAD_TOKENS = 24
+        FIXED_OVERHEAD_TOKENS = 800  # Estimated tokens for system prompt, user prompt instructions, and response formatting.
+        PER_ITEM_OVERHEAD_TOKENS = 24  # Estimated token overhead for each item's metadata in the batch prompt.
+
         MAX_INPUT_BUDGET = max(1024, INPUT_MAX_TOKENS - FIXED_OVERHEAD_TOKENS)
 
         # Prepare result buffer aligned to input indices
