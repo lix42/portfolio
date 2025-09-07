@@ -13,11 +13,10 @@ import glob
 import hashlib
 import tiktoken
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from embedding import embed_texts
 from supabase_client import get_supabase_client
 from supabase_data_access import SupabaseDataAccessProvider
-from data_access import DataAccessProvider, Document, Chunk
-from chunk import chunk_markdown
+from data_access import DataAccessProvider, Document
+from chunk import ingest_chunks
 from generate_tags import generate_tags
 from config import MODEL, INPUT_MAX_TOKENS
 
@@ -142,9 +141,7 @@ def ingest_documents(
                 print(f"[SKIP] {project}: No changes detected (hash match).")
                 continue
 
-            if existing_doc and existing_doc.content_hash != content_hash:
-                data_provider.chunks.delete_chunks_by_document_id(existing_doc.id)
-                print(f"[DELETE] {project}: Removed existing chunks for re-ingestion.")
+            # Deleting existing chunks now handled inside ingest_chunks
 
             document = Document(
                 content=content,
@@ -167,30 +164,12 @@ def ingest_documents(
                 )
                 continue
 
-            chunks_text = chunk_markdown(content)
-            embeddings = embed_texts(chunks_text)
-            chunk_models = []
-            for chunk_text, embedding in zip(chunks_text, embeddings):
-                chunk_models.append(
-                    Chunk(
-                        content=chunk_text,
-                        embedding=embedding,
-                        tags=[],
-                        document_id=upserted_doc.id,
-                        type="markdown",
-                    )
-                )
-
-            if chunk_models:
-                try:
-                    inserted_chunks = data_provider.chunks.insert_chunks(chunk_models)
-                    print(
-                        f"[CHUNKS] {project}: Inserted {len(inserted_chunks)} chunks."
-                    )
-                except Exception as e:
-                    print(f"[ERROR] Exception during chunk insert for {project}: {e}")
-            else:
-                print(f"[CHUNKS] {project}: No chunks to insert.")
+            ingest_chunks(
+                content=content,
+                document_id=upserted_doc.id,
+                data_provider=data_provider,
+                project=project,
+            )
     print("Ingestion complete.")
 
 
