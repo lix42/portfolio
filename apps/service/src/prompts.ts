@@ -1,6 +1,6 @@
 import prompts from "@documents/prompts.json";
 
-const joinPrompts = (prompts: unknown[]) =>
+const joinPrompts = (prompts: unknown) =>
   Array.isArray(prompts)
     ? prompts.join("\n")
     : typeof prompts === "string"
