@@ -3,10 +3,15 @@ import os
 import re
 import tiktoken
 
-from openai_client import get_openai
-from openai_llm_service import OpenAIServiceProvider
-from llm_service import ChatMessage, ChatCompletionRequest, ResponseFormat
 from config import MODEL, INPUT_MAX_TOKENS
+from typing import Optional
+from openai_llm_provider import OpenAIServiceProvider
+from llm_provider import (
+    LLMServiceProvider,
+    ChatMessage,
+    ChatCompletionRequest,
+    ResponseFormat,
+)
 
 __all__ = ["generate_tags", "batch_generate_tags"]
 
@@ -56,7 +61,9 @@ def _sanitize_tags(raw_tags) -> list[str]:
     return result
 
 
-def generate_tags(content: str, llm_provider=None) -> list[str]:
+def generate_tags(
+    content: str, llm_provider: Optional[LLMServiceProvider] = None
+) -> list[str]:
     """Generate tags for the given document content using LLM service."""
     try:
         # Use provided LLM provider or default to OpenAI

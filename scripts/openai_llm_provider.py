@@ -23,17 +23,13 @@ class OpenAIChatCompletionService(ChatCompletionService):
     """OpenAI implementation of chat completion service."""
 
     def __init__(self):
-        self._client = None
+        self._client = get_openai()
 
-    def _get_client(self):
-        """Lazy initialization of OpenAI client."""
-        if self._client is None:
-            self._client = get_openai()
-        return self._client
-
-    def create_completion(self, request: ChatCompletionRequest) -> ChatCompletionResponse:
+    def create_completion(
+        self, request: ChatCompletionRequest
+    ) -> ChatCompletionResponse:
         """Create a chat completion using OpenAI API."""
-        client = self._get_client()
+        client = self._client()
 
         # Convert our message format to OpenAI format
         openai_messages = [
@@ -56,15 +52,11 @@ class OpenAIChatCompletionService(ChatCompletionService):
             response = client.chat.completions.create(**api_params)
 
             content = response.choices[0].message.content if response.choices else ""
-            usage = (
-                response.usage._asdict() if hasattr(response.usage, "_asdict") else None
-            )
+            usage = response.usage.model_dump() if response.usage else None
 
             # TODO: This implementation is waiting for a manual test to verify
             return ChatCompletionResponse(
-                content=content,
-                model=response.model,
-                usage=usage
+                content=content, model=response.model, usage=usage
             )
         except Exception as e:
             raise RuntimeError(f"OpenAI chat completion failed: {e}") from e
@@ -74,33 +66,22 @@ class OpenAIEmbeddingService(EmbeddingService):
     """OpenAI implementation of embedding service."""
 
     def __init__(self):
-        self._client = None
-
-    def _get_client(self):
-        """Lazy initialization of OpenAI client."""
-        if self._client is None:
-            self._client = get_openai()
-        return self._client
+        self._client = get_openai()
 
     def create_embeddings(self, request: EmbeddingRequest) -> EmbeddingResponse:
         """Generate embeddings using OpenAI API."""
-        client = self._get_client()
+        client = self._client()
 
         try:
             response = client.embeddings.create(
-                input=request.texts,
-                model=EMBEDDING_MODEL
+                input=request.texts, model=EMBEDDING_MODEL
             )
 
             embeddings = [data.embedding for data in response.data]
-            usage = (
-                response.usage._asdict() if hasattr(response.usage, "_asdict") else None
-            )
+            usage = response.usage.model_dump() if response.usage else None
 
             return EmbeddingResponse(
-                embeddings=embeddings,
-                model=response.model,
-                usage=usage
+                embeddings=embeddings, model=response.model, usage=usage
             )
         except Exception as e:
             raise RuntimeError(f"OpenAI embedding generation failed: {e}") from e

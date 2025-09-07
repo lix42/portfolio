@@ -1,9 +1,13 @@
+from typing import Optional
 from openai_llm_provider import OpenAIServiceProvider
-from llm_provider import EmbeddingRequest
+from llm_provider import EmbeddingRequest, LLMServiceProvider
 
 __all__ = ["embed_texts"]
 
-def embed_texts(texts: list[str], llm_provider=None) -> list[list[float]]:
+
+def embed_texts(
+    texts: list[str], llm_provider: Optional[LLMServiceProvider] = None
+) -> list[list[float]]:
     """
     Generate embeddings for a list of input texts using LLM service.
 
@@ -17,10 +21,8 @@ def embed_texts(texts: list[str], llm_provider=None) -> list[list[float]]:
     # Use provided LLM provider or default to OpenAI
     if llm_provider is None:
         llm_provider = OpenAIServiceProvider()
-    
-    request = EmbeddingRequest(
-        texts=texts
-    )
-    
+
+    request = EmbeddingRequest(texts=texts)
+
     response = llm_provider.embeddings.create_embeddings(request)
     return response.embeddings
