@@ -4,6 +4,7 @@ import re
 from typing import List
 
 from openai_client import get_openai
+from config import MODEL
 
 __all__ = ["generate_tags"]
 
@@ -32,7 +33,7 @@ def _load_define_tags_prompt() -> str:
     )
 
 
-def _sanitize_tags(raw_tags) -> list:
+def _sanitize_tags(raw_tags) -> list[str]:
     """Normalize and sanitize tags to lowercase snake_case strings and deduplicate while preserving order."""
     if not isinstance(raw_tags, list):
         return []
@@ -52,7 +53,6 @@ def _sanitize_tags(raw_tags) -> list:
         result.append(tag)
     return result
 
-
 def generate_tags(content: str) -> list:
     """Call OpenAI to generate tags for the given document content using defineTags as system prompt."""
     try:
@@ -65,7 +65,7 @@ def generate_tags(content: str) -> list:
 
         openai = get_openai()
         response = openai.chat.completions.create(
-            model="gpt-4o",
+            model=MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},

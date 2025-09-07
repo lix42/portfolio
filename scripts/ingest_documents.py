@@ -11,12 +11,14 @@ import json
 import os
 import glob
 import hashlib
+import tiktoken
 from embedding import embed_texts
 from supabase_client import get_supabase_client
 from supabase_data_access import SupabaseDataAccessProvider
 from data_access import DataAccessProvider, Document, Chunk
 from chunk import chunk_markdown
 from generate_tags import generate_tags
+from config import MODEL, INPUT_MAX_TOKENS
 
 __all__ = ["ingest_documents"]
 
@@ -74,6 +76,18 @@ def ingest_documents(
                 content = f.read()
         except Exception as e:
             print(f"[ERROR] Failed to read {doc_file_path}: {e}")
+            continue
+
+        # Validate content length and emptiness before further processing
+        if not isinstance(content, str) or not content.strip():
+            print(f"[ERROR] {project}: Empty document content, skipping.")
+            continue
+        enc = tiktoken.encoding_for_model(MODEL)
+        token_count = len(enc.encode(content))
+        if token_count > INPUT_MAX_TOKENS:
+            print(
+                f"[ERROR] {project}: Content tokens {token_count} exceed limit {INPUT_MAX_TOKENS}, skipping."
+            )
             continue
 
         # Generate tags from document content using OpenAI

@@ -2,6 +2,7 @@ from langchain.text_splitter import MarkdownHeaderTextSplitter
 import tiktoken
 from nltk.tokenize import sent_tokenize
 import nltk
+from config import MODEL, CHUNK_MAX_TOKENS
 
 __all__ = ["chunk_markdown"]
 
@@ -17,7 +18,9 @@ def _build_chunk_context_header(metadata: dict, part: int = None) -> str:
     return header
 
 
-def _chunk_text_by_sentences(text: str, max_tokens: int = 800) -> list[str]:
+def _chunk_text_by_sentences(
+    text: str, max_tokens: int = CHUNK_MAX_TOKENS
+) -> list[str]:
     """
     Splits the input text into chunks based on sentences, ensuring that each chunk
     does not exceed the specified maximum number of tokens.
@@ -30,7 +33,7 @@ def _chunk_text_by_sentences(text: str, max_tokens: int = 800) -> list[str]:
         list[str]: A list of text chunks, each containing one or more sentences and not exceeding max_tokens.
     """
     # Initialize the tokenizer for the specified model
-    enc = tiktoken.encoding_for_model("gpt-4o")
+    enc = tiktoken.encoding_for_model(MODEL)
     # Download the NLTK 'punkt' tokenizer data (if not already present)
     nltk.download("punkt")
     # Split the text into sentences
@@ -56,7 +59,7 @@ def _chunk_text_by_sentences(text: str, max_tokens: int = 800) -> list[str]:
     return chunks
 
 
-def chunk_markdown(markdown_text: str, max_tokens: int = 800) -> list[str]:
+def chunk_markdown(markdown_text: str, max_tokens: int = CHUNK_MAX_TOKENS) -> list[str]:
     """
     Splits a Markdown document into context-aware text chunks suitable for embedding or storage.
 
@@ -77,8 +80,8 @@ def chunk_markdown(markdown_text: str, max_tokens: int = 800) -> list[str]:
     splitter = MarkdownHeaderTextSplitter(
         headers_to_split_on=[("#", "h1"), ("##", "h2"), ("###", "h3")]
     )
-    # Use the cl100k_base encoding for token counting
-    enc = tiktoken.get_encoding("cl100k_base")
+    # Use the model-specific encoding for token counting
+    enc = tiktoken.encoding_for_model(MODEL)
     docs = splitter.split_text(markdown_text)
 
     for doc in docs:
