@@ -4,9 +4,10 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "lib": [ "ESNext" ],
+    "lib": ["ESNext"],
     "types": ["vite/client"],
     "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx"
+    "jsxImportSource": "hono/jsx",
+    "resolveJsonModule": true
   },
 }
