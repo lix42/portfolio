@@ -14,5 +14,11 @@
     "noImplicitReturns": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
+    "paths": {
+      "@/*": ["./apps/*"],
+      "@service/*": ["./apps/service/*"],
+      "@ui/*": ["./apps/ui/*"],
+      "@documents/*": ["./documents/*"]
+    }
   }
 }
