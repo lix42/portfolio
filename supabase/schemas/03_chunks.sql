@@ -20,7 +20,7 @@ create index on chunks using hnsw (embedding vector_cosine_ops);
 create index if not exists chunks_tags_gin_idx on chunks using gin(tags);
 create index on chunks using hnsw (tags_embedding vector_cosine_ops);
 
-create or replace function match_chunks (
+create or replace function match_chunks_by_embedding (
   query_embedding vector,
   match_threshold float,
   match_count int
@@ -40,3 +40,39 @@ language sql stable as $$
   order by embedding <=> query_embedding asc
   limit match_count;
 $$;
+
+create or replace function match_chunks_by_tags (input_tags text [], top_k int) RETURNS TABLE (
+    id uuid,
+    content text,
+    tags text [],
+    matched_tags text []
+  ) as $$
+begin
+  return query
+  select i.id,
+    i.content,
+    i.tags,
+    array(
+      select unnest(i.tags)
+      intersect
+      select unnest(input_tags)
+    ) as matched_tags,
+    cardinality(
+      array(
+        select unnest(i.tags)
+        intersect
+        select unnest(input_tags)
+      )
+    ) as match_count
+  from chunks i
+  where cardinality(
+      array(
+        select unnest(i.tags)
+        intersect
+        select unnest(input_tags)
+      )
+    ) > 0
+  order by match_count desc
+  limit top_k;
+end;
+$$ language plpgsql;
