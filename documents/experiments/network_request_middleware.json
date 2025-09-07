@@ -1,30 +1,5 @@
 {
   "project": "Network Request Middleware",
   "document": "./network_request_middleware.md",
-  "company": "Databricks",
-  "tags": [
-    "Ownership",
-    "Invent and Simplify",
-    "Bias for Action",
-    "Earn Trust",
-    "Dive Deep",
-    "Insist on the Highest Standards",
-    "Think Big",
-    "Customer Obsession",
-    "Learn and Be Curious",
-    "Deliver Results",
-    "Frontend Infrastructure",
-    "Micro Frontends",
-    "Cross-Workspace Architecture",
-    "TypeScript",
-    "RPC Architecture",
-    "Network Request Abstraction",
-    "Observability",
-    "Streaming Support",
-    "Binary Response Handling",
-    "CSRF Management",
-    "Session Management",
-    "GraphQL Integration",
-    "Multi-Team Collaboration"
-  ]
+  "company": "Databricks"
 }
