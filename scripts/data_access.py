@@ -7,9 +7,8 @@ making the code more testable by decoupling business logic from Supabase client.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 from datetime import date, datetime
-import uuid
 
 
 @dataclass

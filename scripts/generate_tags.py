@@ -53,7 +53,7 @@ def _sanitize_tags(raw_tags) -> list[str]:
         result.append(tag)
     return result
 
-def generate_tags(content: str) -> list:
+def generate_tags(content: str) -> list[str]:
     """Call OpenAI to generate tags for the given document content using defineTags as system prompt."""
     try:
         system_prompt = _load_define_tags_prompt()
