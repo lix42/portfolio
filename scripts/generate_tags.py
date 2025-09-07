@@ -4,6 +4,8 @@ import re
 import tiktoken
 
 from openai_client import get_openai
+from openai_llm_service import OpenAIServiceProvider
+from llm_service import ChatMessage, ChatCompletionRequest, ResponseFormat
 from config import MODEL, INPUT_MAX_TOKENS
 
 __all__ = ["generate_tags", "batch_generate_tags"]
@@ -53,9 +55,14 @@ def _sanitize_tags(raw_tags) -> list[str]:
         result.append(tag)
     return result
 
-def generate_tags(content: str) -> list[str]:
-    """Call OpenAI to generate tags for the given document content using defineTags as system prompt."""
+
+def generate_tags(content: str, llm_provider=None) -> list[str]:
+    """Generate tags for the given document content using LLM service."""
     try:
+        # Use provided LLM provider or default to OpenAI
+        if llm_provider is None:
+            llm_provider = OpenAIServiceProvider()
+
         system_prompt = _load_define_tags_prompt()
         user_prompt = (
             "Generate suitable tags for the following document content. "
@@ -63,18 +70,20 @@ def generate_tags(content: str) -> list[str]:
             f"Document content:\n{content}"
         )
 
-        openai = get_openai()
-        response = openai.chat.completions.create(
-            model=MODEL,
+        # Create chat completion request
+        request = ChatCompletionRequest(
             messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
+                ChatMessage(role="system", content=system_prompt),
+                ChatMessage(role="user", content=user_prompt),
             ],
-            response_format={"type": "json_object"},
+            model=MODEL,
             temperature=0.2,
+            response_format=ResponseFormat.JSON_OBJECT,
         )
 
-        content_str = response.choices[0].message.content if response.choices else "{}"
+        response = llm_provider.chat.create_completion(request)
+        content_str = response.content or "{}"
+
         try:
             data = json.loads(content_str)
         except json.JSONDecodeError:
@@ -84,14 +93,15 @@ def generate_tags(content: str) -> list[str]:
                 data = json.loads(match.group(0)) if match else {"tags": []}
             except json.JSONDecodeError:
                 print(
-                    f"[ERROR] Could not parse extracted JSON from OpenAI response: {content_str}"
+                    f"[ERROR] Could not parse extracted JSON from LLM response: {content_str}"
                 )
                 data = {"tags": []}
         tags = _sanitize_tags(data.get("tags", []))
         return tags
     except Exception as e:
-        print(f"[ERROR] OpenAI tag generation failed: {e}")
+        print(f"[ERROR] LLM tag generation failed: {e}")
         return []
+
 
 def batch_generate_tags(contents: list[str]) -> list[list[str]]:
     """
@@ -122,7 +132,9 @@ def batch_generate_tags(contents: list[str]) -> list[list[str]]:
 
         # Reserve some headroom for instructions/system and model response
         FIXED_OVERHEAD_TOKENS = 800  # Estimated tokens for system prompt, user prompt instructions, and response formatting.
-        PER_ITEM_OVERHEAD_TOKENS = 24  # Estimated token overhead for each item's metadata in the batch prompt.
+        PER_ITEM_OVERHEAD_TOKENS = (
+            24  # Estimated token overhead for each item's metadata in the batch prompt.
+        )
 
         MAX_INPUT_BUDGET = max(1024, INPUT_MAX_TOKENS - FIXED_OVERHEAD_TOKENS)
 
