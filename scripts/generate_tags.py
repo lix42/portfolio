@@ -21,6 +21,10 @@ def _load_define_tags_prompt() -> str:
             return "\n".join(define_tags)
         if isinstance(define_tags, str):
             return define_tags
+    except FileNotFoundError:
+        print(f"[ERROR] Prompts file not found: {PROMPTS_FILE}")
+    except json.JSONDecodeError as e:
+        print(f"[ERROR] Failed to parse JSON from {PROMPTS_FILE}: {e}")
     except Exception as e:
         print(f"[ERROR] Failed to load defineTags prompt from {PROMPTS_FILE}: {e}")
     return (
@@ -73,11 +77,16 @@ def generate_tags(content: str) -> list:
         content_str = response.choices[0].message.content if response.choices else "{}"
         try:
             data = json.loads(content_str)
-        except Exception:
+        except json.JSONDecodeError:
             # Attempt to extract JSON object from any surrounding text
             match = re.search(r"\{[\s\S]*\}", content_str)
-            data = json.loads(match.group(0)) if match else {"tags": []}
-
+            try:
+                data = json.loads(match.group(0)) if match else {"tags": []}
+            except json.JSONDecodeError:
+                print(
+                    f"[ERROR] Could not parse extracted JSON from OpenAI response: {content_str}"
+                )
+                data = {"tags": []}
         tags = _sanitize_tags(data.get("tags", []))
         return tags
     except Exception as e:
