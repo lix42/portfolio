@@ -268,4 +268,3 @@ def batch_generate_tags(
         return [[] for _ in contents]
 
 
-# TODO: Implement more tests
