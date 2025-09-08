@@ -41,38 +41,36 @@ language sql stable as $$
   limit match_count;
 $$;
 
-create or replace function match_chunks_by_tags (input_tags text [], top_k int) RETURNS TABLE (
-    id uuid,
-    content text,
-    tags text [],
-    matched_tags text []
-  ) as $$
-begin
-  return query
-  select i.id,
-    i.content,
-    i.tags,
-    array(
-      select unnest(i.tags)
-      intersect
-      select unnest(input_tags)
-    ) as matched_tags,
-    cardinality(
+create or replace function match_chunks_by_tags (
+  input_tags text [],
+  top_k int
+)
+returns table (
+  id uuid,
+  content text,
+  tags text [],
+  matched_tags text []
+)
+language sql stable as $$
+  with tag_matches as (
+    select
+      id,
+      content,
+      tags,
       array(
-        select unnest(i.tags)
+        select unnest(tags)
         intersect
         select unnest(input_tags)
-      )
-    ) as match_count
-  from chunks i
-  where cardinality(
-      array(
-        select unnest(i.tags)
-        intersect
-        select unnest(input_tags)
-      )
-    ) > 0
-  order by match_count desc
+      ) as matched_tags
+    from chunks
+  )
+  select
+    id,
+    content,
+    tags,
+    matched_tags
+  from tag_matches
+  where cardinality(matched_tags) > 0
+  order by cardinality(matched_tags) desc
   limit top_k;
-end;
-$$ language plpgsql;
+$$;
