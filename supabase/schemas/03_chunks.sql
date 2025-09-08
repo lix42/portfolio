@@ -20,7 +20,7 @@ create index on chunks using hnsw (embedding vector_cosine_ops);
 create index if not exists chunks_tags_gin_idx on chunks using gin(tags);
 create index on chunks using hnsw (tags_embedding vector_cosine_ops);
 
-create or replace function match_chunks (
+create or replace function match_chunks_by_embedding (
   query_embedding vector,
   match_threshold float,
   match_count int
@@ -39,4 +39,38 @@ language sql stable as $$
   where embedding <=> query_embedding < 1 - match_threshold
   order by embedding <=> query_embedding asc
   limit match_count;
+$$;
+
+create or replace function match_chunks_by_tags (
+  input_tags text [],
+  top_k int
+)
+returns table (
+  id uuid,
+  content text,
+  tags text [],
+  matched_tags text []
+)
+language sql stable as $$
+  with tag_matches as (
+    select
+      id,
+      content,
+      tags,
+      array(
+        select unnest(tags)
+        intersect
+        select unnest(input_tags)
+      ) as matched_tags
+    from chunks
+  )
+  select
+    id,
+    content,
+    tags,
+    matched_tags
+  from tag_matches
+  where cardinality(matched_tags) > 0
+  order by cardinality(matched_tags) desc
+  limit top_k;
 $$;
