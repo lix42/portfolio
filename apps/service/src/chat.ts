@@ -85,8 +85,8 @@ app.post("/", zValidator("json", schema), async (c) => {
   }
 
   // Perform semantic search against the knowledge base using the generated embedding
-  // The match_chunks RPC function finds the most similar content chunks
-  const response = await supabaseClient.rpc("match_chunks", {
+  // The match_chunks_by_embedding RPC function finds the most similar content chunks
+  const response = await supabaseClient.rpc("match_chunks_by_embedding", {
     query_embedding: embedding, // Vector embedding to compare against stored chunks
     match_threshold: 0.2, // Similarity threshold (0.2 = 20% similarity minimum)
     match_count: 5, // Maximum number of matching chunks to return
