@@ -52,7 +52,7 @@ def _sanitize_tags(raw_tags) -> list[str]:
             continue
         tag = item.strip().lower()
         tag = tag.replace("-", "_").replace(" ", "_")
-        tag = re.sub(r"[^a-z0-9_]", "", tag)
+        tag = re.sub(r"[^a-z0-9_+]", "", tag)
         tag = re.sub(r"_+", "_", tag).strip("_")
         if not tag or tag in seen:
             continue
