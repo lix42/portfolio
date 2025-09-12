@@ -58,8 +58,10 @@ class FakeChatCompletionService(ChatCompletionService):
             # Try to find a specific response or use default
             content = self._responses.get(key, self._responses.get("default", '{"tags": ["test_tag"]}'))
         
-        # For JSON format, ensure response is valid JSON
-        if request.response_format == ResponseFormat.JSON_OBJECT:
+        # For JSON format, ensure response is valid JSON only if it's not intentionally invalid for testing
+        # Allow some responses that contain embedded JSON for testing extraction
+        skip_correction = content in ["invalid json response"] or 'Here are the tags:' in content
+        if request.response_format == ResponseFormat.JSON_OBJECT and not skip_correction:
             try:
                 json.loads(content)  # Validate it's valid JSON
             except json.JSONDecodeError:

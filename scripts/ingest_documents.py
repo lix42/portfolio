@@ -173,23 +173,6 @@ def ingest_documents(
     print("Ingestion complete.")
 
 
-# TODO: Implement these tests
-def _test_ingest_new_document():
-    """Test: Insert a new document and verify it appears in the DB."""
-    # This is a stub. In a real test, you would use a test DB or mock supabase.
-    print("[TEST] test_ingest_new_document: Manual verification required.")
-
-
-def _test_skip_on_hash_match():
-    """Test: Ingest same document twice, second time should skip."""
-    print("[TEST] test_skip_on_hash_match: Manual verification required.")
-
-
-def _test_update_on_hash_change():
-    """Test: Change content, re-ingest, should update document."""
-    print("[TEST] test_update_on_hash_change: Manual verification required.")
-
-
 if __name__ == "__main__":
     # Determine Supabase target
     use_remote = "--remote" in sys.argv
@@ -205,9 +188,4 @@ if __name__ == "__main__":
                 f"[WARN] Invalid --concurrency value, using default {concurrency}: {e}"
             )
 
-    if "--test" in sys.argv:
-        _test_ingest_new_document()
-        _test_skip_on_hash_match()
-        _test_update_on_hash_change()
-    else:
-        ingest_documents(use_remote=use_remote, concurrency=concurrency)
+    ingest_documents(use_remote=use_remote, concurrency=concurrency)
