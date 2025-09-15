@@ -28,13 +28,15 @@ create or replace function match_chunks_by_embedding (
 returns table (
   id uuid,
   content text,
-  similarity float
+  similarity float,
+  document_id uuid
 )
 language sql stable as $$
   select
     id,
     content,
-    1 - (embedding <=> query_embedding) as similarity
+    1 - (embedding <=> query_embedding) as similarity,
+    document_id
   from chunks
   where embedding <=> query_embedding < 1 - match_threshold
   order by embedding <=> query_embedding asc
@@ -49,7 +51,8 @@ returns table (
   id uuid,
   content text,
   tags text [],
-  matched_tags text []
+  matched_tags text [],
+  document_id uuid
 )
 language sql stable as $$
   with tag_matches as (
@@ -61,14 +64,16 @@ language sql stable as $$
         select unnest(tags)
         intersect
         select unnest(input_tags)
-      ) as matched_tags
+      ) as matched_tags,
+      document_id
     from chunks
   )
   select
     id,
     content,
     tags,
-    matched_tags
+    matched_tags,
+    document_id
   from tag_matches
   where cardinality(matched_tags) > 0
   order by cardinality(matched_tags) desc
