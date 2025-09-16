@@ -67,6 +67,7 @@ language sql stable as $$
       ) as matched_tags,
       document_id
     from chunks
+    where tags && input_tags
   )
   select
     id,
@@ -75,7 +76,6 @@ language sql stable as $$
     matched_tags,
     document_id
   from tag_matches
-  where cardinality(matched_tags) > 0
   order by cardinality(matched_tags) desc
   limit top_k;
 $$;
