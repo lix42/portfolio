@@ -11,12 +11,30 @@ const joinPrompts = (prompts: unknown) =>
 export const systemPromptTags = joinPrompts(prompts.defineTags);
 
 // Prompt for evaluating and tagging software engineering interview questions.
-export const developerPromptTagQuestion = joinPrompts(
+export const developerPromptProcessQuestion = joinPrompts(
   prompts.preprocessQuestion
 );
 
 // Generates a user prompt for evaluating a behavioral interview question.
-export const generateUserPromptTagQuestion = (
+export const generateUserPromptProcessQuestion = (
   text: string
 ): string => `Evaluate the following interview question:
 "${text}"`;
+
+// Prompt for answering questions based on the provided context.
+export const systemPromptAnswerQuestion = joinPrompts(prompts.answerQuestion);
+
+// Generates a user prompt for answering questions based on the provided context.
+export const generateUserPromptAnswerQuestion = (
+  context: string[],
+  question: string
+): string => `Answer the following question based on the provided context:
+Context:
+"""
+${context.join("\n\n")}
+"""
+
+Question:
+"""
+${question}
+"""`;

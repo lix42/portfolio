@@ -12,7 +12,12 @@ import { zValidator } from "@hono/zod-validator";
 import OpenAI from "openai";
 import { embed } from "./embed";
 import { createClient } from "@supabase/supabase-js";
-import { generateTags } from "./generateTags";
+import { preprocessQuestion } from "./preprocessQuestion";
+import { getContext } from "./getContext";
+import {
+  answerQuestionWithChunks,
+  extractAssistantAnswer,
+} from "./answerQuestion";
 
 /**
  * Hono app instance configured for Cloudflare Workers
@@ -34,14 +39,14 @@ const schema = z.object({
  * This endpoint processes user chat messages through the following pipeline:
  * 1. Validates the incoming message using Zod schema
  * 2. Initializes OpenAI and Supabase clients
- * 3. Generates tags and embeddings for the message concurrently
+ * 3. Generates preprocess and embeddings for the message concurrently
  * 4. Validates the generated tags and embeddings
  * 5. Performs semantic search against the knowledge base
  * 6. Returns the processed results including tags and search matches
  *
  * @route POST /
  * @body { message: string } - The user's chat message
- * @returns JSON response with message, tags, and search results
+ * @returns JSON response with message, preprocess, and search results
  *
  * @example
  * ```bash
@@ -67,14 +72,14 @@ app.post("/", zValidator("json", schema), async (c) => {
 
   // Process message concurrently: generate tags and create embeddings
   // This improves performance by running both operations in parallel
-  const [tags, embedding] = await Promise.all([
-    generateTags(message, openai), // Generate relevant tags for categorization
+  const [preprocessResult, embedding] = await Promise.all([
+    preprocessQuestion(message, openai), // Generate relevant preprocess for categorization
     embed(message, openai), // Create vector embedding for semantic search
   ]);
 
-  // Validate that the generated tags are valid
+  // Validate that the generated preprocess are valid
   // If tags are invalid, return an error response
-  if (!tags?.is_valid) {
+  if (!preprocessResult?.is_valid) {
     return c.json({ error: "Invalid question" }, 400);
   }
 
@@ -84,21 +89,19 @@ app.post("/", zValidator("json", schema), async (c) => {
     return c.json({ error: "Failed to create embedding" }, 500);
   }
 
-  // Perform semantic search against the knowledge base using the generated embedding
-  // The match_chunks_by_embedding RPC function finds the most similar content chunks
-  const response = await supabaseClient.rpc("match_chunks_by_embedding", {
-    query_embedding: embedding, // Vector embedding to compare against stored chunks
-    match_threshold: 0.2, // Similarity threshold (0.2 = 20% similarity minimum)
-    match_count: 5, // Maximum number of matching chunks to return
-  });
+  const { topChunks } = await getContext(
+    embedding,
+    preprocessResult.tags,
+    supabaseClient
+  );
+
+  const answer = extractAssistantAnswer(
+    await answerQuestionWithChunks(topChunks, message, openai)
+  );
 
   // Return successful response with the original message, generated tags, and search results
   // Provide empty array as fallback if no search results are found
-  return c.json({
-    message,
-    tags: tags.tags,
-    response: response.data || [],
-  });
+  return c.json({ answer });
 });
 
 export default app;
