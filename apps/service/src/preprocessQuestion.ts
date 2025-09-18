@@ -10,33 +10,33 @@ import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
 import {
-  generateUserPromptTagQuestion,
+  generateUserPromptProcessQuestion,
   systemPromptTags,
-  developerPromptTagQuestion,
+  developerPromptProcessQuestion,
 } from "./prompts";
 
 /**
  * Zod schema defining the structure of the tag generation result
  *
- * @property is_valid - Boolean indicating if the question is valid for tag generation
+ * @property is_valid - Boolean indicating if the question is valid for preprocessing
  * @property tags - Array of strings representing the generated tags
  */
-const QuestionTagsResult = z.object({
+const PreprocessQuestionResult = z.object({
   is_valid: z.boolean(),
-  tags: z.array(z.string()),
+  tags: z.array(z.string()), // tags to be used for search
 });
 
 /**
- * TypeScript type derived from the QuestionTagsResult schema
+ * TypeScript type derived from the PreprocessQuestionResult schema
  * Used for type safety throughout the application
  */
-type QuestionTagsResultType = z.infer<typeof QuestionTagsResult>;
+type PreprocessQuestionResultType = z.infer<typeof PreprocessQuestionResult>;
 
 /**
  * Default result object returned when tag generation fails or is invalid
  * Provides a safe fallback to prevent undefined errors
  */
-const nullResult: QuestionTagsResultType = {
+const nullResult: PreprocessQuestionResultType = {
   is_valid: false,
   tags: [],
 };
@@ -54,22 +54,22 @@ const nullResult: QuestionTagsResultType = {
  *
  * @param text - The input text/question to generate tags for
  * @param openai - Configured OpenAI client instance
- * @returns Promise resolving to QuestionTagsResultType containing validation status and tags
+ * @returns Promise resolving to PreprocessQuestionResultType containing validation status and tags
  *
  * @example
  * ```typescript
- * const result = await generateTags("How do I implement authentication?", openaiClient);
+ * const result = await preprocessQuestion("How do I implement authentication?", openaiClient);
  * if (result.is_valid) {
  *   console.log("Generated tags:", result.tags);
  * }
  * ```
  */
-export const generateTags = async (
+export const preprocessQuestion = async (
   text: string,
   openai: OpenAI
-): Promise<QuestionTagsResultType> => {
+): Promise<PreprocessQuestionResultType> => {
   // Generate the user prompt by formatting the input text
-  const userPrompt = generateUserPromptTagQuestion(text);
+  const userPrompt = generateUserPromptProcessQuestion(text);
 
   // Make API call to OpenAI with structured prompts and output parsing
   const response = await openai.responses.parse({
@@ -81,7 +81,7 @@ export const generateTags = async (
       },
       {
         role: "developer",
-        content: developerPromptTagQuestion, // Technical guidance for consistent tagging
+        content: developerPromptProcessQuestion, // Technical guidance for consistent tagging
       },
       {
         role: "user",
@@ -89,7 +89,7 @@ export const generateTags = async (
       },
     ],
     // Use Zod schema validation to ensure structured output parsing
-    text: { format: zodTextFormat(QuestionTagsResult, "tagsResult") },
+    text: { format: zodTextFormat(PreprocessQuestionResult, "tagsResult") },
   });
 
   // Return parsed result or fallback to null result if parsing fails
