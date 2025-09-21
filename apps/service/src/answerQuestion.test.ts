@@ -8,7 +8,6 @@ import type OpenAI from "openai";
 import type {
   ResponseOutputItem,
   ResponseOutputMessage,
-  ResponseOutputText
 } from "openai/resources/responses/responses.mjs";
 
 // Mock OpenAI
@@ -40,8 +39,8 @@ describe("answerQuestion", () => {
       ];
 
       vi.mocked(mockOpenAI.responses.create).mockResolvedValue({
-        output: mockOutput
-      });
+        output: mockOutput,
+      } as any);
 
       const context = [
         "Li Xu is a senior frontend engineer",
@@ -65,8 +64,8 @@ describe("answerQuestion", () => {
     test("handles empty context array", async () => {
       const mockOutput: ResponseOutputItem[] = [];
       vi.mocked(mockOpenAI.responses.create).mockResolvedValue({
-        output: mockOutput
-      });
+        output: mockOutput,
+      } as any);
 
       const context: string[] = [];
       const question = "What did Li work on?";
@@ -87,8 +86,8 @@ describe("answerQuestion", () => {
     test("handles single context item", async () => {
       const mockOutput: ResponseOutputItem[] = [];
       vi.mocked(mockOpenAI.responses.create).mockResolvedValue({
-        output: mockOutput
-      });
+        output: mockOutput,
+      } as any);
 
       const context = ["Single context item"];
       const question = "Test question";
@@ -134,8 +133,8 @@ describe("answerQuestion", () => {
       ];
 
       vi.mocked(mockOpenAI.responses.create).mockResolvedValue({
-        output: mockOutput
-      });
+        output: mockOutput,
+      } as any);
 
       const document = "Complete document about Li Xu's work experience and technical contributions";
       const question = "What are Li's technical skills?";
@@ -159,8 +158,8 @@ describe("answerQuestion", () => {
     test("handles empty document", async () => {
       const mockOutput: ResponseOutputItem[] = [];
       vi.mocked(mockOpenAI.responses.create).mockResolvedValue({
-        output: mockOutput
-      });
+        output: mockOutput,
+      } as any);
 
       const document = "";
       const question = "What did Li work on?";
@@ -179,8 +178,8 @@ describe("answerQuestion", () => {
     test("handles long documents", async () => {
       const mockOutput: ResponseOutputItem[] = [];
       vi.mocked(mockOpenAI.responses.create).mockResolvedValue({
-        output: mockOutput
-      });
+        output: mockOutput,
+      } as any);
 
       const document = "A".repeat(10000);
       const question = "Summarize this document";
@@ -389,8 +388,9 @@ describe("answerQuestion", () => {
           type: "message",
           role: "assistant",
           status: "completed",
-          content: []
-        } as ResponseOutputMessage
+          content: [],
+          id: "mock-id",
+        } as ResponseOutputMessage,
       ];
 
       const result = extractAssistantAnswer(output);
