@@ -1,5 +1,9 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { EMBEDDING_MATCH_THRESHOLD, EMBEDDING_MATCH_COUNT, TAG_MATCH_COUNT } from "./const";
+import {
+  EMBEDDING_MATCH_THRESHOLD,
+  EMBEDDING_MATCH_COUNT,
+  TAG_MATCH_COUNT,
+} from "./const";
 
 // Perform semantic search against the knowledge base using the generated embedding
 // The match_chunks_by_embedding RPC function finds the most similar content chunks

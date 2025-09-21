@@ -13,7 +13,7 @@ import {
   generateUserPromptProcessQuestion,
   systemPromptTags,
   developerPromptProcessQuestion,
-} from "./prompts";
+} from "./utils/prompts";
 
 /**
  * Zod schema defining the structure of the tag generation result
