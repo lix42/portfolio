@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import type OpenAI from "openai";
 
 /**
  * Generates an embedding vector for the given message using the provided OpenAI client.

@@ -15,6 +15,8 @@
     "preview": "concurrently \"pnpm run preview:service\" \"pnpm run preview:ui\"",
     "lint:check": "pnpm --filter @portfolio/service lint:check && pnpm --filter @portfolio/ui lint:check",
     "lint:fix": "pnpm --filter @portfolio/service lint:fix && pnpm --filter @portfolio/ui lint:fix",
+    "format:check": "pnpm --filter @portfolio/service format:check && pnpm --filter @portfolio/ui format:check",
+    "format:fix": "pnpm --filter @portfolio/service format:fix && pnpm --filter @portfolio/ui format:fix",
     "prepare": "husky"
   },
   "keywords": [],
@@ -28,10 +30,10 @@
   },
   "lint-staged": {
     "apps/service/**/*.{js,jsx,ts,tsx}": [
-      "cd apps/service && npm run lint:fix"
+      "pnpm --filter @portfolio/service lint:fix"
     ],
     "apps/ui/**/*.{js,jsx,ts,tsx}": [
-      "cd apps/ui && npm run lint:fix"
+      "pnpm --filter @portfolio/ui lint:fix"
     ]
   }
 }

@@ -1,4 +1,4 @@
-import { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   EMBEDDING_MATCH_THRESHOLD,
   EMBEDDING_MATCH_COUNT,

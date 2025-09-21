@@ -1,13 +1,14 @@
+import type {
+  MockedFunction} from "vitest";
 import {
   describe,
   expect,
   test,
   vi,
   beforeEach,
-  afterEach,
-  MockedFunction,
+  afterEach
 } from "vitest";
-import { SupabaseClient, PostgrestResponse } from "@supabase/supabase-js";
+import type { SupabaseClient, PostgrestResponse } from "@supabase/supabase-js";
 import { getContext } from "./getContext";
 import * as queryModule from "./utils/query";
 

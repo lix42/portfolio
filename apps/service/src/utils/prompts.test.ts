@@ -29,7 +29,7 @@ describe("prompts", () => {
   test("generateUserPromptProcessQuestion formats the input question correctly", () => {
     const input = "Tell me about a time you led a team.";
     const expected =
-      'Evaluate the following interview question:\n"' + input + '"';
+      `Evaluate the following interview question:\n"${  input  }"`;
     expect(generateUserPromptProcessQuestion(input)).toBe(expected);
   });
 
@@ -104,7 +104,7 @@ describe("prompts", () => {
   test("generateUserPromptProcessQuestion handles special characters in input", () => {
     const input = 'Tell me about a time you dealt with "difficult" situations?';
     const expected =
-      'Evaluate the following interview question:\n"' + input + '"';
+      `Evaluate the following interview question:\n"${  input  }"`;
     expect(generateUserPromptProcessQuestion(input)).toBe(expected);
   });
 

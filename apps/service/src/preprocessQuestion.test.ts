@@ -1,13 +1,14 @@
+import type {
+  MockedFunction} from "vitest";
 import {
   describe,
   expect,
   test,
   vi,
   beforeEach,
-  afterEach,
-  MockedFunction,
+  afterEach
 } from "vitest";
-import OpenAI from "openai";
+import type OpenAI from "openai";
 import { preprocessQuestion } from "./preprocessQuestion";
 import {
   generateUserPromptProcessQuestion,

@@ -6,7 +6,7 @@
  * search and retrieval in the knowledge base system.
  */
 
-import OpenAI from "openai";
+import type OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
 import {

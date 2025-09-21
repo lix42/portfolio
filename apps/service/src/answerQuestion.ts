@@ -1,9 +1,9 @@
-import OpenAI from "openai";
+import type OpenAI from "openai";
 import {
   generateUserPromptAnswerQuestion,
   systemPromptAnswerQuestion,
 } from "./utils/prompts";
-import {
+import type {
   ResponseOutputItem,
   ResponseOutputMessage,
   ResponseOutputText,
