@@ -12,7 +12,7 @@ import { getContext } from "./getContext";
 import * as queryModule from "./utils/query";
 
 // Mock the query module
-vi.mock("./query", () => ({
+vi.mock("./utils/query", () => ({
   getChunksByEmbedding: vi.fn(),
   getChunksByTags: vi.fn(),
   getDocumentById: vi.fn(),
