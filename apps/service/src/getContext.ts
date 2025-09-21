@@ -27,10 +27,10 @@ import { EMBEDDING_SCORE_WEIGHT } from "./utils/const";
       {};
     const chunksPoints: { [chunkId: string]: number } = {};
     const documentPoints: { [documentId: string]: number } = {};
-    let topChunk: string = "";
-    let topChunkPoint: number = 0;
-    let topDocumentId: string = "";
-    let topDocumentPoint: number = 0;
+    let topChunk = "";
+    let topChunkPoint = 0;
+    let topDocumentId = "";
+    let topDocumentPoint = 0;
 
     const calculatePoint =
       <T extends Chunk>(getPoint: (chunk: T) => number) =>

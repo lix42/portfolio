@@ -12,13 +12,26 @@
     "build": "concurrently \"pnpm run build:service\" \"pnpm run build:ui\"",
     "preview:service": "pnpm --filter @portfolio/service preview",
     "preview:ui": "pnpm --filter @portfolio/ui preview",
-    "preview": "concurrently \"pnpm run preview:service\" \"pnpm run preview:ui\""
+    "preview": "concurrently \"pnpm run preview:service\" \"pnpm run preview:ui\"",
+    "lint:check": "pnpm --filter @portfolio/service lint:check && pnpm --filter @portfolio/ui lint:check",
+    "lint:fix": "pnpm --filter @portfolio/service lint:fix && pnpm --filter @portfolio/ui lint:fix",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "i@xuli.dev",
   "license": "ISC",
   "packageManager": "pnpm@10.12.4",
   "devDependencies": {
-    "concurrently": "^9.2.0"
+    "concurrently": "^9.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.11"
+  },
+  "lint-staged": {
+    "apps/service/**/*.{js,jsx,ts,tsx}": [
+      "pnpm --filter @portfolio/service lint:fix"
+    ],
+    "apps/ui/**/*.{js,jsx,ts,tsx}": [
+      "pnpm --filter @portfolio/ui lint:fix"
+    ]
   }
 }
