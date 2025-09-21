@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import {
   generateUserPromptAnswerQuestion,
   systemPromptAnswerQuestion,
-} from "./prompts";
+} from "./utils/prompts";
 import {
   ResponseOutputItem,
   ResponseOutputMessage,

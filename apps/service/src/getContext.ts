@@ -3,8 +3,8 @@ import {
   getChunksByEmbedding,
   getChunksByTags,
   getDocumentById,
-} from "./query";
-import { EMBEDDING_SCORE_WEIGHT } from "./const";
+} from "./utils/query";
+import { EMBEDDING_SCORE_WEIGHT } from "./utils/const";
 
   type Chunk = Readonly<{
     id: string;

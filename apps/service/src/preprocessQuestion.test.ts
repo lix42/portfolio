@@ -13,7 +13,7 @@ import {
   generateUserPromptProcessQuestion,
   systemPromptTags,
   developerPromptProcessQuestion,
-} from "./prompts";
+} from "./utils/prompts";
 
 // Mock the prompts module
 vi.mock("./prompts", () => ({

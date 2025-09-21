@@ -10,7 +10,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import OpenAI from "openai";
-import { embed } from "./embed";
+import { embed } from "./utils/embed";
 import { createClient } from "@supabase/supabase-js";
 import { preprocessQuestion } from "./preprocessQuestion";
 import { getContext } from "./getContext";

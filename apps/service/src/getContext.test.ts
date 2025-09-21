@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import { SupabaseClient, PostgrestResponse } from "@supabase/supabase-js";
 import { getContext } from "./getContext";
-import * as queryModule from "./query";
+import * as queryModule from "./utils/query";
 
 // Mock the query module
 vi.mock("./query", () => ({
