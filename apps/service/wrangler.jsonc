@@ -3,5 +3,5 @@
   "name": "service",
   "compatibility_date": "2024-04-01",
   "compatibility_flags": ["nodejs_compat_v2"],
-  "main": "./src/index.ts"
+  "main": "./src/index.ts",
 }

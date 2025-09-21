@@ -1,11 +1,11 @@
-import prompts from "@documents/prompts.json";
+import prompts from '@documents/prompts.json';
 
 const joinPrompts = (prompts: unknown) =>
   Array.isArray(prompts)
-    ? prompts.join("\n")
-    : typeof prompts === "string"
-    ? prompts
-    : "";
+    ? prompts.join('\n')
+    : typeof prompts === 'string'
+      ? prompts
+      : '';
 
 // System prompt describing the format and examples of tags for software engineering behavioral or leadership values.
 export const systemPromptTags = joinPrompts(prompts.defineTags);
@@ -31,7 +31,7 @@ export const generateUserPromptAnswerQuestion = (
 ): string => `Answer the following question based on the provided context:
 Context:
 """
-${context.join("\n\n")}
+${context.join('\n\n')}
 """
 
 Question:

@@ -6,14 +6,14 @@
  * search and retrieval in the knowledge base system.
  */
 
-import type OpenAI from "openai";
-import { zodTextFormat } from "openai/helpers/zod";
-import { z } from "zod";
+import type OpenAI from 'openai';
+import { zodTextFormat } from 'openai/helpers/zod';
+import { z } from 'zod';
 import {
   generateUserPromptProcessQuestion,
   systemPromptTags,
   developerPromptProcessQuestion,
-} from "./utils/prompts";
+} from './utils/prompts';
 
 /**
  * Zod schema defining the structure of the tag generation result
@@ -73,23 +73,23 @@ export const preprocessQuestion = async (
 
   // Make API call to OpenAI with structured prompts and output parsing
   const response = await openai.responses.parse({
-    model: "gpt-4o", // Use GPT-4 Omni for optimal tag generation quality
+    model: 'gpt-4o', // Use GPT-4 Omni for optimal tag generation quality
     input: [
       {
-        role: "system",
+        role: 'system',
         content: systemPromptTags, // Provides overall context and tag generation rules
       },
       {
-        role: "developer",
+        role: 'developer',
         content: developerPromptProcessQuestion, // Technical guidance for consistent tagging
       },
       {
-        role: "user",
+        role: 'user',
         content: userPrompt, // The actual question/text to be tagged
       },
     ],
     // Use Zod schema validation to ensure structured output parsing
-    text: { format: zodTextFormat(PreprocessQuestionResult, "tagsResult") },
+    text: { format: zodTextFormat(PreprocessQuestionResult, 'tagsResult') },
   });
 
   // Return parsed result or fallback to null result if parsing fails

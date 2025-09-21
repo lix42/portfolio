@@ -1,6 +1,10 @@
 // @ts-check
 
-import { baseConfig, testConfig, cloudflareConfig } from '@portfolio/eslint-config';
+import {
+  baseConfig,
+  testConfig,
+  cloudflareConfig,
+} from '@portfolio/eslint-config';
 import { vitestConfig } from '@portfolio/eslint-config/vitest.js';
 
 export default [
@@ -8,7 +12,7 @@ export default [
   {
     ...cloudflareConfig,
     ignores: [
-      ...baseConfig.find(config => config.ignores)?.ignores || [],
+      ...(baseConfig.find((config) => config.ignores)?.ignores || []),
       'wrangler.json*',
       'worker-configuration.d.ts',
     ],

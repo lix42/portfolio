@@ -8,7 +8,7 @@ export default [
   {
     ...reactConfig,
     ignores: [
-      ...baseConfig.find(config => config.ignores)?.ignores || [],
+      ...(baseConfig.find((config) => config.ignores)?.ignores || []),
       '.waku/**',
       'src/pages.gen.ts',
     ],
