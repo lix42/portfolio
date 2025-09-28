@@ -12,7 +12,7 @@ export const vitestConfig = {
   },
   rules: {
     ...vitestPlugin.configs.recommended.rules,
-    
+
     // Vitest specific rules
     'vitest/consistent-test-it': ['error', { fn: 'test' }],
     'vitest/no-disabled-tests': 'warn',
@@ -21,7 +21,7 @@ export const vitestConfig = {
     'vitest/prefer-to-contain': 'error',
     'vitest/prefer-to-have-length': 'error',
     'vitest/valid-expect': 'error',
-    
+
     // Allow more flexible rules in tests
     'no-console': 'off',
     '@typescript-eslint/no-explicit-any': 'off',

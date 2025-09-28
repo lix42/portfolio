@@ -13,10 +13,10 @@
     "preview:service": "pnpm --filter @portfolio/service preview",
     "preview:ui": "pnpm --filter @portfolio/ui preview",
     "preview": "concurrently \"pnpm run preview:service\" \"pnpm run preview:ui\"",
-    "lint:check": "pnpm --filter @portfolio/service lint:check && pnpm --filter @portfolio/ui lint:check",
-    "lint:fix": "pnpm --filter @portfolio/service lint:fix && pnpm --filter @portfolio/ui lint:fix",
-    "format:check": "pnpm --filter @portfolio/service format:check && pnpm --filter @portfolio/ui format:check",
-    "format:fix": "pnpm --filter @portfolio/service format:fix && pnpm --filter @portfolio/ui format:fix",
+    "lint:check": "pnpm --filter @portfolio/service --filter @portfolio/ui lint:check",
+    "lint:fix": "pnpm --filter @portfolio/service --filter @portfolio/ui lint:fix",
+    "format:check": "pnpm --filter @portfolio/service --filter @portfolio/ui format:check",
+    "format:fix": "pnpm --filter @portfolio/service --filter @portfolio/ui format:fix",
     "prepare": "husky"
   },
   "keywords": [],
@@ -25,6 +25,7 @@
   "packageManager": "pnpm@10.12.4",
   "devDependencies": {
     "concurrently": "^9.2.0",
+    "eslint-plugin-vitest": "^0.5.4",
     "husky": "^9.1.7",
     "lint-staged": "^15.2.11"
   },

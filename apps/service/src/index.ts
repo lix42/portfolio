@@ -10,6 +10,7 @@ app.notFound((c) => {
 
 // Error handling
 app.onError((err, c) => {
+  // eslint-disable-next-line no-console
   console.error(`${err}`);
   return c.text('Custom Error Message', 500);
 });

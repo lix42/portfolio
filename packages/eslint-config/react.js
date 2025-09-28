@@ -25,7 +25,7 @@ export const reactConfig = {
     ...reactPlugin.configs.recommended.rules,
     ...reactHooksPlugin.configs.recommended.rules,
     ...jsxA11yPlugin.configs.recommended.rules,
-    
+
     // React specific rules
     'react/react-in-jsx-scope': 'off', // Not needed with new JSX transform
     'react/prop-types': 'off', // Using TypeScript for prop validation
@@ -37,16 +37,16 @@ export const reactConfig = {
     'react/jsx-pascal-case': 'error',
     'react/no-array-index-key': 'warn',
     'react/no-unstable-nested-components': 'error',
-    'react/jsx-key': ['error', { 
+    'react/jsx-key': ['error', {
       checkFragmentShorthand: true,
       checkKeyMustBeforeSpread: true,
       warnOnDuplicates: true,
     }],
-    
+
     // React Hooks rules
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
-    
+
     // Accessibility rules
     'jsx-a11y/anchor-is-valid': 'error',
     'jsx-a11y/alt-text': 'error',
