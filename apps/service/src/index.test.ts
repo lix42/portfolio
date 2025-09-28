@@ -1,6 +1,6 @@
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from 'vitest';
 
-vi.mock("openai", () => {
+vi.mock('openai', () => {
   class OpenAI {
     embeddings = {
       create: vi.fn(async () => ({
@@ -11,7 +11,7 @@ vi.mock("openai", () => {
   return { default: OpenAI };
 });
 
-vi.mock("@supabase/supabase-js", () => {
+vi.mock('@supabase/supabase-js', () => {
   return {
     createClient: vi.fn(() => ({
       rpc: vi.fn(async () => ({ data: [] })),
@@ -19,11 +19,11 @@ vi.mock("@supabase/supabase-js", () => {
   };
 });
 
-import app from "./index";
+import app from './index';
 
-describe("Example", () => {
-  test("GET /v1", async () => {
-    const res = await app.request("http://localhost/v1");
+describe('Example', () => {
+  test('GET /v1', async () => {
+    const res = await app.request('http://localhost/v1');
     expect(res.status).toBe(200);
   });
 });

@@ -5,8 +5,12 @@
   "private": true,
   "scripts": {
     "dev": "waku dev",
-    "build": "waku build",
-    "preview": "waku start"
+    "build": "npm run lint:check && waku build",
+    "preview": "waku start",
+    "lint:check": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format:check": "prettier --check .",
+    "format:fix": "prettier --write ."
   },
   "dependencies": {
     "react": "19.1.0",
@@ -15,10 +19,13 @@
     "waku": "0.23.3"
   },
   "devDependencies": {
+    "@portfolio/eslint-config": "workspace:*",
     "@tailwindcss/postcss": "4.1.10",
     "@types/react": "19.1.8",
     "@types/react-dom": "19.1.6",
+    "eslint": "^9.16.0",
     "postcss": "8.5.6",
+    "prettier": "^3.4.2",
     "tailwindcss": "4.1.10",
     "typescript": "5.8.3"
   }

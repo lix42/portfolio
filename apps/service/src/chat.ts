@@ -6,18 +6,18 @@
  * to provide relevant responses from a knowledge base.
  */
 
-import { Hono } from "hono";
-import { z } from "zod";
-import { zValidator } from "@hono/zod-validator";
-import OpenAI from "openai";
-import { embed } from "./utils/embed";
-import { createClient } from "@supabase/supabase-js";
-import { preprocessQuestion } from "./preprocessQuestion";
-import { getContext } from "./getContext";
+import { Hono } from 'hono';
+import { z } from 'zod';
+import { zValidator } from '@hono/zod-validator';
+import OpenAI from 'openai';
+import { embed } from './utils/embed';
+import { createClient } from '@supabase/supabase-js';
+import { preprocessQuestion } from './preprocessQuestion';
+import { getContext } from './getContext';
 import {
   answerQuestionWithChunks,
   extractAssistantAnswer,
-} from "./answerQuestion";
+} from './answerQuestion';
 
 /**
  * Hono app instance configured for Cloudflare Workers
@@ -55,9 +55,9 @@ const schema = z.object({
  *   -d '{"message": "How do I implement authentication?"}'
  * ```
  */
-app.post("/", zValidator("json", schema), async (c) => {
+app.post('/', zValidator('json', schema), async (c) => {
   // Extract and validate the message from the request body
-  const { message } = c.req.valid("json");
+  const { message } = c.req.valid('json');
 
   // Initialize OpenAI client with API key from environment variables
   const openai = new OpenAI({ apiKey: c.env.OPENAI_API_KEY });
@@ -80,13 +80,13 @@ app.post("/", zValidator("json", schema), async (c) => {
   // Validate that the generated preprocess are valid
   // If tags are invalid, return an error response
   if (!preprocessResult?.is_valid) {
-    return c.json({ error: "Invalid question" }, 400);
+    return c.json({ error: 'Invalid question' }, 400);
   }
 
   // Validate that the embedding was created successfully
   // If embedding fails, return an internal server error
   if (!embedding) {
-    return c.json({ error: "Failed to create embedding" }, 500);
+    return c.json({ error: 'Failed to create embedding' }, 500);
   }
 
   const { topChunks } = await getContext(

@@ -1,28 +1,21 @@
-import {
-  describe,
-  expect,
-  test,
-  vi,
-  beforeEach,
-  afterEach,
-  MockedFunction,
-} from "vitest";
-import OpenAI from "openai";
-import { preprocessQuestion } from "./preprocessQuestion";
+import type { MockedFunction } from 'vitest';
+import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest';
+import type OpenAI from 'openai';
+import { preprocessQuestion } from './preprocessQuestion';
 import {
   generateUserPromptProcessQuestion,
   systemPromptTags,
   developerPromptProcessQuestion,
-} from "./utils/prompts";
+} from './utils/prompts';
 
 // Mock the prompts module
-vi.mock("./utils/prompts", () => ({
+vi.mock('./utils/prompts', () => ({
   generateUserPromptProcessQuestion: vi.fn(),
-  systemPromptTags: "Mock system prompt for tags",
-  developerPromptProcessQuestion: "Mock developer prompt for preprocessing",
+  systemPromptTags: 'Mock system prompt for tags',
+  developerPromptProcessQuestion: 'Mock developer prompt for preprocessing',
 }));
 
-describe("preprocessQuestion", () => {
+describe('preprocessQuestion', () => {
   let mockOpenAI: OpenAI;
   let mockParse: MockedFunction<any>;
 
@@ -30,15 +23,15 @@ describe("preprocessQuestion", () => {
   const createMockParseResponse = (outputParsed: unknown) => ({
     output_parsed: outputParsed,
     output: null,
-    id: "mock-id",
+    id: 'mock-id',
     created_at: Date.now(),
     output_text: null,
-    model: "gpt-4o",
+    model: 'gpt-4o',
     usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
-    finish_reason: "stop",
+    finish_reason: 'stop',
     system_fingerprint: null,
-    object: "response",
-    _request_id: "mock-request-id",
+    object: 'response',
+    _request_id: 'mock-request-id',
   });
 
   beforeEach(() => {
@@ -65,18 +58,18 @@ describe("preprocessQuestion", () => {
     vi.restoreAllMocks();
   });
 
-  test("successfully preprocesses a valid question and returns structured result", async () => {
+  test('successfully preprocesses a valid question and returns structured result', async () => {
     // Arrange
     const inputText =
-      "Tell me about a time you led a team through a difficult project.";
+      'Tell me about a time you led a team through a difficult project.';
     const mockResponse = {
       output_parsed: {
         is_valid: true,
         tags: [
-          "leadership",
-          "team management",
-          "project management",
-          "problem solving",
+          'leadership',
+          'team management',
+          'project management',
+          'problem solving',
         ],
       },
     };
@@ -92,28 +85,28 @@ describe("preprocessQuestion", () => {
     expect(result).toEqual({
       is_valid: true,
       tags: [
-        "leadership",
-        "team management",
-        "project management",
-        "problem solving",
+        'leadership',
+        'team management',
+        'project management',
+        'problem solving',
       ],
     });
 
     // Verify OpenAI API was called with correct parameters
     expect(mockParse).toHaveBeenCalledTimes(1);
     expect(mockParse).toHaveBeenCalledWith({
-      model: "gpt-4o",
+      model: 'gpt-4o',
       input: [
         {
-          role: "system",
+          role: 'system',
           content: systemPromptTags,
         },
         {
-          role: "developer",
+          role: 'developer',
           content: developerPromptProcessQuestion,
         },
         {
-          role: "user",
+          role: 'user',
           content: `Evaluate the following interview question:\n"${inputText}"`,
         },
       ],
@@ -126,15 +119,15 @@ describe("preprocessQuestion", () => {
     expect(generateUserPromptProcessQuestion).toHaveBeenCalledWith(inputText);
   });
 
-  test("returns null result when OpenAI API call fails", async () => {
+  test('returns null result when OpenAI API call fails', async () => {
     // Arrange
-    const inputText = "How do you handle conflicts in a team?";
-    const apiError = new Error("OpenAI API error: Rate limit exceeded");
+    const inputText = 'How do you handle conflicts in a team?';
+    const apiError = new Error('OpenAI API error: Rate limit exceeded');
     mockParse.mockRejectedValue(apiError);
 
     // Act & Assert
     await expect(preprocessQuestion(inputText, mockOpenAI)).rejects.toThrow(
-      "OpenAI API error: Rate limit exceeded"
+      'OpenAI API error: Rate limit exceeded'
     );
 
     // Verify API was called
@@ -142,9 +135,9 @@ describe("preprocessQuestion", () => {
     expect(generateUserPromptProcessQuestion).toHaveBeenCalledWith(inputText);
   });
 
-  test("returns null result when OpenAI response parsing fails", async () => {
+  test('returns null result when OpenAI response parsing fails', async () => {
     // Arrange
-    const inputText = "Describe your experience with agile methodologies.";
+    const inputText = 'Describe your experience with agile methodologies.';
     const mockResponse = {
       output_parsed: null, // Simulate parsing failure
     };
@@ -167,9 +160,9 @@ describe("preprocessQuestion", () => {
     expect(generateUserPromptProcessQuestion).toHaveBeenCalledWith(inputText);
   });
 
-  test("handles empty string input", async () => {
+  test('handles empty string input', async () => {
     // Arrange
-    const inputText = "";
+    const inputText = '';
     const mockResponse = {
       output_parsed: {
         is_valid: false,
@@ -191,17 +184,17 @@ describe("preprocessQuestion", () => {
     });
 
     // Verify prompt generation was called with empty string
-    expect(generateUserPromptProcessQuestion).toHaveBeenCalledWith("");
+    expect(generateUserPromptProcessQuestion).toHaveBeenCalledWith('');
   });
 
-  test("handles special characters and unicode in input", async () => {
+  test('handles special characters and unicode in input', async () => {
     // Arrange
     const inputText =
       'How do you handle "difficult" situations with émojis 🚀 and unicode?';
     const mockResponse = {
       output_parsed: {
         is_valid: true,
-        tags: ["problem solving", "communication", "adaptability"],
+        tags: ['problem solving', 'communication', 'adaptability'],
       },
     };
 
@@ -215,20 +208,20 @@ describe("preprocessQuestion", () => {
     // Assert
     expect(result).toEqual({
       is_valid: true,
-      tags: ["problem solving", "communication", "adaptability"],
+      tags: ['problem solving', 'communication', 'adaptability'],
     });
 
     // Verify the special characters were passed through correctly
     expect(generateUserPromptProcessQuestion).toHaveBeenCalledWith(inputText);
   });
 
-  test("handles very long input text", async () => {
+  test('handles very long input text', async () => {
     // Arrange
-    const longText = "A".repeat(10000); // 10KB of text
+    const longText = 'A'.repeat(10000); // 10KB of text
     const mockResponse = {
       output_parsed: {
         is_valid: true,
-        tags: ["communication", "detail orientation"],
+        tags: ['communication', 'detail orientation'],
       },
     };
 
@@ -242,21 +235,21 @@ describe("preprocessQuestion", () => {
     // Assert
     expect(result).toEqual({
       is_valid: true,
-      tags: ["communication", "detail orientation"],
+      tags: ['communication', 'detail orientation'],
     });
 
     // Verify the long text was passed through
     expect(generateUserPromptProcessQuestion).toHaveBeenCalledWith(longText);
   });
 
-  test("handles invalid response structure from OpenAI", async () => {
+  test('handles invalid response structure from OpenAI', async () => {
     // Arrange
-    const inputText = "What is your biggest weakness?";
+    const inputText = 'What is your biggest weakness?';
     const mockResponse = {
       output_parsed: {
         // Missing required fields or wrong types
-        is_valid: "yes", // Should be boolean
-        tags: "leadership, teamwork", // Should be array
+        is_valid: 'yes', // Should be boolean
+        tags: 'leadership, teamwork', // Should be array
       },
     };
 
@@ -270,32 +263,32 @@ describe("preprocessQuestion", () => {
     // Assert
     // Should return the invalid response as-is since we're not validating the parsed output
     expect(result).toEqual({
-      is_valid: "yes",
-      tags: "leadership, teamwork",
+      is_valid: 'yes',
+      tags: 'leadership, teamwork',
     });
   });
 
-  test("handles network timeout error", async () => {
+  test('handles network timeout error', async () => {
     // Arrange
-    const inputText = "How do you prioritize tasks?";
-    const timeoutError = new Error("Request timeout");
+    const inputText = 'How do you prioritize tasks?';
+    const timeoutError = new Error('Request timeout');
     mockParse.mockRejectedValue(timeoutError);
 
     // Act & Assert
     await expect(preprocessQuestion(inputText, mockOpenAI)).rejects.toThrow(
-      "Request timeout"
+      'Request timeout'
     );
 
     expect(mockParse).toHaveBeenCalledTimes(1);
   });
 
-  test("handles malformed JSON response from OpenAI", async () => {
+  test('handles malformed JSON response from OpenAI', async () => {
     // Arrange
-    const inputText = "Tell me about a challenging project.";
+    const inputText = 'Tell me about a challenging project.';
     const mockResponse = {
       output_parsed: {
         is_valid: true,
-        tags: ["project management", "challenge", "problem solving"],
+        tags: ['project management', 'challenge', 'problem solving'],
       },
     };
 
@@ -309,17 +302,17 @@ describe("preprocessQuestion", () => {
     // Assert
     expect(result).toEqual({
       is_valid: true,
-      tags: ["project management", "challenge", "problem solving"],
+      tags: ['project management', 'challenge', 'problem solving'],
     });
   });
 
-  test("verifies correct model and structured output format are used", async () => {
+  test('verifies correct model and structured output format are used', async () => {
     // Arrange
-    const inputText = "How do you ensure code quality?";
+    const inputText = 'How do you ensure code quality?';
     const mockResponse = {
       output_parsed: {
         is_valid: true,
-        tags: ["code quality", "best practices", "testing"],
+        tags: ['code quality', 'best practices', 'testing'],
       },
     };
 
@@ -333,7 +326,7 @@ describe("preprocessQuestion", () => {
     // Assert
     expect(mockParse).toHaveBeenCalledWith(
       expect.objectContaining({
-        model: "gpt-4o",
+        model: 'gpt-4o',
         text: expect.objectContaining({
           format: expect.any(Object), // zodTextFormat object
         }),
@@ -341,14 +334,14 @@ describe("preprocessQuestion", () => {
     );
   });
 
-  test("handles multiple concurrent calls", async () => {
+  test('handles multiple concurrent calls', async () => {
     // Arrange
-    const inputs = ["Question 1", "Question 2", "Question 3"];
+    const inputs = ['Question 1', 'Question 2', 'Question 3'];
 
     const mockResponses = [
-      { output_parsed: { is_valid: true, tags: ["tag1"] } },
-      { output_parsed: { is_valid: true, tags: ["tag2"] } },
-      { output_parsed: { is_valid: true, tags: ["tag3"] } },
+      { output_parsed: { is_valid: true, tags: ['tag1'] } },
+      { output_parsed: { is_valid: true, tags: ['tag2'] } },
+      { output_parsed: { is_valid: true, tags: ['tag3'] } },
     ];
 
     mockParse
@@ -369,15 +362,15 @@ describe("preprocessQuestion", () => {
 
     // Assert
     expect(results).toHaveLength(3);
-    expect(results[0]?.tags).toEqual(["tag1"]);
-    expect(results[1]?.tags).toEqual(["tag2"]);
-    expect(results[2]?.tags).toEqual(["tag3"]);
+    expect(results[0]?.tags).toEqual(['tag1']);
+    expect(results[1]?.tags).toEqual(['tag2']);
+    expect(results[2]?.tags).toEqual(['tag3']);
     expect(mockParse).toHaveBeenCalledTimes(3);
   });
 
-  test("handles undefined OpenAI client gracefully", async () => {
+  test('handles undefined OpenAI client gracefully', async () => {
     // Arrange
-    const inputText = "Test question";
+    const inputText = 'Test question';
     const undefinedOpenAI = undefined as any; // This is intentionally undefined for testing error handling
 
     // Act & Assert
