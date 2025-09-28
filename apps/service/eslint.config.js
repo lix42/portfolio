@@ -12,7 +12,9 @@ export default [
   {
     ...cloudflareConfig,
     ignores: [
-      ...(baseConfig.find((config) => config.ignores)?.ignores || []),
+      // @ts-ignore
+      ...(baseConfig.find((config) => 'ignores' in config && config.ignores)
+        ?.ignores || []),
       'wrangler.json*',
       'worker-configuration.d.ts',
     ],

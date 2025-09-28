@@ -346,12 +346,15 @@ describe('preprocessQuestion', () => {
 
     mockParse
       .mockResolvedValueOnce(
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         createMockParseResponse(mockResponses[0]!.output_parsed)
       )
       .mockResolvedValueOnce(
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         createMockParseResponse(mockResponses[1]!.output_parsed)
       )
       .mockResolvedValueOnce(
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         createMockParseResponse(mockResponses[2]!.output_parsed)
       );
 

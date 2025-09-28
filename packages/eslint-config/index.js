@@ -28,16 +28,16 @@ export const baseConfig = [
     },
     rules: {
       ...tseslint.configs.recommended.rules,
-      
+
       // Selective stricter TypeScript rules (not all of strict config)
       '@typescript-eslint/prefer-nullish-coalescing': 'warn',
       '@typescript-eslint/prefer-optional-chain': 'error',
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/await-thenable': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
-      
+
       // TypeScript specific rules
-      '@typescript-eslint/no-unused-vars': ['error', { 
+      '@typescript-eslint/no-unused-vars': ['error', {
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
       }],
@@ -47,14 +47,14 @@ export const baseConfig = [
       '@typescript-eslint/consistent-type-imports': 'warn',
       '@typescript-eslint/consistent-type-exports': 'warn',
       '@typescript-eslint/no-non-null-assertion': 'warn',
-      
+
       // Import rules (basic only to avoid resolver issues)
       'import/newline-after-import': 'error',
       'import/no-duplicates': 'error',
       'import/no-unresolved': 'off', // Let TypeScript handle this
       'import/no-relative-parent-imports': 'off',
       'import/no-useless-path-segments': 'error',
-      
+
       // General code quality rules
       'prefer-const': 'error',
       'no-var': 'error',
