@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import type OpenAI from 'openai';
 
 /**
  * Generates an embedding vector for the given message using the provided OpenAI client.
@@ -12,9 +12,9 @@ export const embed = async (
   openai: OpenAI
 ): Promise<number[] | null> => {
   const response = await openai.embeddings.create({
-    model: "text-embedding-3-small",
+    model: 'text-embedding-3-small',
     input: message,
-    encoding_format: "float",
+    encoding_format: 'float',
   });
 
   return response.data[0]?.embedding ?? null;
