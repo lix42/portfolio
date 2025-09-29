@@ -2,8 +2,8 @@
 
 import {
   baseConfig,
-  testConfig,
   cloudflareConfig,
+  testConfig,
 } from '@portfolio/eslint-config';
 import { vitestConfig } from '@portfolio/eslint-config/vitest.js';
 
@@ -12,7 +12,7 @@ export default [
   {
     ...cloudflareConfig,
     ignores: [
-      // @ts-ignore
+      // @ts-expect-error
       ...(baseConfig.find((config) => 'ignores' in config && config.ignores)
         ?.ignores || []),
       'wrangler.json*',

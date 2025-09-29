@@ -1,13 +1,13 @@
 import type OpenAI from 'openai';
-import {
-  generateUserPromptAnswerQuestion,
-  systemPromptAnswerQuestion,
-} from './utils/prompts';
 import type {
   ResponseOutputItem,
   ResponseOutputMessage,
   ResponseOutputText,
 } from 'openai/resources/responses/responses.mjs';
+import {
+  generateUserPromptAnswerQuestion,
+  systemPromptAnswerQuestion,
+} from './utils/prompts';
 
 export const answerQuestionWithChunks = async (
   context: string[],

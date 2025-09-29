@@ -7,10 +7,14 @@
     "dev": "waku dev",
     "build": "$npm_execpath run lint:check && tsc --noEmit && waku build",
     "preview": "waku start",
+    "lint": "$npm_execpath run lint:check",
     "lint:check": "eslint .",
     "lint:fix": "eslint . --fix",
     "format:check": "prettier --check .",
-    "format:fix": "prettier --write ."
+    "format:fix": "prettier --write .",
+    "biome": "$npm_execpath run biome:check",
+    "biome:check": "biome check .",
+    "biome:fix": "biome check --write ."
   },
   "dependencies": {
     "react": "19.1.0",
@@ -19,6 +23,8 @@
     "waku": "0.23.3"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.2.4",
+    "@portfolio/biome-config": "workspace:*",
     "@portfolio/eslint-config": "workspace:*",
     "@tailwindcss/postcss": "4.1.10",
     "@types/react": "19.1.8",

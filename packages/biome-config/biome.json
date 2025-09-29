@@ -1,0 +1,63 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf",
+    "lineWidth": 80,
+    "attributePosition": "auto"
+  },
+  "javascript": {
+    "formatter": {
+      "jsxQuoteStyle": "double",
+      "quoteProperties": "asNeeded",
+      "trailingCommas": "es5",
+      "semicolons": "always",
+      "arrowParentheses": "always",
+      "bracketSpacing": true,
+      "bracketSameLine": false,
+      "quoteStyle": "single",
+      "attributePosition": "auto"
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.json", "**/*.jsonc"],
+      "formatter": {
+        "enabled": true
+      }
+    },
+    {
+      "includes": ["**/*.css"],
+      "formatter": {
+        "enabled": true
+      }
+    }
+  ],
+  "files": {
+    "ignoreUnknown": true,
+    "maxSize": 2097152,
+    "experimentalScannerIgnores": [
+      "node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      ".waku/**",
+      "src/pages.gen.ts",
+      "worker-configuration.d.ts",
+      "wrangler.json*",
+      "**/*.d.ts",
+      "research/streaming.ts",
+      "**/.wrangler/**",
+      "**/.vite/**",
+      ".claude/**"
+    ]
+  }
+}

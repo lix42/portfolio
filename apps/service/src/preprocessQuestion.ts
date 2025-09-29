@@ -10,9 +10,9 @@ import type OpenAI from 'openai';
 import { zodTextFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 import {
+  developerPromptProcessQuestion,
   generateUserPromptProcessQuestion,
   systemPromptTags,
-  developerPromptProcessQuestion,
 } from './utils/prompts';
 
 /**
@@ -23,14 +23,16 @@ import {
  */
 const PreprocessQuestionResult = z.object({
   is_valid: z.boolean(),
-  tags: z.array(z.string()), // tags to be used for search
+  tags: z.array(z.string()).readonly(), // tags to be used for search
 });
 
 /**
  * TypeScript type derived from the PreprocessQuestionResult schema
  * Used for type safety throughout the application
  */
-type PreprocessQuestionResultType = z.infer<typeof PreprocessQuestionResult>;
+export type PreprocessQuestionResultType = z.infer<
+  typeof PreprocessQuestionResult
+>;
 
 /**
  * Default result object returned when tag generation fails or is invalid

@@ -1,10 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { EMBEDDING_SCORE_WEIGHT } from './utils/const';
 import {
   getChunksByEmbedding,
   getChunksByTags,
   getDocumentById,
 } from './utils/query';
-import { EMBEDDING_SCORE_WEIGHT } from './utils/const';
 
 type Chunk = Readonly<{
   id: string;
