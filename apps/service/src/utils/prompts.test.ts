@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'vitest';
 import {
-  systemPromptTags,
   developerPromptProcessQuestion,
+  generateUserPromptAnswerQuestion,
   generateUserPromptProcessQuestion,
   systemPromptAnswerQuestion,
-  generateUserPromptAnswerQuestion,
+  systemPromptTags,
 } from './prompts';
 
 describe('prompts', () => {

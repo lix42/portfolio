@@ -4,5 +4,5 @@ import ssrPlugin from 'vite-ssr-components/plugin';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
-  plugins: [tsconfigPaths(), cloudflare(), ssrPlugin()] as any,
+  plugins: [tsconfigPaths(), cloudflare(), ssrPlugin()],
 });

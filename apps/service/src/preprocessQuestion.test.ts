@@ -1,11 +1,14 @@
-import type { MockedFunction } from 'vitest';
-import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest';
 import type OpenAI from 'openai';
+import type { Responses } from 'openai/resources';
+import type { ParsedResponse } from 'openai/resources/responses/responses.mjs';
+import type { MockedFunction } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import type { PreprocessQuestionResultType } from './preprocessQuestion';
 import { preprocessQuestion } from './preprocessQuestion';
 import {
+  developerPromptProcessQuestion,
   generateUserPromptProcessQuestion,
   systemPromptTags,
-  developerPromptProcessQuestion,
 } from './utils/prompts';
 
 // Mock the prompts module
@@ -17,22 +20,29 @@ vi.mock('./utils/prompts', () => ({
 
 describe('preprocessQuestion', () => {
   let mockOpenAI: OpenAI;
-  let mockParse: MockedFunction<any>;
+  let mockParse: MockedFunction<
+    (
+      ...params: [Responses.ResponseCreateParams]
+    ) => Promise<ParsedResponse<PreprocessQuestionResultType>>
+  >;
 
   // Helper function to create proper OpenAI response structure
-  const createMockParseResponse = (outputParsed: unknown) => ({
-    output_parsed: outputParsed,
-    output: null,
-    id: 'mock-id',
-    created_at: Date.now(),
-    output_text: null,
-    model: 'gpt-4o',
-    usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
-    finish_reason: 'stop',
-    system_fingerprint: null,
-    object: 'response',
-    _request_id: 'mock-request-id',
-  });
+  const createMockParseResponse = (
+    outputParsed: PreprocessQuestionResultType
+  ) =>
+    ({
+      output_parsed: outputParsed,
+      output: null,
+      id: 'mock-id',
+      created_at: Date.now(),
+      output_text: null,
+      model: 'gpt-4o',
+      usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      finish_reason: 'stop',
+      system_fingerprint: null,
+      object: 'response',
+      _request_id: 'mock-request-id',
+    }) as unknown as ParsedResponse<PreprocessQuestionResultType>;
 
   beforeEach(() => {
     // Reset all mocks before each test
@@ -139,7 +149,7 @@ describe('preprocessQuestion', () => {
     // Arrange
     const inputText = 'Describe your experience with agile methodologies.';
     const mockResponse = {
-      output_parsed: null, // Simulate parsing failure
+      output_parsed: null as unknown as PreprocessQuestionResultType, // Simulate parsing failure
     };
 
     mockParse.mockResolvedValue(
@@ -254,7 +264,9 @@ describe('preprocessQuestion', () => {
     };
 
     mockParse.mockResolvedValue(
-      createMockParseResponse(mockResponse.output_parsed)
+      createMockParseResponse(
+        mockResponse.output_parsed as unknown as PreprocessQuestionResultType
+      )
     );
 
     // Act
@@ -342,20 +354,17 @@ describe('preprocessQuestion', () => {
       { output_parsed: { is_valid: true, tags: ['tag1'] } },
       { output_parsed: { is_valid: true, tags: ['tag2'] } },
       { output_parsed: { is_valid: true, tags: ['tag3'] } },
-    ];
+    ] as const;
 
     mockParse
       .mockResolvedValueOnce(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        createMockParseResponse(mockResponses[0]!.output_parsed)
+        createMockParseResponse(mockResponses[0].output_parsed)
       )
       .mockResolvedValueOnce(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        createMockParseResponse(mockResponses[1]!.output_parsed)
+        createMockParseResponse(mockResponses[1].output_parsed)
       )
       .mockResolvedValueOnce(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        createMockParseResponse(mockResponses[2]!.output_parsed)
+        createMockParseResponse(mockResponses[2].output_parsed)
       );
 
     // Act
@@ -374,7 +383,7 @@ describe('preprocessQuestion', () => {
   test('handles undefined OpenAI client gracefully', async () => {
     // Arrange
     const inputText = 'Test question';
-    const undefinedOpenAI = undefined as any; // This is intentionally undefined for testing error handling
+    const undefinedOpenAI = undefined as unknown as OpenAI;
 
     // Act & Assert
     await expect(

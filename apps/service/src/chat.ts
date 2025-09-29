@@ -6,18 +6,18 @@
  * to provide relevant responses from a knowledge base.
  */
 
-import { Hono } from 'hono';
-import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import OpenAI from 'openai';
-import { embed } from './utils/embed';
 import { createClient } from '@supabase/supabase-js';
-import { preprocessQuestion } from './preprocessQuestion';
-import { getContext } from './getContext';
+import { Hono } from 'hono';
+import OpenAI from 'openai';
+import { z } from 'zod';
 import {
   answerQuestionWithChunks,
   extractAssistantAnswer,
 } from './answerQuestion';
+import { getContext } from './getContext';
+import { preprocessQuestion } from './preprocessQuestion';
+import { embed } from './utils/embed';
 
 /**
  * Hono app instance configured for Cloudflare Workers

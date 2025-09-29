@@ -1,0 +1,6 @@
+{
+  "extends": ["@portfolio/biome-config/biome.json"],
+  "files": {
+    "includes": ["**", "src", "public", "!dist", "!node_modules"]
+  }
+}

@@ -1,14 +1,14 @@
-import { describe, expect, test, vi, beforeEach } from 'vitest';
-import {
-  answerQuestionWithChunks,
-  answerQuestionWithWholeDocument,
-  extractAssistantAnswer,
-} from './answerQuestion';
 import type OpenAI from 'openai';
 import type {
   ResponseOutputItem,
   ResponseOutputMessage,
 } from 'openai/resources/responses/responses.mjs';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+import {
+  answerQuestionWithChunks,
+  answerQuestionWithWholeDocument,
+  extractAssistantAnswer,
+} from './answerQuestion';
 
 // Mock OpenAI
 const mockOpenAI = {
@@ -40,7 +40,7 @@ describe('answerQuestion', () => {
 
       vi.mocked(mockOpenAI.responses.create).mockResolvedValue({
         output: mockOutput,
-      } as any);
+      } as OpenAI.Responses.Response);
 
       const context = [
         'Li Xu is a senior frontend engineer',
@@ -72,7 +72,7 @@ describe('answerQuestion', () => {
       const mockOutput: ResponseOutputItem[] = [];
       vi.mocked(mockOpenAI.responses.create).mockResolvedValue({
         output: mockOutput,
-      } as any);
+      } as OpenAI.Responses.Response);
 
       const context: string[] = [];
       const question = 'What did Li work on?';
@@ -101,7 +101,7 @@ describe('answerQuestion', () => {
       const mockOutput: ResponseOutputItem[] = [];
       vi.mocked(mockOpenAI.responses.create).mockResolvedValue({
         output: mockOutput,
-      } as any);
+      } as OpenAI.Responses.Response);
 
       const context = ['Single context item'];
       const question = 'Test question';
@@ -151,7 +151,7 @@ describe('answerQuestion', () => {
 
       vi.mocked(mockOpenAI.responses.create).mockResolvedValue({
         output: mockOutput,
-      } as any);
+      } as OpenAI.Responses.Response);
 
       const document =
         "Complete document about Li Xu's work experience and technical contributions";
@@ -183,7 +183,7 @@ describe('answerQuestion', () => {
       const mockOutput: ResponseOutputItem[] = [];
       vi.mocked(mockOpenAI.responses.create).mockResolvedValue({
         output: mockOutput,
-      } as any);
+      } as OpenAI.Responses.Response);
 
       const document = '';
       const question = 'What did Li work on?';
@@ -203,7 +203,7 @@ describe('answerQuestion', () => {
       const mockOutput: ResponseOutputItem[] = [];
       vi.mocked(mockOpenAI.responses.create).mockResolvedValue({
         output: mockOutput,
-      } as any);
+      } as OpenAI.Responses.Response);
 
       const document = 'A'.repeat(10000);
       const question = 'Summarize this document';
@@ -260,9 +260,9 @@ describe('answerQuestion', () => {
     test('filters out non-message items', () => {
       const output: ResponseOutputItem[] = [
         {
-          type: 'tool_call',
+          type: 'function_call',
           id: 'call_123',
-        } as any,
+        } as ResponseOutputItem,
         {
           type: 'message',
           role: 'assistant',
@@ -293,7 +293,7 @@ describe('answerQuestion', () => {
               text: 'User message.',
             },
           ],
-        } as any,
+        } as unknown as ResponseOutputMessage,
         {
           type: 'message',
           role: 'assistant',
@@ -324,7 +324,7 @@ describe('answerQuestion', () => {
               text: 'Incomplete response.',
             },
           ],
-        } as any,
+        } as ResponseOutputMessage,
         {
           type: 'message',
           role: 'assistant',
@@ -353,7 +353,7 @@ describe('answerQuestion', () => {
             {
               type: 'image',
               url: 'https://example.com/image.jpg',
-            } as any,
+            } as unknown as ResponseOutputItem,
             {
               type: 'output_text',
               text: 'Text content.',
@@ -432,7 +432,7 @@ describe('answerQuestion', () => {
             {
               type: 'tool_call',
               id: 'call_123',
-            } as any,
+            } as unknown as ResponseOutputItem,
             {
               type: 'output_text',
               text: 'Text after tool call.',
@@ -440,7 +440,7 @@ describe('answerQuestion', () => {
             {
               type: 'image',
               url: 'https://example.com/image.jpg',
-            } as any,
+            } as unknown as ResponseOutputItem,
             {
               type: 'output_text',
               text: 'Text after image.',

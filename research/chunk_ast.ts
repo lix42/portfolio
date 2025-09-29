@@ -1,9 +1,9 @@
-import * as recast from 'recast';
 import { parse } from '@babel/parser';
-import { getEncoding } from 'tiktoken';
 import fg from 'fast-glob';
 import fs from 'fs/promises';
 import path from 'path';
+import * as recast from 'recast';
+import { getEncoding } from 'tiktoken';
 
 const encoder = getEncoding('cl100k_base');
 const MAX_TOKENS_PER_CHUNK = 500;
@@ -16,7 +16,8 @@ async function parseFile(filePath: string) {
   const content = await fs.readFile(filePath, 'utf-8');
   const ast = recast.parse(content, {
     parser: {
-      parse: (source: string) => parse(source, { sourceType: 'module', plugins: ['typescript', 'jsx'] }),
+      parse: (source: string) =>
+        parse(source, { sourceType: 'module', plugins: ['typescript', 'jsx'] }),
     },
   });
   return { ast, content };
@@ -52,7 +53,8 @@ function extractChunksFromAST(ast: any, content: string, filePath: string) {
  * Dynamically batch small chunks into bigger ones (based on token count)
  */
 function batchChunks(chunks: { code: string; file: string; line: number }[]) {
-  const batched: { code: string; sources: { file: string; line: number }[] }[] = [];
+  const batched: { code: string; sources: { file: string; line: number }[] }[] =
+    [];
   let currentBatch = '';
   let currentSources: { file: string; line: number }[] = [];
   let currentTokens = 0;
@@ -62,14 +64,17 @@ function batchChunks(chunks: { code: string; file: string; line: number }[]) {
 
     if (currentTokens + tokenCount > MAX_TOKENS_PER_CHUNK) {
       if (currentBatch) {
-        batched.push({ code: currentBatch.trim(), sources: [...currentSources] });
+        batched.push({
+          code: currentBatch.trim(),
+          sources: [...currentSources],
+        });
       }
       currentBatch = '';
       currentSources = [];
       currentTokens = 0;
     }
 
-    currentBatch += chunk.code + "\n\n";
+    currentBatch += chunk.code + '\n\n';
     currentSources.push({ file: chunk.file, line: chunk.line });
     currentTokens += tokenCount;
   }
@@ -85,12 +90,19 @@ function batchChunks(chunks: { code: string; file: string; line: number }[]) {
  * Walk directory and collect all code chunks
  */
 async function collectCodeChunks(rootDir: string) {
-  const files = await fg(['**/*.{js,ts,jsx,tsx}'], { cwd: rootDir, absolute: true });
+  const files = await fg(['**/*.{js,ts,jsx,tsx}'], {
+    cwd: rootDir,
+    absolute: true,
+  });
   let allChunks: { code: string; file: string; line: number }[] = [];
 
   for (const filePath of files) {
     const { ast, content } = await parseFile(filePath);
-    const chunks = extractChunksFromAST(ast, content, path.relative(rootDir, filePath));
+    const chunks = extractChunksFromAST(
+      ast,
+      content,
+      path.relative(rootDir, filePath)
+    );
     allChunks = allChunks.concat(chunks);
   }
 

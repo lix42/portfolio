@@ -1,6 +1,6 @@
-import { OpenAI } from 'openai';
 import { ChromaClient } from 'chromadb';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
+import { OpenAI } from 'openai';
 
 // Setup OpenAI and Chroma clients
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });

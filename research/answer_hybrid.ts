@@ -10,9 +10,15 @@ const fuseOptions = {
 
 // Simulated document data for keyword search
 const documents = [
-  { text: 'Database connection pooling in Node.js improves performance by reusing connections.' },
-  { text: 'Using indexes in SQL queries can significantly speed up data retrieval.' },
-  { text: 'Query caching stores results of frequent queries to reduce processing time.' },
+  {
+    text: 'Database connection pooling in Node.js improves performance by reusing connections.',
+  },
+  {
+    text: 'Using indexes in SQL queries can significantly speed up data retrieval.',
+  },
+  {
+    text: 'Query caching stores results of frequent queries to reduce processing time.',
+  },
   // Add more documents here...
 ];
 
@@ -34,7 +40,11 @@ function keywordSearch(query: string, topK: number) {
 }
 
 // Combine both semantic and keyword search
-async function hybridSearch(query: string, queryEmbedding: number[], topK: number) {
+async function hybridSearch(
+  query: string,
+  queryEmbedding: number[],
+  topK: number
+) {
   // Perform semantic search
   const semanticResults = await semanticSearch(queryEmbedding, topK);
 
@@ -43,8 +53,16 @@ async function hybridSearch(query: string, queryEmbedding: number[], topK: numbe
 
   // Combine and rank results based on both semantic and keyword relevance
   const allResults = [
-    ...semanticResults.map((r) => ({ text: r.document, score: r.score, source: 'semantic' })),
-    ...keywordResults.map((r) => ({ text: r.text, score: r.score, source: 'keyword' })),
+    ...semanticResults.map((r) => ({
+      text: r.document,
+      score: r.score,
+      source: 'semantic',
+    })),
+    ...keywordResults.map((r) => ({
+      text: r.text,
+      score: r.score,
+      source: 'keyword',
+    })),
   ];
 
   // Rank results based on combined score (e.g., add semantic and keyword score)
@@ -55,7 +73,10 @@ async function hybridSearch(query: string, queryEmbedding: number[], topK: numbe
 }
 
 // Example usage:
-async function getAnswerWithHybridSearch(question: string, questionEmbedding: number[]) {
+async function getAnswerWithHybridSearch(
+  question: string,
+  questionEmbedding: number[]
+) {
   const topK = 5; // Number of top results to return
   const results = await hybridSearch(question, questionEmbedding, topK);
 

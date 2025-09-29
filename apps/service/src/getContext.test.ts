@@ -1,6 +1,6 @@
+import type { PostgrestResponse, SupabaseClient } from '@supabase/supabase-js';
 import type { MockedFunction } from 'vitest';
-import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest';
-import type { SupabaseClient, PostgrestResponse } from '@supabase/supabase-js';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { getContext } from './getContext';
 import * as queryModule from './utils/query';
 
@@ -392,7 +392,7 @@ describe('getContext', () => {
     const tagsChunks = [
       {
         id: 'chunk2',
-        content: undefined as any, // Simulate undefined content
+        content: undefined as unknown as string, // Simulate undefined content
         matched_tags: ['javascript'],
         document_id: 'doc1',
       },
