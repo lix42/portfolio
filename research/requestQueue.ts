@@ -9,7 +9,10 @@ class DynamicRequestQueue {
   private cooldown: number; // milliseconds to wait between tasks
   private lastErrorTime: number;
 
-  constructor(initialConcurrency: number, private maxConcurrency: number = 10) {
+  constructor(
+    initialConcurrency: number,
+    private maxConcurrency: number = 10
+  ) {
     this.concurrency = initialConcurrency;
     this.running = 0;
     this.queue = [];
@@ -30,7 +33,9 @@ class DynamicRequestQueue {
             minTimeout: 500,
             maxTimeout: 5000,
             onFailedAttempt: (error) => {
-              console.log(`Task attempt ${error.attemptNumber} failed. ${error.retriesLeft} retries left.`);
+              console.log(
+                `Task attempt ${error.attemptNumber} failed. ${error.retriesLeft} retries left.`
+              );
               if (this.isRateLimitError(error)) {
                 this.handleRateLimit();
               }
@@ -75,7 +80,9 @@ class DynamicRequestQueue {
       // if multiple 429s in short time, slow down harder
       this.cooldown = Math.min(this.cooldown * 2 || 1000, 10000); // cap at 10 seconds
       this.concurrency = Math.max(1, Math.floor(this.concurrency / 2)); // lower concurrency
-      console.log(`Rate limited! New cooldown=${this.cooldown}ms, concurrency=${this.concurrency}`);
+      console.log(
+        `Rate limited! New cooldown=${this.cooldown}ms, concurrency=${this.concurrency}`
+      );
     }
     this.lastErrorTime = now;
   }

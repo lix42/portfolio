@@ -1,8 +1,8 @@
 // @ts-check
 
+import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
-import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 
 /**
  * React-specific configuration
@@ -17,7 +17,7 @@ export const reactConfig = {
     },
   },
   plugins: {
-    'react': reactPlugin,
+    react: reactPlugin,
     'react-hooks': reactHooksPlugin,
     'jsx-a11y': jsxA11yPlugin,
   },
@@ -37,11 +37,14 @@ export const reactConfig = {
     'react/jsx-pascal-case': 'error',
     'react/no-array-index-key': 'warn',
     'react/no-unstable-nested-components': 'error',
-    'react/jsx-key': ['error', {
-      checkFragmentShorthand: true,
-      checkKeyMustBeforeSpread: true,
-      warnOnDuplicates: true,
-    }],
+    'react/jsx-key': [
+      'error',
+      {
+        checkFragmentShorthand: true,
+        checkKeyMustBeforeSpread: true,
+        warnOnDuplicates: true,
+      },
+    ],
 
     // React Hooks rules
     'react-hooks/rules-of-hooks': 'error',

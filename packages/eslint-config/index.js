@@ -3,8 +3,8 @@
 import js from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
-import importPlugin from 'eslint-plugin-import';
 import prettierConfig from 'eslint-config-prettier';
+import importPlugin from 'eslint-plugin-import';
 
 /**
  * Base configuration for all projects
@@ -24,7 +24,7 @@ export const baseConfig = [
     },
     plugins: {
       '@typescript-eslint': tseslint,
-      'import': importPlugin,
+      import: importPlugin,
     },
     rules: {
       ...tseslint.configs.recommended.rules,
@@ -37,10 +37,13 @@ export const baseConfig = [
       '@typescript-eslint/no-misused-promises': 'error',
 
       // TypeScript specific rules
-      '@typescript-eslint/no-unused-vars': ['error', {
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-      }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-inferrable-types': 'error',
@@ -59,8 +62,8 @@ export const baseConfig = [
       'prefer-const': 'error',
       'no-var': 'error',
       'no-console': 'warn',
-      'eqeqeq': 'error',
-      'curly': 'error',
+      eqeqeq: 'error',
+      curly: 'error',
       'no-duplicate-imports': 'off', // Using import/no-duplicates instead
       'no-unused-expressions': 'error',
       'no-unreachable': 'error',

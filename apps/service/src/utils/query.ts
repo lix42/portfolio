@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
-  EMBEDDING_MATCH_THRESHOLD,
   EMBEDDING_MATCH_COUNT,
+  EMBEDDING_MATCH_THRESHOLD,
   TAG_MATCH_COUNT,
 } from './const';
 

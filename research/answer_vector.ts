@@ -11,14 +11,16 @@ async function answerQuestion(question: string) {
     const contextMetadatas = searchResults.metadatas.flat();
 
     if (!contextChunks.length) {
-      console.log("No relevant documents found.");
+      console.log('No relevant documents found.');
       return;
     }
 
-    const contextText = contextChunks.map((chunk, idx) => {
-      const meta = contextMetadatas[idx];
-      return `Source (${meta.sourceDoc}):\n${chunk}`;
-    }).join('\n\n');
+    const contextText = contextChunks
+      .map((chunk, idx) => {
+        const meta = contextMetadatas[idx];
+        return `Source (${meta.sourceDoc}):\n${chunk}`;
+      })
+      .join('\n\n');
 
     const systemPrompt = `
 You are a highly skilled coding assistant. Use ONLY the following context to answer:
@@ -38,18 +40,18 @@ Do not mention the sources inside your answer.
       temperature: 0,
     });
 
-    const answerText = chatResponse.choices[0].message?.content ?? 'No answer generated.';
+    const answerText =
+      chatResponse.choices[0].message?.content ?? 'No answer generated.';
 
     // 🧹 Post-process: Build final output
     console.log('--- Answer ---');
     console.log(answerText);
 
     console.log('\n--- Sources ---');
-    const sourceDocs = new Set(contextMetadatas.map(m => m.sourceDoc));
+    const sourceDocs = new Set(contextMetadatas.map((m) => m.sourceDoc));
     sourceDocs.forEach((docId) => {
       console.log(`- ${docId}`);
     });
-
   } catch (err) {
     console.error('Error answering question:', err);
   }

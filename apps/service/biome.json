@@ -1,0 +1,12 @@
+{
+  "extends": ["@portfolio/biome-config/biome.json"],
+  "files": {
+    "includes": [
+      "**",
+      "!dist",
+      "!node_modules",
+      "!.wrangler",
+      "!worker-configuration.d.ts"
+    ]
+  }
+}
