@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "My portfolio",
   "main": "index.js",
+  "engines": {
+    "node": ">=22 <23"
+  },
   "scripts": {
     "dev:service": "pnpm --filter @portfolio/service dev",
     "dev:ui": "pnpm --filter @portfolio/ui dev",
@@ -21,12 +24,17 @@
     "biome": "$npm_execpath run biome:check",
     "biome:check": "pnpm --filter @portfolio/service --filter @portfolio/ui --filter @portfolio/common-ui biome:check",
     "biome:fix": "pnpm --filter @portfolio/service --filter @portfolio/ui --filter @portfolio/common-ui biome:fix",
-    "prepare": "husky"
+    "prepare": "husky",
+    "deps:outdated": "pnpm -r outdated",
+    "deps:audit": "pnpm audit --prod",
+    "deps:update:check": "pnpm -r up --interactive",
+    "deps:update:latest": "pnpm -r up -L major",
+    "ci:verify": "pnpm -r lint && pnpm -r test && pnpm -r build"
   },
   "keywords": [],
   "author": "i@xuli.dev",
   "license": "ISC",
-  "packageManager": "pnpm@10.12.4",
+  "packageManager": "pnpm@10.18.0",
   "devDependencies": {
     "concurrently": "^9.2.0",
     "eslint-plugin-vitest": "^0.5.4",
