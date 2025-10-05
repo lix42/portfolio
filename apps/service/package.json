@@ -19,26 +19,26 @@
     "cf-typegen": "wrangler types --env-interface CloudflareBindings"
   },
   "dependencies": {
-    "@hono/zod-validator": "^0.7.0",
-    "@supabase/supabase-js": "^2.50.4",
-    "hono": "^4.8.4",
-    "openai": "^5.8.3",
-    "zod": "^3.25.71"
+    "@hono/zod-validator": "^0.7.3",
+    "@supabase/supabase-js": "^2.58.0",
+    "hono": "^4.9.9",
+    "openai": "^5.23.2",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.4",
-    "@cloudflare/vite-plugin": "^1.2.3",
-    "@cloudflare/vitest-pool-workers": "^0.8.48",
-    "@cloudflare/workers-types": "^4.20250709.0",
+    "@biomejs/biome": "^2.2.5",
+    "@cloudflare/vite-plugin": "^1.13.9",
+    "@cloudflare/vitest-pool-workers": "^0.8.71",
+    "@cloudflare/workers-types": "^4.20251003.0",
     "@portfolio/biome-config": "workspace:*",
     "@portfolio/eslint-config": "workspace:*",
     "eslint": "^9.16.0",
     "prettier": "^3.4.2",
-    "typescript": "^5.8.0",
-    "vite": "^6.3.5",
+    "typescript": "^5.9.3",
+    "vite": "^6.3.6",
     "vite-ssr-components": "^0.3.0",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4",
-    "wrangler": "^4.17.0"
+    "wrangler": "^4.41.0"
   }
 }

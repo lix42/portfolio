@@ -23,7 +23,7 @@
     "waku": "0.23.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.4",
+    "@biomejs/biome": "^2.2.5",
     "@portfolio/biome-config": "workspace:*",
     "@portfolio/eslint-config": "workspace:*",
     "@tailwindcss/postcss": "4.1.10",
