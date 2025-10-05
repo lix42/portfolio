@@ -5,10 +5,10 @@
   "type": "module",
   "main": "index.js",
   "dependencies": {
-    "@eslint/js": "^9.16.0",
+    "@eslint/js": "^9.37.0",
     "@typescript-eslint/eslint-plugin": "^8.45.0",
     "@typescript-eslint/parser": "^8.45.0",
-    "eslint": "^9.16.0",
+    "eslint": "^9.37.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
