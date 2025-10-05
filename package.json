@@ -28,11 +28,7 @@
     "biome:check": "pnpm --filter @portfolio/service --filter @portfolio/ui --filter @portfolio/common-ui biome:check",
     "biome:fix": "pnpm --filter @portfolio/service --filter @portfolio/ui --filter @portfolio/common-ui biome:fix",
     "prepare": "husky",
-    "deps:outdated": "pnpm -r outdated",
-    "deps:audit": "pnpm audit --prod",
-    "deps:update:check": "pnpm -r up --interactive",
-    "deps:update:latest": "pnpm -r up -L major",
-    "ci:verify": "pnpm -r lint && pnpm -r test && pnpm -r build"
+    "deps:outdated": "pnpm -r outdated"
   },
   "keywords": [],
   "author": "i@xuli.dev",
@@ -42,7 +38,7 @@
     "concurrently": "^9.2.1",
     "eslint-plugin-vitest": "^0.5.4",
     "husky": "^9.1.7",
-    "lint-staged": "^15.2.11"
+    "lint-staged": "^16.2.3"
   },
   "lint-staged": {
     "apps/service/**/*.{js,jsx,ts,tsx}": [

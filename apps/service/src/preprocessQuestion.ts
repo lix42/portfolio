@@ -91,6 +91,7 @@ export const preprocessQuestion = async (
       },
     ],
     // Use Zod schema validation to ensure structured output parsing
+    // @ts-expect-error - OpenAI SDK zodTextFormat has type incompatibility with Zod v4
     text: { format: zodTextFormat(PreprocessQuestionResult, 'tagsResult') },
   });
 
