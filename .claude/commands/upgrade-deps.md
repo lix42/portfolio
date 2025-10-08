@@ -23,6 +23,7 @@ Analyze all packages in the monorepo and identify major version upgrades that ca
    - `pnpm lint:check` (if available)
    - `pnpm build`
    - `pnpm test`
+   - Service smoking test (see `apps/service/CLAUDE.md`)
 9. If any verification fails, investigate and fix the issues:
    - Check for breaking changes in changelogs
    - Add necessary type assertions or suppressions

@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "service",
-  "compatibility_date": "2024-04-01",
+  "compatibility_date": "2024-04-03",
   "compatibility_flags": ["nodejs_compat_v2"],
   "main": "./src/index.ts"
 }
