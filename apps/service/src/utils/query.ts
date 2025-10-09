@@ -8,7 +8,7 @@ import {
 // Perform semantic search against the knowledge base using the generated embedding
 // The match_chunks_by_embedding RPC function finds the most similar content chunks
 export const getChunksByEmbedding = (
-  embedding: number[],
+  embedding: readonly number[],
   supabaseClient: SupabaseClient
 ) =>
   supabaseClient.rpc('match_chunks_by_embedding', {
@@ -18,7 +18,7 @@ export const getChunksByEmbedding = (
   });
 
 export const getChunksByTags = (
-  tags: string[],
+  tags: readonly string[],
   supabaseClient: SupabaseClient
 ) =>
   supabaseClient.rpc('match_chunks_by_tags', {

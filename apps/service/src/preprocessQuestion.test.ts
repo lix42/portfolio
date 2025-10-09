@@ -354,18 +354,23 @@ describe('preprocessQuestion', () => {
       { output_parsed: { is_valid: true, tags: ['tag1'] } },
       { output_parsed: { is_valid: true, tags: ['tag2'] } },
       { output_parsed: { is_valid: true, tags: ['tag3'] } },
-    ] as const;
+    ];
 
+    /* eslint-disable @typescript-eslint/no-non-null-assertion */
     mockParse
       .mockResolvedValueOnce(
-        createMockParseResponse(mockResponses[0].output_parsed)
+        // biome-ignore lint: test mock
+        createMockParseResponse(mockResponses[0]!.output_parsed)
       )
       .mockResolvedValueOnce(
-        createMockParseResponse(mockResponses[1].output_parsed)
+        // biome-ignore lint: test mock
+        createMockParseResponse(mockResponses[1]!.output_parsed)
       )
       .mockResolvedValueOnce(
-        createMockParseResponse(mockResponses[2].output_parsed)
+        // biome-ignore lint: test mock
+        createMockParseResponse(mockResponses[2]!.output_parsed)
       );
+    /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
     // Act
     const results = await Promise.all(

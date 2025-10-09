@@ -23,7 +23,8 @@ import {
  */
 const PreprocessQuestionResult = z.object({
   is_valid: z.boolean(),
-  tags: z.array(z.string()).readonly(), // tags to be used for search
+  tags: z.array(z.string()), // tags to be used for search
+  explanation: z.string().nullable().optional(),
 });
 
 /**

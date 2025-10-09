@@ -13,8 +13,8 @@ type Chunk = Readonly<{
 }>;
 
 export const getContext = async (
-  embedding: number[],
-  tags: string[],
+  embedding: readonly number[],
+  tags: readonly string[],
   supabaseClient: SupabaseClient
 ) => {
   const [embeddingChunksResponse, tagsChunksResponse] = await Promise.all([
