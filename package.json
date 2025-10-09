@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "My portfolio",
   "main": "index.js",
+  "engines": {
+    "node": ">=22 <23"
+  },
   "scripts": {
     "dev:service": "pnpm --filter @portfolio/service dev",
     "dev:ui": "pnpm --filter @portfolio/ui dev",
@@ -13,6 +16,9 @@
     "preview:service": "pnpm --filter @portfolio/service preview",
     "preview:ui": "pnpm --filter @portfolio/ui preview",
     "preview": "concurrently \"pnpm run preview:service\" \"pnpm run preview:ui\"",
+    "test:service": "pnpm --filter @portfolio/service test",
+    "test:ui": "pnpm --filter @portfolio/ui test",
+    "test": "pnpm --filter @portfolio/service --filter @portfolio/ui test",
     "lint": "$npm_execpath run lint:check",
     "lint:check": "pnpm --filter @portfolio/service --filter @portfolio/ui lint:check",
     "lint:fix": "pnpm --filter @portfolio/service --filter @portfolio/ui lint:fix",
@@ -21,17 +27,18 @@
     "biome": "$npm_execpath run biome:check",
     "biome:check": "pnpm --filter @portfolio/service --filter @portfolio/ui --filter @portfolio/common-ui biome:check",
     "biome:fix": "pnpm --filter @portfolio/service --filter @portfolio/ui --filter @portfolio/common-ui biome:fix",
-    "prepare": "husky"
+    "prepare": "husky",
+    "deps:outdated": "pnpm -r outdated"
   },
   "keywords": [],
   "author": "i@xuli.dev",
   "license": "ISC",
-  "packageManager": "pnpm@10.12.4",
+  "packageManager": "pnpm@10.18.0",
   "devDependencies": {
-    "concurrently": "^9.2.0",
+    "concurrently": "^9.2.1",
     "eslint-plugin-vitest": "^0.5.4",
     "husky": "^9.1.7",
-    "lint-staged": "^15.2.11"
+    "lint-staged": "^16.2.3"
   },
   "lint-staged": {
     "apps/service/**/*.{js,jsx,ts,tsx}": [

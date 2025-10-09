@@ -23,13 +23,13 @@
     "waku": "0.23.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.4",
+    "@biomejs/biome": "^2.2.5",
     "@portfolio/biome-config": "workspace:*",
     "@portfolio/eslint-config": "workspace:*",
     "@tailwindcss/postcss": "4.1.10",
     "@types/react": "19.1.8",
     "@types/react-dom": "19.1.6",
-    "eslint": "^9.16.0",
+    "eslint": "^9.37.0",
     "postcss": "8.5.6",
     "prettier": "^3.4.2",
     "tailwindcss": "4.1.10",
