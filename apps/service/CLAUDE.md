@@ -1,6 +1,8 @@
 # Portfolio Service API
 
-A Hono-based TypeScript API service deployed on Cloudflare Workers that provides RAG (Retrieval-Augmented Generation) functionality for querying work experience and portfolio information.
+A Hono-based TypeScript API service deployed on Cloudflare Workers that provides
+RAG (Retrieval-Augmented Generation) functionality for querying work experience
+and portfolio information.
 
 ## Architecture
 
@@ -46,7 +48,7 @@ curl --request POST \
   --header 'Content-Type: application/json' \
   --header 'User-Agent: insomnia/11.2.0' \
   --data '{
-	"message": "Tell me an example about how you cooperate with other people."
+  "message": "Tell me an example about how you cooperate with other people."
 }'
 ```
 
@@ -61,7 +63,8 @@ Required in `.dev.vars` (local) and Cloudflare Workers secrets (production):
 ## API Endpoints
 
 - `GET /`: Health check
-- `POST /chat`: RAG chat endpoint (accepts `{ message: string }`, returns streaming response)
+- `POST /chat`: RAG chat endpoint (accepts `{ message: string }`, returns
+  streaming response)
 
 ## Configuration
 

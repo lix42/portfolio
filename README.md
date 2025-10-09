@@ -1,6 +1,8 @@
 # 🧠 Portfolio RAG Assistant – Fullstack Project
 
-This project powers an interactive portfolio assistant that uses Retrieval-Augmented Generation (RAG) to answer questions based on your past work. It's built with:
+This project powers an interactive portfolio assistant that uses
+Retrieval-Augmented Generation (RAG) to answer questions based on your past
+work. It's built with:
 
 - **Frontend**: React + Vite (deployed to Vercel)
 - **Backend**: Hono + TypeScript (deployed to Render/Fly.io)
@@ -12,7 +14,7 @@ This project powers an interactive portfolio assistant that uses Retrieval-Augme
 
 ## 🗂️ Project Structure
 
-```
+```text
 .
 ├── backend/        # Hono TypeScript API
 ├── frontend/       # React chat UI
@@ -34,6 +36,7 @@ This project powers an interactive portfolio assistant that uses Retrieval-Augme
 ### 2. Backend (Hono + TypeScript)
 
 #### Local dev
+
 ```bash
 cd backend
 npm install
@@ -42,6 +45,7 @@ npm run dev
 ```
 
 #### Deploy to Render
+
 1. Go to [render.com](https://render.com), create a new Web Service from GitHub
 2. Set Build Command: `npm run build`
 3. Start Command: `node build/index.js`
@@ -56,6 +60,7 @@ npm run dev  # http://localhost:3000
 ```
 
 Deploy to [Vercel](https://vercel.com):
+
 - Set project root to `frontend/`
 - Set API URL inside `App.jsx` (e.g. Render backend URL)
 
@@ -87,6 +92,7 @@ python ./scripts/ingest_documents.py
 ```
 
 This will:
+
 - Load JSON
 - Chunk markdown into tokenized segments
 - Embed via OpenAI
@@ -109,4 +115,3 @@ SUPABASE_SERVICE_ROLE_KEY=your-secret-role-key
 ## 📬 Contact
 
 Built by Li Xu. For questions or ideas, open an issue or reach out directly.
-

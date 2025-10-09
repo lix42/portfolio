@@ -1,5 +1,5 @@
 {
-  "extends": ["@portfolio/biome-config/biome.json"],
+  "extends": ["../../biome.json"],
   "files": {
     "includes": ["**", "!dist"]
   }

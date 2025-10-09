@@ -77,7 +77,7 @@ export const preprocessQuestion = async (
   // Make API call to OpenAI with structured prompts and output parsing
   const response = await openai.responses.parse({
     model: 'gpt-4o', // Use GPT-4 Omni for optimal tag generation quality
-    input:[
+    input: [
       {
         role: 'system',
         content: systemPromptTags, // Provides overall context and tag generation rules

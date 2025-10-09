@@ -356,16 +356,18 @@ describe('preprocessQuestion', () => {
       { output_parsed: { is_valid: true, tags: ['tag3'] } },
     ];
 
-    // biome-ignore lint/style/noNonNullAssertion: test data is guaranteed to exist
     /* eslint-disable @typescript-eslint/no-non-null-assertion */
     mockParse
       .mockResolvedValueOnce(
+        // biome-ignore lint: test mock
         createMockParseResponse(mockResponses[0]!.output_parsed)
       )
       .mockResolvedValueOnce(
+        // biome-ignore lint: test mock
         createMockParseResponse(mockResponses[1]!.output_parsed)
       )
       .mockResolvedValueOnce(
+        // biome-ignore lint: test mock
         createMockParseResponse(mockResponses[2]!.output_parsed)
       );
     /* eslint-enable @typescript-eslint/no-non-null-assertion */
