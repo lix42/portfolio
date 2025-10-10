@@ -21,16 +21,16 @@ and portfolio information.
 ## Development
 
 ```bash
-# Start development server with hot reload
+# Start development server with hot reload (using wrangler)
 pnpm dev
 
 # Run tests
 pnpm test
 
-# Type checking
-pnpm type-check
+# Type checking and linting
+pnpm build
 
-# Deploy to Cloudflare Workers
+# Deploy to Cloudflare Workers (with minification)
 pnpm deploy
 
 # Generate Cloudflare bindings types
@@ -68,9 +68,25 @@ Required in `.dev.vars` (local) and Cloudflare Workers secrets (production):
 
 ## Configuration
 
-- `wrangler.jsonc`: Cloudflare Workers configuration with bindings
+- `wrangler.jsonc`: Cloudflare Workers configuration (uses direct TypeScript execution)
 - `vitest.config.ts`: Test configuration with Cloudflare Workers environment
 - Type definitions in `worker-configuration.d.ts`
+
+**Note:** This service uses the `cloudflare-worker` template (not `cloudflare-worker+vite`). Development and deployment use wrangler directly without a Vite build step.
+
+## Build & Deployment
+
+The service uses wrangler for both development and deployment:
+
+- **No build step required** for deployment - wrangler handles TypeScript compilation
+- **Build command** (`pnpm build`) runs linting and type checking for validation
+- **Deployment** uses `wrangler deploy --minify` for optimized bundle size
+
+### Build Verification
+
+Run `pnpm build` to verify code quality without deploying:
+- Runs `eslint .` for linting checks
+- Runs `tsc --noEmit` for TypeScript type checking
 
 ## Code Conventions
 
