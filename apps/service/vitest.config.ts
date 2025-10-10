@@ -1,9 +1,12 @@
 import { defineWorkersConfig } from '@cloudflare/vitest-pool-workers/config';
-import type { PluginOption } from 'vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
+import path from 'node:path';
 
 export default defineWorkersConfig({
-  plugins: [tsconfigPaths()] as PluginOption[],
+  resolve: {
+    alias: {
+      '@documents': path.resolve(__dirname, '../../documents'),
+    },
+  },
   test: {
     poolOptions: {
       workers: {
