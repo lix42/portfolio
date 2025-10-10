@@ -3,9 +3,8 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "$npm_execpath run biome:check && tsc --noEmit && vite build",
-    "preview": "$npm_execpath run build && vite preview",
+    "dev": "wrangler dev",
+    "build": "$npm_execpath run biome:check && tsc --noEmit",
     "test": "vitest",
     "lint": "$npm_execpath run lint:check",
     "lint:check": "eslint .",
@@ -15,7 +14,7 @@
     "biome": "$npm_execpath run biome:check",
     "biome:check": "biome check .",
     "biome:fix": "biome check --write .",
-    "deploy": "$npm_execpath run build && wrangler deploy",
+    "deploy": "$npm_execpath run build && wrangler deploy --minify",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings"
   },
   "dependencies": {
