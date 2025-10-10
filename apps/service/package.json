@@ -28,7 +28,6 @@
     "@biomejs/biome": "^2.2.5",
     "@cloudflare/vitest-pool-workers": "^0.8.71",
     "@cloudflare/workers-types": "^4.20251004.0",
-    "@portfolio/biome-config": "workspace:*",
     "@portfolio/eslint-config": "workspace:*",
     "eslint": "^9.37.0",
     "prettier": "^3.4.2",

@@ -24,7 +24,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.5",
-    "@portfolio/biome-config": "workspace:*",
     "@portfolio/eslint-config": "workspace:*",
     "@tailwindcss/postcss": "4.1.10",
     "@types/react": "19.1.8",
