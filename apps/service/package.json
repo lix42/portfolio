@@ -26,7 +26,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.5",
-    "@cloudflare/vite-plugin": "^1.13.10",
     "@cloudflare/vitest-pool-workers": "^0.8.71",
     "@cloudflare/workers-types": "^4.20251004.0",
     "@portfolio/biome-config": "workspace:*",
@@ -34,9 +33,6 @@
     "eslint": "^9.37.0",
     "prettier": "^3.4.2",
     "typescript": "^5.9.3",
-    "vite": "^7.1.9",
-    "vite-ssr-components": "^0.3.0",
-    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4",
     "wrangler": "^4.42.0"
   }
