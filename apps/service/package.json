@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --port 5173",
     "build": "$npm_execpath run biome:check && tsc --noEmit",
     "test": "vitest",
     "lint": "$npm_execpath run lint:check",
