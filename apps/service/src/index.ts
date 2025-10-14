@@ -1,7 +1,8 @@
+import { WorkerEntrypoint } from 'cloudflare:workers';
 import { Hono } from 'hono';
-import chat from './chat';
+import chat, { answerQuestion } from './chat';
 
-const app = new Hono().basePath('/v1');
+const app = new Hono<{ Bindings: CloudflareBindings }>().basePath('/v1');
 
 // Custom Not Found Message
 app.notFound((c) => {
@@ -19,4 +20,12 @@ app.onError((err, c) => {
 app.get('/', (c) => c.text('Hono!!'));
 app.route('/chat', chat);
 
-export default app;
+export default class extends WorkerEntrypoint<CloudflareBindings> {
+  override fetch(request: Request) {
+    return app.fetch(request, this.env, this.ctx);
+  }
+
+  chat = async (message: string) => {
+    return await answerQuestion(message, this.env);
+  };
+}

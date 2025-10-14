@@ -3,7 +3,8 @@
   "name": "service",
   "compatibility_date": "2025-10-09",
   "compatibility_flags": ["nodejs_compat_v2"],
-  "main": "src/index.ts"
+  "main": "src/index.ts",
+  "placement": { "mode": "smart" }
 
   // ============================================================================
   // Bindings Configuration Examples

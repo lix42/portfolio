@@ -1,4 +1,3 @@
-
 {
   "name": "waku-project",
   "main": "./dist/worker/serve-cloudflare.js",
@@ -12,6 +11,7 @@
     "binding": "ASSETS",
     "directory": "./dist/assets",
     "html_handling": "drop-trailing-slash",
-    "not_found_handling": "404-page",
-  }
+    "not_found_handling": "404-page"
+  },
+  "placement": { "mode": "smart" }
 }
