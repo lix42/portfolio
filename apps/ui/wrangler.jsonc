@@ -1,5 +1,5 @@
 {
-  "name": "waku-project",
+  "name": "chat-ui",
   "main": "./dist/worker/serve-cloudflare.js",
   // https://developers.cloudflare.com/workers/platform/compatibility-dates
   "compatibility_date": "2024-11-11",
