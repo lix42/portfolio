@@ -13,5 +13,11 @@
     "html_handling": "drop-trailing-slash",
     "not_found_handling": "404-page"
   },
-  "placement": { "mode": "smart" }
+  "placement": { "mode": "smart" },
+  "services": [
+    {
+      "binding": "CHAT_SERVICE",
+      "service": "chat-service"
+    }
+  ]
 }
