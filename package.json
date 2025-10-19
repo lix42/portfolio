@@ -41,11 +41,11 @@
     "lint-staged": "^16.2.3"
   },
   "lint-staged": {
-    "apps/service/**/*.{js,jsx,ts,tsx}": [
-      "pnpm --filter @portfolio/service lint:fix"
+    "apps/service/**/*.{js,jsx,ts,tsx,json,jsonc}": [
+      "pnpm --filter @portfolio/service biome:fix"
     ],
-    "apps/ui/**/*.{js,jsx,ts,tsx}": [
-      "pnpm --filter @portfolio/ui lint:fix"
+    "apps/ui/**/*.{js,jsx,ts,tsx,json,jsonc}": [
+      "pnpm --filter @portfolio/ui biome:fix"
     ]
   }
 }

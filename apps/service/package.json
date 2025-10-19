@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "$npm_execpath run lint:check && tsc --noEmit && vite build",
+    "build": "$npm_execpath run biome:check && tsc --noEmit && vite build",
     "preview": "$npm_execpath run build && vite preview",
     "test": "vitest",
     "lint": "$npm_execpath run lint:check",
