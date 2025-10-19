@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "waku dev",
-    "build": "$npm_execpath run lint:check && tsc --noEmit && waku build",
+    "build": "$npm_execpath run biome:check && tsc --noEmit && waku build",
     "preview": "waku start",
     "lint": "$npm_execpath run lint:check",
     "lint:check": "eslint .",
