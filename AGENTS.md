@@ -1,37 +1,38 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `apps/service`: Cloudflare Worker written with Hono + Vite; owns `/v1/chat` API and related utilities under `src/**`.
-- `apps/ui`: React + Waku chat interface; consumes shared primitives from `packages/common-ui`.
-- `packages/common-ui` and `packages/*-config`: shared UI kit plus lint/biome/env configs imported via workspace ranges; update here before copying per-app overrides.
-- `scripts/` and `documents/`: Python ingestion pipeline plus JSON manifests that map projects to markdown sources; these feed the RAG knowledge base.
-- `supabase/`: SQL schema, functions, and migration helpers needed before enabling embeddings storage.
+- `apps/service/`: Cloudflare Worker (Hono) API; runtime config in `wrangler.jsonc`, entry `src/index.ts`.
+- `apps/ui/`: React + Waku front-end; route components under `src/pages`, shared primitives in `packages/common-ui/`.
+- `packages/common-ui/`: design system exposed as Vite bundle for UI and future surfaces.
+- `packages/eslint-config/`: shared ESLint and TypeScript rules consumed across apps.
+- `scripts/` & `documents/`: Python ingestion pipeline that feeds Supabase; `supabase/` stores SQL migrations for the vector store.
 
 ## Build, Test, and Development Commands
-- `pnpm dev` starts service + UI concurrently; use `pnpm run dev:service` or `dev:ui` to focus on a single surface.
-- `pnpm run build` runs lint, type-check, and bundling for both apps; Cloudflare releases use `pnpm --filter @portfolio/service deploy` after a passing build.
-- `pnpm --filter @portfolio/service test` executes the Vitest suite; append `--runInBand` when debugging worker bindings or flakiness.
-- Quality gates: `pnpm run lint:check`, `format:check`, and `biome:check` (fix via matching `:fix` scripts) must be clean before review.
-- Data refresh: `pip install -r requirements.txt` then `python scripts/ingest_documents.py` to re-embed any updated markdown.
+- `pnpm dev` — runs service and UI concurrently (workers on :5173, Waku dev with hot reload).
+- `pnpm dev:service` / `pnpm dev:ui` — focus on a single surface while the other is mocked.
+- `pnpm build` — lints and type-checks each app before bundling.
+- `pnpm test` — executes the Vitest suite for the service worker.
+- `pnpm lint` / `pnpm lint:fix` — shared ESLint config via `@portfolio/eslint-config`.
+- `pnpm biome:check` / `pnpm biome:fix` — enforce repo-wide formatting (2-space indent, 80-char width, single quotes).
 
 ## Coding Style & Naming Conventions
-- TypeScript-first with modules under `src/**`; export via barrel files for reuse across apps.
-- Prettier enforces 2-space indentation, single quotes, and trailing commas—never hand-format.
-- Shared ESLint config (`packages/eslint-config`) requires optional chaining/nullish coalescing, forbids floating promises, and de-duplicates imports.
-- React components/hooks use PascalCase file names; utilities stay camelCase. Shared UI should live in `packages/common-ui/src` to avoid duplication.
+- TypeScript everywhere; keep strict typing, prefer `async/await`, use `camelCase` for functions, `PascalCase` for components/classes.
+- Co-locate modules under `src/feature/moduleName.ts`; tests sit beside implementations.
+- Rely on Biome and Prettier—do not hand-format. JSX uses double quotes and trailing commas (per `biome.json`).
+- Import order is linted; keep side-effect imports first and avoid climbing beyond `../`.
 
 ## Testing Guidelines
-- Store tests next to implementation as `*.test.ts`; align `describe()` labels with route or module names (e.g., `describe('/v1/chat')`).
-- Use Vitest mocks for Supabase/OpenAI clients; do not hit live services in unit tests.
-- For ingestion scripts, add fixtures under `scripts/__fixtures__` and capture manual verification notes in the PR when real data is required.
-- Run `pnpm --filter @portfolio/service test -- --coverage` before review whenever backend logic changes.
+- Use Vitest with the Cloudflare Workers pool (`apps/service/src/*.test.ts`); mock bindings via the generated `env` helpers.
+- New endpoints need request/response and edge-case coverage (timeouts, missing bindings).
+- Snapshot tests are discouraged; assert against structured payloads.
+- UI tests are emerging—document manual QA in PRs until component checks land.
 
 ## Commit & Pull Request Guidelines
-- Follow current history: short, present-tense subjects (e.g., `Add Biome linting configuration`), optional scope tags, and link issues/PR numbers.
-- Each commit should include related docs/tests; squash noisy fixups before pushing.
-- PRs must describe intent, list verification commands, link Supabase migrations when relevant, and attach UI screenshots/gifs for `apps/ui` changes.
-- Ensure `pnpm run lint:check` and service tests pass locally; call out any known flake (e.g., worker preview) in the PR body.
+- Follow `type(scope): summary` commits (e.g. `feature(service): add streaming context`); keep the summary imperative and <75 chars.
+- PRs should explain motivation, approach, and deployment impact, link issues, and attach UI screenshots or curl examples when relevant.
+- Ensure `pnpm lint`, `pnpm biome:check`, and `pnpm test` pass locally before requesting review.
 
 ## Security & Configuration Tips
-- Keep secrets out of git; rely on `env-config/` templates and `.env.example` per app, plus `supabase/init.sql` for reproducible DB state.
-- Rotate `SUPABASE_SERVICE_ROLE_KEY` when sharing previews, and scope OpenAI keys to ingestion vs. runtime workloads.
+- Secrets stay in Cloudflare and Supabase dashboards; never commit `.env`. Local typing mirrors `worker-configuration.d.ts`.
+- Regenerate bindings after env changes with `pnpm --filter @portfolio/ui cf-typegen` or `pnpm --filter @portfolio/service cf-typegen`.
+- Keep ingestion data private; staged JSON lives in `documents/` and is processed by scripts inside `scripts/`.

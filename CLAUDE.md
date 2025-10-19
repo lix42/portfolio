@@ -2,6 +2,25 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Critical Rules
+
+### Critical Thinking and Verification
+- When asked "Does it make sense?", "How do you think about it?", or when presented with statements - ALWAYS think critically and verify correctness
+- DO NOT automatically agree or respond with "You are absolutely right" just because something was stated
+- MUST push back when something is incorrect or suboptimal
+- Provide reasoned analysis rather than simple agreement
+- Question assumptions and validate logic before confirming
+
+### Decision Making and Planning
+- ALWAYS discuss a plan first before implementation, then follow the agreed plan
+- Small changes not in the plan are acceptable (e.g., fixing indentation, lint errors)
+- Large changes REQUIRE discussion first, even with "accept edits on" mode:
+  - Fixing type errors
+  - Refactoring code structure
+  - Changing implementation approach
+  - Adding new functionality not in the original plan
+- Present the proposed change and rationale before proceeding with significant modifications
+
 ## Architecture Overview
 
 This is a Portfolio RAG Assistant that uses Retrieval-Augmented Generation to answer questions about past work experience. The system consists of:

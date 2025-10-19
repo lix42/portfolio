@@ -60,8 +60,15 @@ Icon
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-!.vscode/mcp.json
 *.code-workspace
+
+# Claude Code (local config managed by env-config)
+.claude/.mcp.json
+.claude/.mcp.local.json
+.claude/settings.local.json
+
+# VSCode MCP (managed by env-config)
+.vscode/mcp.json
 
 # Build and compile artifacts
 dist/
@@ -94,4 +101,8 @@ coverage/
 .temp
 supabase/.temp
 *.swp
+
+# env-config local files
+env-config/.env.local
+env-config/node_modules/
 
