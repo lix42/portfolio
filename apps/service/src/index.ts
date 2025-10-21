@@ -16,14 +16,24 @@ app.onError((err, c) => {
   return c.text('Custom Error Message', 500);
 });
 
+// Health check function
+const health = () => {
+  return { ok: true };
+};
+
 // Routing
 app.get('/', (c) => c.text('Hono!!'));
+app.get('/health', (c) => c.json(health()));
 app.route('/chat', chat);
 
 export default class extends WorkerEntrypoint<CloudflareBindings> {
   override fetch(request: Request) {
     return app.fetch(request, this.env, this.ctx);
   }
+
+  health = async () => {
+    return health();
+  };
 
   chat = async (message: string) => {
     return await answerQuestion(message, this.env);
