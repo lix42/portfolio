@@ -2,20 +2,28 @@
   "name": "@portfolio/service",
   "version": "0.0.1",
   "type": "module",
+  "files": [
+    "dist/"
+  ],
+  "types": "./dist/chatServiceBinding.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/chatServiceBinding.d.ts",
+      "default": "./dist/chatServiceBinding.d.ts"
+    }
+  },
   "scripts": {
     "dev": "wrangler dev --port 5173",
-    "build": "$npm_execpath run biome:check && tsc --noEmit",
+    "lint": "$npm_execpath run biome:check",
     "test": "vitest",
-    "lint": "$npm_execpath run lint:check",
-    "lint:check": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format:check": "prettier --check .",
-    "format:fix": "prettier --write .",
+    "build": "$npm_execpath run biome:fix && $npm_execpath run cf-typegen && $npm_execpath run type:build",
     "biome": "$npm_execpath run biome:check",
     "biome:check": "biome check .",
     "biome:fix": "biome check --write .",
     "deploy": "$npm_execpath run build && wrangler deploy --minify",
-    "cf-typegen": "wrangler types --env-interface CloudflareBindings"
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "type:check": "tsc --noEmit",
+    "type:build": "tsc --project tsconfig.type.json"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.3",

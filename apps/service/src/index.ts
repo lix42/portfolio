@@ -1,6 +1,7 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
 import { Hono } from 'hono';
 import chat, { answerQuestion } from './chat';
+import type { ChatServiceBinding } from './chatServiceBinding';
 
 const app = new Hono<{ Bindings: CloudflareBindings }>().basePath('/v1');
 
@@ -26,7 +27,10 @@ app.get('/', (c) => c.text('Hono!!'));
 app.get('/health', (c) => c.json(health()));
 app.route('/chat', chat);
 
-export default class extends WorkerEntrypoint<CloudflareBindings> {
+export default class
+  extends WorkerEntrypoint<CloudflareBindings>
+  implements ChatServiceBinding
+{
   override fetch(request: Request) {
     return app.fetch(request, this.env, this.ctx);
   }
