@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "Context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ]
+    },
+    "Bright Data": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://mcp.brightdata.com/mcp?token=04b177d7c52546d4cb2762a6760d3c5fb27ca49cb1ca591b08b2edce7ddf7e86"
+      ]
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest"
+      ]
+    }
+  }
+}
