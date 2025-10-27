@@ -1,37 +1,35 @@
 # Repository Guidelines
-
 ## Project Structure & Module Organization
-- `apps/service`: Cloudflare Worker written with Hono + Vite; owns `/v1/chat` API and related utilities under `src/**`.
-- `apps/ui`: React + Waku chat interface; consumes shared primitives from `packages/common-ui`.
-- `packages/common-ui` and `packages/*-config`: shared UI kit plus lint/biome/env configs imported via workspace ranges; update here before copying per-app overrides.
-- `scripts/` and `documents/`: Python ingestion pipeline plus JSON manifests that map projects to markdown sources; these feed the RAG knowledge base.
-- `supabase/`: SQL schema, functions, and migration helpers needed before enabling embeddings storage.
+- `apps/service`: Cloudflare Worker API built with Hono; business logic lives under `src` and shared bindings in `worker-configuration.d.ts`.
+- `apps/ui`: Waku + React client; UI flows live in `src/app`, assets in `public`, and Tailwind config sits in `postcss.config.js`.
+- `packages/common-ui`: Shared presentation components and hooks; keep exports tree-shakeable and versioned via the workspace.
+- `packages/eslint-config`: Shared ESLint presets (`index.js`, `react.js`, `vitest.js`) consumed by every app.
+- Supporting directories: `documents` (RAG source JSON), `scripts` (Python ingestion), `supabase` (SQL schema), and `research` for experiments.
 
-## Build, Test, and Development Commands
-- `pnpm dev` starts service + UI concurrently; use `pnpm run dev:service` or `dev:ui` to focus on a single surface.
-- `pnpm run build` runs lint, type-check, and bundling for both apps; Cloudflare releases use `pnpm --filter @portfolio/service deploy` after a passing build.
-- `pnpm --filter @portfolio/service test` executes the Vitest suite; append `--runInBand` when debugging worker bindings or flakiness.
-- Quality gates: `pnpm run lint:check`, `format:check`, and `biome:check` (fix via matching `:fix` scripts) must be clean before review.
-- Data refresh: `pip install -r requirements.txt` then `python scripts/ingest_documents.py` to re-embed any updated markdown.
+## Build, Test & Development Commands
+- `pnpm install` to bootstrap (Node 22.x required).
+- `pnpm dev` launches service (Wrangler on :5173) and UI (Waku dev server) together; use `pnpm dev:service` or `pnpm dev:ui` for focused work.
+- `pnpm build` runs Biome checks and TypeScript builds for both apps; rely on per-package commands when debugging.
+- `pnpm test`, `pnpm test:service`, `pnpm test:ui` execute Vitest suites; add `--runInBand` if worker resources are limited.
+- `pnpm lint:check`, `pnpm format:check`, and `pnpm biome:check` gate PRs; use the `:fix` variants before committing.
 
 ## Coding Style & Naming Conventions
-- TypeScript-first with modules under `src/**`; export via barrel files for reuse across apps.
-- Prettier enforces 2-space indentation, single quotes, and trailing commas—never hand-format.
-- Shared ESLint config (`packages/eslint-config`) requires optional chaining/nullish coalescing, forbids floating promises, and de-duplicates imports.
-- React components/hooks use PascalCase file names; utilities stay camelCase. Shared UI should live in `packages/common-ui/src` to avoid duplication.
+- Biome enforces 2-space indentation, single quotes, trailing commas, and semicolons; never bypass the formatter.
+- TypeScript is the default; prefer type-only imports and optional chaining per shared ESLint rules.
+- Components, hooks, and workers use `PascalCase`, helpers use `camelCase`, and files mirror their default export.
+- Keep environment-specific bindings in `worker-configuration.d.ts` and `service-bindings.d.ts` so Wrangler typegen stays accurate.
 
 ## Testing Guidelines
-- Store tests next to implementation as `*.test.ts`; align `describe()` labels with route or module names (e.g., `describe('/v1/chat')`).
-- Use Vitest mocks for Supabase/OpenAI clients; do not hit live services in unit tests.
-- For ingestion scripts, add fixtures under `scripts/__fixtures__` and capture manual verification notes in the PR when real data is required.
-- Run `pnpm --filter @portfolio/service test -- --coverage` before review whenever backend logic changes.
+- Vitest plus `@cloudflare/vitest-pool-workers` powers worker tests; colocate specs as `*.test.ts` beside implementation.
+- Mock Supabase and OpenAI clients via `vi.mock` to avoid network calls; assert status codes and payload shapes.
+- Update fixtures in `documents/` when ingestion formats change and rerun `pnpm test` before requesting review.
 
 ## Commit & Pull Request Guidelines
-- Follow current history: short, present-tense subjects (e.g., `Add Biome linting configuration`), optional scope tags, and link issues/PR numbers.
-- Each commit should include related docs/tests; squash noisy fixups before pushing.
-- PRs must describe intent, list verification commands, link Supabase migrations when relevant, and attach UI screenshots/gifs for `apps/ui` changes.
-- Ensure `pnpm run lint:check` and service tests pass locally; call out any known flake (e.g., worker preview) in the PR body.
+- Follow observed pattern `feature(scope): concise summary`; use `chore`, `fix`, or `docs` when appropriate and keep subjects ≤72 chars.
+- Stage only related changes; include relevant `pnpm` commands in the body when they influence behavior.
+- PRs should describe intent, list manual verification, attach screenshots for UI work, and reference Supabase migrations when touched.
+- Confirm Biome, lint, tests, and, if applicable, `scripts/ingest_*.py` runs before assigning reviewers.
 
-## Security & Configuration Tips
-- Keep secrets out of git; rely on `env-config/` templates and `.env.example` per app, plus `supabase/init.sql` for reproducible DB state.
-- Rotate `SUPABASE_SERVICE_ROLE_KEY` when sharing previews, and scope OpenAI keys to ingestion vs. runtime workloads.
+## Environment & Secrets
+- Copy `.env.example` files where present and supply `OPENAI_API_KEY`, `SUPABASE_URL`, and `SUPABASE_SERVICE_ROLE_KEY`.
+- Use `wrangler secret put` for Cloudflare bound keys; never commit secrets or generated `.env` files.

@@ -10,7 +10,7 @@ import {
 export const getChunksByEmbedding = (
   embedding: readonly number[],
   supabaseClient: SupabaseClient
-) =>
+): ReturnType<typeof supabaseClient.rpc> =>
   supabaseClient.rpc('match_chunks_by_embedding', {
     query_embedding: embedding, // Vector embedding to compare against stored chunks
     match_threshold: EMBEDDING_MATCH_THRESHOLD,
@@ -20,7 +20,7 @@ export const getChunksByEmbedding = (
 export const getChunksByTags = (
   tags: readonly string[],
   supabaseClient: SupabaseClient
-) =>
+): ReturnType<typeof supabaseClient.rpc> =>
   supabaseClient.rpc('match_chunks_by_tags', {
     input_tags: tags,
     top_k: TAG_MATCH_COUNT,
@@ -29,7 +29,7 @@ export const getChunksByTags = (
 export const getDocumentById = async (
   documentId: string,
   supabaseClient: SupabaseClient
-) => {
+): Promise<string | null> => {
   const { data, error } = await supabaseClient
     .from('documents')
     .select('content')

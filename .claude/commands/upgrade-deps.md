@@ -20,22 +20,30 @@ that can be safely applied.
      compatibility
    - Identify transitive dependency conflicts (e.g., if Package A and B both
      depend on Package C, check if they can upgrade together)
-5. Present a list of packages that can be upgraded, with reasoning about why
-   they're safe
-6. Ask user for confirmation before upgrading
-7. If user confirms, upgrade each package using `pnpm add <package>@^<version>`
+5. For each package with a feasible major version upgrade:
+   - Search for the package's changelog using GitHub search or web search
+   - Look for CHANGELOG.md, HISTORY.md, or GitHub releases
+   - Analyze major changes between current and target versions
+   - Identify breaking changes, new features, and migration requirements
+6. Present a list of packages that can be upgraded with:
+   - Current version → Target version
+   - Summary of major changes from changelog
+   - Breaking changes and migration notes
+   - Reasoning about why upgrade is safe or what needs attention
+7. Ask user for confirmation before upgrading
+8. If user confirms, upgrade each package using `pnpm add <package>@^<version>`
    or `pnpm add -D <package>@^<version>`
-8. After all upgrades, verify with:
+9. After all upgrades, verify with:
    - `pnpm biome:check` (if available)
    - `pnpm lint:check` (if available)
    - `pnpm build`
    - `pnpm test`
    - Service smoking test (see `apps/service/CLAUDE.md`)
-9. If any verification fails, investigate and fix the issues:
-   - Check for breaking changes in changelogs
-   - Add necessary type assertions or suppressions
-   - Update test code if needed
-10. Report final status with list of successfully upgraded packages
+10. If any verification fails, investigate and fix the issues:
+    - Reference changelog breaking changes
+    - Add necessary type assertions or suppressions
+    - Update test code if needed
+11. Report final status with list of successfully upgraded packages
 
 ## Notes
 
@@ -43,5 +51,19 @@ that can be safely applied.
 - Be careful about packages that block each other (like React ecosystem with
   framework peer dependencies)
 - Always check peer dependencies for major version updates
+- For changelog lookup, try these approaches in order:
+  - Use `gh api` or `gh repo view` to find the package's GitHub repository
+  - Use `gh api` to read CHANGELOG.md or similar files from the repo
+  - Use `gh release list` and `gh release view` for GitHub releases
+  - Fall back to MCP GitHub tools if `gh` commands fail:
+    - `mcp__github_repos__search_repositories` to find the package's repo
+    - `mcp__github_repos__get_file_contents` to read CHANGELOG.md or similar
+    - `mcp__github_repos__list_releases` for GitHub releases
+  - Fall back to `WebSearch` if repository is not on GitHub
+- When analyzing changelogs, focus on:
+  - Breaking changes marked with "BREAKING" or in major version sections
+  - Migration guides or upgrade instructions
+  - Deprecated features that may affect the codebase
+  - New peer dependency requirements
 - When TypeScript errors occur, investigate if it's a real breaking change or
   just a type compatibility issue that can be suppressed

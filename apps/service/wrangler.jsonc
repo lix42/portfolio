@@ -1,7 +1,193 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "service",
-  "compatibility_date": "2024-04-03",
+  "name": "chat-service",
+  "compatibility_date": "2025-10-09",
   "compatibility_flags": ["nodejs_compat_v2"],
-  "main": "./src/index.ts"
+  "main": "src/index.ts",
+  "placement": { "mode": "smart" },
+  "observability": {
+    "enabled": false,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true
+    }
+  },
+  "version_metadata": {
+    "binding": "CF_VERSION_METADATA"
+  }
+
+  // ============================================================================
+  // Bindings Configuration Examples
+  // ============================================================================
+  // Uncomment and configure the bindings you need below
+
+  // Environment Variables
+  // ---------------------
+  // "vars": {
+  //   "ENVIRONMENT": "production",
+  //   "API_ENDPOINT": "https://api.example.com",
+  //   "FEATURE_FLAG": "true"
+  // },
+
+  // Secrets (set via: wrangler secret put SECRET_NAME)
+  // ---------------------------------------------------
+  // Secrets are not defined in wrangler.jsonc, but accessed via c.env.SECRET_NAME
+  // Set them with: wrangler secret put OPENAI_API_KEY
+  // Set them with: wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+
+  // KV Namespaces (Key-Value Storage)
+  // ----------------------------------
+  // "kv_namespaces": [
+  //   {
+  //     "binding": "MY_KV",
+  //     "id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  //     "preview_id": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+  //   }
+  // ],
+  // Usage: await c.env.MY_KV.get("key")
+  // Usage: await c.env.MY_KV.put("key", "value")
+
+  // R2 Buckets (Object Storage)
+  // ----------------------------
+  // "r2_buckets": [
+  //   {
+  //     "binding": "MY_BUCKET",
+  //     "bucket_name": "my-bucket-name",
+  //     "preview_bucket_name": "my-bucket-preview"
+  //   }
+  // ],
+  // Usage: await c.env.MY_BUCKET.put("file.txt", contents)
+  // Usage: await c.env.MY_BUCKET.get("file.txt")
+
+  // D1 Databases (SQLite)
+  // ---------------------
+  // "d1_databases": [
+  //   {
+  //     "binding": "DB",
+  //     "database_name": "my-database",
+  //     "database_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  //     "preview_database_id": "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"
+  //   }
+  // ],
+  // Usage: await c.env.DB.prepare("SELECT * FROM users").all()
+
+  // Durable Objects
+  // ---------------
+  // "durable_objects": {
+  //   "bindings": [
+  //     {
+  //       "name": "MY_DURABLE_OBJECT",
+  //       "class_name": "MyDurableObject",
+  //       "script_name": "my-worker"
+  //     }
+  //   ]
+  // },
+  // Usage: const id = c.env.MY_DURABLE_OBJECT.idFromName("my-id")
+  // Usage: const stub = c.env.MY_DURABLE_OBJECT.get(id)
+
+  // Service Bindings (Call other Workers)
+  // --------------------------------------
+  // "services": [
+  //   {
+  //     "binding": "MY_SERVICE",
+  //     "service": "my-other-worker",
+  //     "environment": "production"
+  //   }
+  // ],
+  // Usage: await c.env.MY_SERVICE.fetch(request)
+
+  // Analytics Engine
+  // ----------------
+  // "analytics_engine_datasets": [
+  //   {
+  //     "binding": "MY_ANALYTICS",
+  //     "dataset": "my-dataset"
+  //   }
+  // ],
+  // Usage: c.env.MY_ANALYTICS.writeDataPoint({ blobs: ["action"], doubles: [1.0] })
+
+  // Queues (Message Queues)
+  // -----------------------
+  // "queues": {
+  //   "producers": [
+  //     {
+  //       "binding": "MY_QUEUE",
+  //       "queue": "my-queue-name"
+  //     }
+  //   ],
+  //   "consumers": [
+  //     {
+  //       "queue": "my-queue-name",
+  //       "max_batch_size": 10,
+  //       "max_batch_timeout": 30
+  //     }
+  //   ]
+  // },
+  // Usage: await c.env.MY_QUEUE.send({ message: "hello" })
+
+  // Vectorize (Vector Database)
+  // ---------------------------
+  // "vectorize": [
+  //   {
+  //     "binding": "VECTORIZE",
+  //     "index_name": "my-vector-index"
+  //   }
+  // ],
+  // Usage: await c.env.VECTORIZE.insert([{ id: "1", values: [0.1, 0.2] }])
+  // Usage: await c.env.VECTORIZE.query([0.1, 0.2], { topK: 5 })
+
+  // AI (Workers AI)
+  // ---------------
+  // "ai": {
+  //   "binding": "AI"
+  // },
+  // Usage: await c.env.AI.run("@cf/meta/llama-2-7b-chat-int8", { prompt: "Hello" })
+
+  // Hyperdrive (Database Connection Pooling)
+  // -----------------------------------------
+  // "hyperdrive": [
+  //   {
+  //     "binding": "HYPERDRIVE",
+  //     "id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  //   }
+  // ],
+  // Usage: Used with D1 or other database drivers for connection pooling
+
+  // Browser Rendering
+  // -----------------
+  // "browser": {
+  //   "binding": "BROWSER"
+  // },
+  // Usage: const browser = await puppeteer.launch(c.env.BROWSER)
+
+  // Environment-Specific Configuration
+  // -----------------------------------
+  // "env": {
+  //   "production": {
+  //     "vars": {
+  //       "ENVIRONMENT": "production"
+  //     },
+  //     "kv_namespaces": [
+  //       {
+  //         "binding": "MY_KV",
+  //         "id": "production-kv-id"
+  //       }
+  //     ]
+  //   },
+  //   "staging": {
+  //     "vars": {
+  //       "ENVIRONMENT": "staging"
+  //     },
+  //     "kv_namespaces": [
+  //       {
+  //         "binding": "MY_KV",
+  //         "id": "staging-kv-id"
+  //       }
+  //     ]
+  //   }
+  // }
+  // Deploy with: wrangler deploy --env production
 }
