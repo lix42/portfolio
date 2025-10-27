@@ -36,13 +36,15 @@ app.onError((err, c) => {
 });
 
 // Health check function
-const health = () => {
-  return { ok: true, version: 5 };
+const health = (version: string = 'unknown') => {
+  return { ok: true, version };
 };
 
 // Routing
 app.get('/', (c) => c.text('Hono!!'));
-app.get('/health', (c) => c.json(health()));
+app.get('/health', (c) =>
+  c.json(health(JSON.stringify(c.env.CF_VERSION_METADATA)))
+);
 app.route('/chat', chat);
 
 export default class
@@ -54,7 +56,7 @@ export default class
   }
 
   health = async () => {
-    return health();
+    return health(JSON.stringify(this.env.CF_VERSION_METADATA));
   };
 
   chat = async (message: string) => {
