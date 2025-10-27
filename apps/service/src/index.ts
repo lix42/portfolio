@@ -1,7 +1,10 @@
+import { WorkerEntrypoint } from 'cloudflare:workers';
 import { Hono } from 'hono';
-import chat from './chat';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import chat, { answerQuestion } from './chat';
+import type { ChatServiceBinding } from './chatServiceBinding';
 
-const app = new Hono().basePath('/v1');
+const app = new Hono<{ Bindings: CloudflareBindings }>().basePath('/v1');
 
 // Custom Not Found Message
 app.notFound((c) => {
@@ -12,11 +15,51 @@ app.notFound((c) => {
 app.onError((err, c) => {
   // eslint-disable-next-line no-console
   console.error(`${err}`);
-  return c.text('Custom Error Message', 500);
+  let status: ContentfulStatusCode = 500;
+  if ('status' in err && Number.isFinite(err.status)) {
+    status = err.status as ContentfulStatusCode;
+  }
+  let error = err;
+  if ('error' in err) {
+    error = err.error as Error;
+  }
+  let message = 'Custom Error Message';
+  if ('message' in error && typeof error.message === 'string') {
+    message = error.message;
+  }
+  let stack = [];
+  if ('stack' in error) {
+    // biome-ignore lint/suspicious/noExplicitAny: call stack from error object
+    stack = error.stack as any;
+  }
+  return c.json({ message, status, stack, error }, 500);
 });
+
+// Health check function
+const health = (version: string = 'unknown') => {
+  return { ok: true, version };
+};
 
 // Routing
 app.get('/', (c) => c.text('Hono!!'));
+app.get('/health', (c) =>
+  c.json(health(JSON.stringify(c.env.CF_VERSION_METADATA)))
+);
 app.route('/chat', chat);
 
-export default app;
+export default class
+  extends WorkerEntrypoint<CloudflareBindings>
+  implements ChatServiceBinding
+{
+  override fetch(request: Request) {
+    return app.fetch(request, this.env, this.ctx);
+  }
+
+  health = async () => {
+    return health(JSON.stringify(this.env.CF_VERSION_METADATA));
+  };
+
+  chat = async (message: string) => {
+    return await answerQuestion(message, this.env);
+  };
+}

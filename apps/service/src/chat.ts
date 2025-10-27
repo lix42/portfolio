@@ -9,6 +9,7 @@
 import { zValidator } from '@hono/zod-validator';
 import { createClient } from '@supabase/supabase-js';
 import { Hono } from 'hono';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import OpenAI from 'openai';
 import { z } from 'zod';
 import {
@@ -58,13 +59,29 @@ const schema = z.object({
 app.post('/', zValidator('json', schema), async (c) => {
   // Extract and validate the message from the request body
   const { message } = c.req.valid('json');
+  const result = await answerQuestion(message, c.env);
 
+  if (result.hasError) {
+    return c.json({ error: result.error }, result.code);
+  }
+  // Return successful response with the original message, generated tags, and search results
+  // Provide empty array as fallback if no search results are found
+  return c.json({ answer: result.answer });
+});
+
+export const answerQuestion = async (
+  message: string,
+  env: CloudflareBindings
+): Promise<
+  | { hasError: false; answer: string }
+  | { hasError: true; error: string; code: ContentfulStatusCode }
+> => {
   // Initialize OpenAI client with API key from environment variables
-  const openai = new OpenAI({ apiKey: c.env.OPENAI_API_KEY });
+  const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
   // Initialize Supabase client with URL and key from environment variables
   // Configure fetch globally to ensure compatibility with Cloudflare Workers
-  const supabaseClient = createClient(c.env.SUPABASE_URL, c.env.SUPABASE_KEY, {
+  const supabaseClient = createClient(env.SUPABASE_URL, env.SUPABASE_KEY, {
     global: {
       fetch: (...args) => fetch(...args),
     },
@@ -80,13 +97,13 @@ app.post('/', zValidator('json', schema), async (c) => {
   // Validate that the generated preprocess are valid
   // If tags are invalid, return an error response
   if (!preprocessResult?.is_valid) {
-    return c.json({ error: 'Invalid question' }, 400);
+    return { hasError: true, error: 'Invalid question', code: 400 };
   }
 
   // Validate that the embedding was created successfully
   // If embedding fails, return an internal server error
   if (!embedding) {
-    return c.json({ error: 'Failed to create embedding' }, 500);
+    return { hasError: true, error: 'Failed to create embedding', code: 500 };
   }
 
   const { topChunks } = await getContext(
@@ -99,9 +116,7 @@ app.post('/', zValidator('json', schema), async (c) => {
     await answerQuestionWithChunks(topChunks, message, openai)
   );
 
-  // Return successful response with the original message, generated tags, and search results
-  // Provide empty array as fallback if no search results are found
-  return c.json({ answer });
-});
+  return { hasError: false, answer };
+};
 
 export default app;
