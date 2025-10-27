@@ -16,14 +16,15 @@
     "dev": "wrangler dev --port 5173",
     "lint": "$npm_execpath run biome:check",
     "test": "vitest",
-    "build": "$npm_execpath run biome:fix && $npm_execpath run cf-typegen && $npm_execpath run type:build",
+    "build": "$npm_execpath run biome:check && $npm_execpath run cf-typegen && $npm_execpath run type:build",
+    "deploy": "$npm_execpath install && $npm_execpath run build && $npm_execpath run deploy:wrangler",
     "biome": "$npm_execpath run biome:check",
     "biome:check": "biome check .",
     "biome:fix": "biome check --write .",
-    "deploy": "$npm_execpath run build && wrangler deploy --minify",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "type:check": "tsc --noEmit",
-    "type:build": "tsc --project tsconfig.type.json"
+    "type:build": "tsc --project tsconfig.type.json",
+    "deploy:wrangler": "wrangler deploy --minify"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.3",
