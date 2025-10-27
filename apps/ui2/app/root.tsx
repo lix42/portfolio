@@ -56,10 +56,10 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
       error.status === 404
         ? 'The requested page could not be found.'
         : error.statusText || details;
-  } else if ( error instanceof Error) {
+  } else if (error instanceof Error) {
     // TODO: log error to Sentry
     console.error(error);
-    if(import.meta.env.DEV) {
+    if (import.meta.env.DEV) {
       details = error.message;
       stack = error.stack;
     }

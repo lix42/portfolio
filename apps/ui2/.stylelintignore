@@ -1,0 +1,10 @@
+# Build outputs
+build/
+dist/
+.react-router/
+
+# Dependencies
+node_modules/
+
+# Generated files
+*.min.css

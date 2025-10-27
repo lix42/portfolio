@@ -6,7 +6,8 @@
   "scripts": {
     "cf-typegen": "wrangler types",
     "dev": "react-router dev",
-    "lint": "$npm_execpath run biome:check",
+    "lint": "$npm_execpath run biome:check && $npm_execpath run stylelint:check",
+    "lint:fix": "$npm_execpath run biome:fix && $npm_execpath run stylelint:fix",
     "build": "react-router build",
     "deploy": "pnpm run build && wrangler deploy",
     "postinstall": "npm run cf-typegen",
@@ -14,7 +15,11 @@
     "type:check": "npm run cf-typegen && react-router typegen && tsc -b",
     "biome": "$npm_execpath run biome:check",
     "biome:check": "biome check .",
-    "biome:fix": "biome check --write ."
+    "biome:fix": "biome check --write .",
+    "stylelint:check": "stylelint \"**/*.css\"",
+    "stylelint:fix": "stylelint \"**/*.css\" --fix",
+    "prettier:check": "prettier --check \"**/*.css\"",
+    "prettier:fix": "prettier --write \"**/*.css\""
   },
   "dependencies": {
     "isbot": "^5.1.31",
@@ -31,6 +36,11 @@
     "@types/node": "^22",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
+    "prettier": "^3.6.2",
+    "stylelint": "^16.25.0",
+    "stylelint-config-standard": "^39.0.1",
+    "stylelint-config-tailwindcss": "^1.0.0",
+    "stylelint-prettier": "^5.0.3",
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2",
     "vite": "^7.1.7",
