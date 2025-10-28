@@ -69,6 +69,8 @@ app.post('/', zValidator('json', schema), async (c) => {
   return c.json({ answer: result.answer });
 });
 
+export type ChatResponse = { error: string } | { answer: string };
+
 export const answerQuestion = async (
   message: string,
   env: CloudflareBindings

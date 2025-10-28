@@ -3,6 +3,9 @@ import { Hono } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import chat, { answerQuestion } from './chat';
 import type { ChatServiceBinding } from './chatServiceBinding';
+import { health } from './health';
+
+export * from './fetchResponseTypes';
 
 const app = new Hono<{ Bindings: CloudflareBindings }>().basePath('/v1');
 
@@ -35,11 +38,6 @@ app.onError((err, c) => {
   return c.json({ message, status, stack, error }, 500);
 });
 
-// Health check function
-const health = (version: string = 'unknown') => {
-  return { ok: true, version };
-};
-
 // Routing
 app.get('/', (c) => c.text('Hono!!'));
 app.get('/health', (c) =>
@@ -51,7 +49,7 @@ export default class
   extends WorkerEntrypoint<CloudflareBindings>
   implements ChatServiceBinding
 {
-  override fetch(request: Request) {
+  override fetch(request: Request): Response | Promise<Response> {
     return app.fetch(request, this.env, this.ctx);
   }
 

@@ -5,9 +5,13 @@
   "files": [
     "dist/"
   ],
-  "types": "./dist/chatServiceBinding.d.ts",
+  "types": "./dist/fetchResponseTypes.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/fetchResponseTypes.d.ts",
+      "default": "./dist/fetchResponseTypes.d.ts"
+    },
+    "./serviceBinding": {
       "types": "./dist/chatServiceBinding.d.ts",
       "default": "./dist/chatServiceBinding.d.ts"
     }
@@ -34,7 +38,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.5",
+    "@biomejs/biome": "^2.3.1",
     "@cloudflare/vitest-pool-workers": "^0.8.71",
     "@cloudflare/workers-types": "^4.20251004.0",
     "@portfolio/eslint-config": "workspace:*",
