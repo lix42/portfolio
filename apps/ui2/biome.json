@@ -1,0 +1,14 @@
+{
+  "extends": ["../../biome.json"],
+  "files": {
+    "includes": [
+      "**",
+      "!app/app.css",
+      "!worker-configuration.d.ts",
+      "!dist",
+      "!node_modules",
+      "!build",
+      "!.react-router"
+    ]
+  }
+}
