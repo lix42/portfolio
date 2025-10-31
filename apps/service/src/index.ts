@@ -49,8 +49,16 @@ export default class
   extends WorkerEntrypoint<CloudflareBindings>
   implements ChatServiceBinding
 {
-  override fetch(request: Request): Response | Promise<Response> {
-    return app.fetch(request, this.env, this.ctx);
+  override fetch(
+    request: Request | string | URL
+  ): Response | Promise<Response> {
+    let requestToFetch: Request;
+    if (typeof request === 'string' || request instanceof URL) {
+      requestToFetch = new Request(request);
+    } else {
+      requestToFetch = request;
+    }
+    return app.fetch(requestToFetch, this.env, this.ctx);
   }
 
   health = async () => {

@@ -21,6 +21,7 @@ export async function loader({ context }: Route.LoaderArgs) {
       throw new Error(`Request failed with status ${response.status}`);
     }
 
+    // TODO: use zod to validate the response
     const payload = (await response.json()) as HealthResponse;
 
     return {

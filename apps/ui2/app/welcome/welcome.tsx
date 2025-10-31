@@ -66,7 +66,7 @@ export function Welcome({
               <div className="flex justify-between">
                 <dt className="text-gray-500 dark:text-gray-400">Version</dt>
                 <dd className="text-gray-900 dark:text-gray-100">
-                  {health.version ?? 'unknown'}
+                  {health.version || 'unknown'}
                 </dd>
               </div>
               {health.error ? (

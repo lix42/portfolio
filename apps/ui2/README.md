@@ -59,7 +59,7 @@ npx wrangler versions deploy
 
 ## Status
 
-[x] Healthcheck (connecting to service binding)
+[x] Health check (connecting to service binding)
 [ ] Panda-css
 [ ] Answer voter
 ...
