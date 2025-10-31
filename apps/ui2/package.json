@@ -1,0 +1,40 @@
+{
+  "name": "@portfolio/ui2",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "cf-typegen": "wrangler types",
+    "dev": "react-router dev",
+    "lint": "$npm_execpath run biome:check",
+    "build": "react-router build",
+    "deploy": "pnpm run build && wrangler deploy",
+    "postinstall": "npm run cf-typegen",
+    "preview": "pnpm run build && vite preview",
+    "type:check": "npm run cf-typegen && react-router typegen && tsc -b",
+    "biome": "$npm_execpath run biome:check",
+    "biome:check": "biome check .",
+    "biome:fix": "biome check --write ."
+  },
+  "dependencies": {
+    "isbot": "^5.1.31",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-router": "^7.9.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.1",
+    "@cloudflare/vite-plugin": "^1.13.5",
+    "@portfolio/service": "workspace:*",
+    "@react-router/dev": "^7.9.2",
+    "@tailwindcss/vite": "^4.1.13",
+    "@types/node": "^22",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "tailwindcss": "^4.1.13",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.7",
+    "vite-tsconfig-paths": "^5.1.4",
+    "wrangler": "^4.45.0"
+  }
+}

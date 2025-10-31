@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "chat-service",
-  "compatibility_date": "2025-10-09",
+  "compatibility_date": "2025-10-28",
   "compatibility_flags": ["nodejs_compat_v2"],
   "main": "src/index.ts",
   "placement": { "mode": "smart" },

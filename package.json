@@ -46,6 +46,9 @@
     ],
     "apps/ui/**/*.{js,jsx,ts,tsx,json,jsonc}": [
       "pnpm --filter @portfolio/ui biome:fix"
+    ],
+    "apps/ui2/**/*.{js,jsx,ts,tsx,json,jsonc,css}": [
+      "pnpm --filter @portfolio/ui2 biome:fix"
     ]
   }
 }
