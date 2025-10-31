@@ -1,16 +1,11 @@
-# Welcome to React Router!
+# Portfolio Chat UI
 
-A modern, production-ready template for building full-stack React applications using React Router.
+Portfolio with RAG chat ability.
 
-## Features
+## Dependencies
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+- [React Router](https://reactrouter.com/)
+- [Cloudflare Worker](https://developers.cloudflare.com/workers/)
 
 ## Getting Started
 
@@ -19,7 +14,7 @@ A modern, production-ready template for building full-stack React applications u
 Install the dependencies:
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### Development
@@ -27,25 +22,17 @@ npm install
 Start the development server with HMR:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Your application will be available at `http://localhost:5173`.
-
-## Previewing the Production Build
-
-Preview the production build locally:
-
-```bash
-npm run preview
-```
 
 ## Building for Production
 
 Create a production build:
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 ## Deployment
@@ -55,7 +42,7 @@ Deployment is done using the Wrangler CLI.
 To build and deploy directly to production:
 
 ```sh
-npm run deploy
+pnpm run deploy
 ```
 
 To deploy a preview URL:
@@ -70,10 +57,9 @@ You can then promote a version to production after verification or roll it out p
 npx wrangler versions deploy
 ```
 
-## Styling
+## Status
 
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+[x] Healthcheck (connecting to service binding)
+[ ] Panda-css
+[ ] Answer voter
+...
