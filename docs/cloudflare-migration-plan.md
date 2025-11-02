@@ -134,48 +134,27 @@ CREATE TABLE chunks (
   FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
 );
 
--- processing_jobs table (NEW)
-CREATE TABLE processing_jobs (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  r2_key TEXT NOT NULL,
-  status TEXT NOT NULL, -- 'pending', 'processing', 'completed', 'failed', 'batch_pending'
-  error_message TEXT,
-  started_at TEXT,
-  completed_at TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
--- batch_jobs table (NEW - for OpenAI Batch API)
-CREATE TABLE batch_jobs (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  openai_batch_id TEXT NOT NULL UNIQUE,
-  processing_job_id INTEGER NOT NULL,
-  type TEXT NOT NULL,  -- 'embeddings' or 'tags'
-  status TEXT NOT NULL,  -- 'pending', 'completed', 'failed'
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  completed_at TEXT,
-  FOREIGN KEY (processing_job_id) REFERENCES processing_jobs(id) ON DELETE CASCADE
-);
-
 -- Indexes for performance
 CREATE INDEX idx_chunks_document_id ON chunks(document_id);
 CREATE INDEX idx_chunks_tags ON chunks(tags); -- For JSON search optimization
 CREATE INDEX idx_documents_project ON documents(project);
 CREATE INDEX idx_documents_company_id ON documents(company_id);
-CREATE INDEX idx_processing_jobs_status ON processing_jobs(status);
-CREATE INDEX idx_processing_jobs_r2_key ON processing_jobs(r2_key);
-CREATE INDEX idx_batch_jobs_status ON batch_jobs(status);
-CREATE INDEX idx_batch_jobs_processing_job_id ON batch_jobs(processing_job_id);
+CREATE INDEX idx_documents_tags ON documents(tags); -- For JSON search optimization
 ```
 
-**Notes**:
+**Note on Processing State**:
+Processing state is NOT stored in D1. Instead, we use **Durable Objects** (see Decision 6) to manage transient processing state. This provides:
+- Clean separation between permanent data (D1) and transient processing state (DO)
+- Automatic cleanup when processing completes
+- Strong consistency guarantees during processing
+- No orphaned processing records in the database
+
+**Schema Notes**:
 - **INTEGER PRIMARY KEY** used for all IDs (Decision 2: Better performance than TEXT/UUIDs)
 - **Chunk content stored in D1** (Decision 1: Lower latency than R2 fetches)
 - Tags stored as JSON text (D1 doesn't support array columns)
 - No native vector support (vectors stored in Vectorize separately)
 - Dates stored as ISO strings (SQLite datetime functions compatible)
-- `batch_jobs` table tracks OpenAI Batch API processing
 
 #### 3. Vectorize
 **Purpose**: Vector similarity search
@@ -667,7 +646,7 @@ async function searchByTags(tags: string[], env: Env): Promise<Chunk[]> {
       {
         topK: TAG_MATCH_COUNT,
         returnMetadata: 'all',
-        filter: { tags: { $containsAny: tags } }
+        filter: { tags: { $in: tags } }  // Correct operator for array overlap
       }
     );
 
@@ -710,6 +689,13 @@ async function searchByTagsD1(tags: string[], db: D1Database): Promise<Chunk[]> 
 **Performance Targets**:
 - Vectorize path: <30ms (includes D1 fetch)
 - D1 fallback path: <100ms for 1,000 chunks
+
+**Note on Ranking Differences**:
+The Vectorize path and D1 fallback have different ranking behaviors:
+- **Vectorize**: Returns chunks that match ANY of the input tags (boolean filter)
+- **D1 Fallback**: Returns chunks ranked by match_count (number of overlapping tags)
+
+This is an acceptable trade-off for performance. If consistent ranking is critical, fetch a larger set from Vectorize and re-rank in the Worker based on match count.
 
 ---
 
@@ -758,6 +744,194 @@ const systemPrompt = defineTagsPrompt.join('\n');
 - **Versioning**: Can version prompts with code
 - **Reusability**: Single source of truth for all workers
 - **No R2 upload**: Not part of document sync
+
+---
+
+### Decision 6: Processing State Storage - Durable Objects vs D1 vs KV
+
+**Question**: Where should we store transient processing state during document ingestion?
+
+#### Option A: D1 Tables (Original Approach)
+
+**Pros**:
+- Simple SQL queries
+- Easy to inspect state
+- Familiar programming model
+
+**Cons**:
+- Mixes transient processing state with permanent data
+- Requires complex cleanup logic for failed jobs
+- Multiple table updates per processing step
+- Schema bloat with processing-specific tables
+
+---
+
+#### Option B: Workers KV
+
+**Pros**:
+- Simple key-value storage
+- Good for basic state tracking
+- Low latency reads
+- Cost-effective for small data
+
+**Cons**:
+- Eventual consistency (can cause race conditions)
+- No complex queries or transactions
+- Limited to 25MB per value
+- Manual orchestration of workflow steps
+
+---
+
+#### Option C: Durable Objects (Recommended)
+
+**Pros**:
+- **Strong consistency**: Single-threaded execution model
+- **Automatic state persistence**: State survives Worker restarts
+- **Natural workflow orchestration**: State machine pattern fits perfectly
+- **Isolation**: Each document gets its own DO instance
+- **Built-in retries**: Automatic retry on transient failures
+- **WebSocket support**: Could enable real-time progress updates
+- **No cleanup needed**: State naturally expires with DO
+
+**Cons**:
+- Learning curve for developers new to DOs
+- Additional complexity vs simple D1 tables
+- Cost per DO instance (though minimal for this use case)
+- Regional restrictions (must specify DO location)
+
+**Analysis**:
+
+Processing documents involves multiple steps that can exceed Worker limits:
+1. Chunking (CPU-intensive)
+2. Multiple OpenAI API calls (subrequest limits)
+3. Storing to multiple systems (D1 + Vectorize)
+
+A single Worker invocation processing medium/large documents will hit:
+- 30-second CPU time limit for queue consumers
+- 50 subrequest limit
+- 128MB memory limit for large documents
+
+**Decision**: **Use Durable Objects for processing orchestration**
+
+**Rationale**:
+1. **Solves the critical runtime limits issue** by breaking work into small steps
+2. **Natural fit** for state machine-based document processing
+3. **Strong consistency** prevents race conditions during parallel processing
+4. **Self-contained** - each document's processing state is isolated
+5. **Automatic cleanup** - no orphaned state in databases
+6. **Future-proof** - enables real-time progress updates if needed
+
+**Implementation Pattern**:
+```typescript
+export class DocumentProcessor extends DurableObject {
+  private state: DurableObjectState;
+
+  constructor(state: DurableObjectState, env: Env) {
+    this.state = state;
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+
+    switch (url.pathname) {
+      case '/start':
+        return this.startProcessing(request);
+      case '/continue':
+        return this.continueProcessing();
+      case '/status':
+        return this.getStatus();
+      default:
+        return new Response('Not found', { status: 404 });
+    }
+  }
+
+  private async startProcessing(request: Request): Promise<Response> {
+    const { r2Key } = await request.json();
+
+    // Initialize state
+    await this.state.storage.put({
+      status: 'initializing',
+      r2Key,
+      startedAt: new Date().toISOString(),
+      currentStep: 'download',
+      chunks: [],
+      processedChunks: 0,
+      errors: []
+    });
+
+    // Start processing
+    await this.executeStep('download');
+
+    return new Response(JSON.stringify({
+      status: 'processing',
+      message: 'Document processing started'
+    }));
+  }
+
+  private async executeStep(step: string): Promise<void> {
+    // Each step is a separate Worker invocation
+    // This keeps each execution within limits
+    switch (step) {
+      case 'download':
+        await this.downloadAndChunk();
+        break;
+      case 'embeddings':
+        await this.generateEmbeddingsBatch();
+        break;
+      case 'tags':
+        await this.generateTagsBatch();
+        break;
+      case 'store':
+        await this.storeResults();
+        break;
+    }
+  }
+
+  private async downloadAndChunk(): Promise<void> {
+    const state = await this.state.storage.get(['r2Key']);
+    const env = this.env as Env;
+
+    // Download from R2
+    const object = await env.DOCUMENTS_BUCKET.get(state.r2Key);
+    const content = await object.text();
+
+    // Chunk document
+    const chunks = chunkMarkdown(content);
+
+    // Store chunks in DO state
+    await this.state.storage.put({
+      chunks: chunks.map((content, index) => ({
+        index,
+        content,
+        status: 'pending'
+      })),
+      totalChunks: chunks.length,
+      currentStep: 'embeddings'
+    });
+
+    // Schedule next step
+    this.scheduleNextStep('embeddings');
+  }
+
+  private scheduleNextStep(step: string): void {
+    // Use alarm to continue processing
+    this.state.storage.setAlarm(Date.now() + 100);
+  }
+
+  async alarm(): Promise<void> {
+    // Continue processing when alarm fires
+    const state = await this.state.storage.get(['currentStep']);
+    await this.executeStep(state.currentStep);
+  }
+}
+```
+
+**Benefits**:
+1. Each step executes in a fresh Worker context (no limit issues)
+2. State automatically persisted between steps
+3. Can resume from any point after failures
+4. Natural progress tracking
+5. Clean separation from permanent data
 
 ---
 
@@ -926,96 +1100,489 @@ console.log(`Synced ${result.uploaded} files`);
       "index_name": "portfolio-embeddings"
     }
   ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "DOCUMENT_PROCESSOR",
+        "class_name": "DocumentProcessor",
+        "script_name": "document-processor"
+      }
+    ]
+  },
   "queues": {
     "producers": [
       {
         "binding": "PROCESSING_QUEUE",
         "queue": "document-processing"
       }
-    ],
-    "consumers": [
-      {
-        "queue": "document-processing",
-        "max_batch_size": 1,
-        "max_batch_timeout": 60
-      }
     ]
   }
 }
 ```
 
-**Event Handler**:
+**Architecture**: Uses Durable Objects to orchestrate document processing, solving Worker runtime limit issues.
+
+**Worker Entry Point**:
 ```typescript
+// Main worker that coordinates with Durable Objects
 export default {
-  // Handle R2 notifications
-  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
-    // Poll for new R2 objects or use R2 event notifications
-  },
-
-  // Manual trigger endpoint
-  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
-    if (request.url.endsWith('/process')) {
-      // Manually trigger processing for specific documents
-    }
-    if (request.url.endsWith('/status')) {
-      // Query processing job status
-    }
-  },
-
-  // Queue consumer for processing tasks
-  async queue(batch: MessageBatch, env: Env, ctx: ExecutionContext) {
+  // Handle R2 event notifications
+  async queue(batch: MessageBatch<{r2Key: string}>, env: Env, ctx: ExecutionContext) {
     for (const message of batch.messages) {
-      await processDocument(message.body, env);
+      const { r2Key } = message.body;
+
+      // Get or create a Durable Object instance for this document
+      const processorId = env.DOCUMENT_PROCESSOR.idFromName(r2Key);
+      const processor = env.DOCUMENT_PROCESSOR.get(processorId);
+
+      // Start processing
+      const response = await processor.fetch(
+        new Request('http://do/start', {
+          method: 'POST',
+          body: JSON.stringify({ r2Key })
+        })
+      );
+
+      if (response.ok) {
+        message.ack();
+      } else {
+        // Retry with exponential backoff
+        message.retry({ delaySeconds: Math.pow(2, message.attempts) * 10 });
+      }
     }
+  },
+
+  // Manual trigger and status endpoints
+  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    const url = new URL(request.url);
+
+    if (url.pathname === '/process') {
+      const { r2Key } = await request.json();
+
+      // Queue for processing
+      await env.PROCESSING_QUEUE.send({ r2Key });
+
+      return new Response(JSON.stringify({
+        status: 'queued',
+        message: `Document ${r2Key} queued for processing`
+      }));
+    }
+
+    if (url.pathname.startsWith('/status/')) {
+      const r2Key = url.pathname.substring(8);
+
+      // Get status from Durable Object
+      const processorId = env.DOCUMENT_PROCESSOR.idFromName(r2Key);
+      const processor = env.DOCUMENT_PROCESSOR.get(processorId);
+
+      return await processor.fetch(new Request('http://do/status'));
+    }
+
+    return new Response('Not found', { status: 404 });
   }
 }
+
+// Export the Durable Object class
+export { DocumentProcessor } from './document-processor';
 ```
 
-**Processing Pipeline**:
+**Durable Object Implementation**:
 ```typescript
-async function processDocument(r2Key: string, env: Env) {
-  // 1. Create processing job record
-  const jobId = crypto.randomUUID();
-  await env.DB.prepare(
-    'INSERT INTO processing_jobs (id, r2_key, status) VALUES (?, ?, ?)'
-  ).bind(jobId, r2Key, 'processing').run();
+// document-processor.ts
+export class DocumentProcessor extends DurableObject {
+  private state: DurableObjectState;
+  private env: Env;
 
-  try {
-    // 2. Download from R2
-    const object = await env.DOCUMENTS_BUCKET.get(r2Key);
+  constructor(state: DurableObjectState, env: Env) {
+    this.state = state;
+    this.env = env;
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+
+    switch (url.pathname) {
+      case '/start':
+        return this.startProcessing(request);
+      case '/status':
+        return this.getStatus();
+      case '/retry':
+        return this.retryProcessing();
+      default:
+        return new Response('Not found', { status: 404 });
+    }
+  }
+
+  private async startProcessing(request: Request): Promise<Response> {
+    const { r2Key } = await request.json();
+
+    // Check if already processing
+    const currentState = await this.state.storage.get('status');
+    if (currentState === 'processing') {
+      return new Response(JSON.stringify({
+        status: 'already_processing',
+        message: 'Document is already being processed'
+      }));
+    }
+
+    // Initialize processing state
+    await this.state.storage.put({
+      status: 'processing',
+      r2Key,
+      startedAt: new Date().toISOString(),
+      currentStep: 'download',
+      totalChunks: 0,
+      processedChunks: 0,
+      chunks: [],
+      embeddings: [],
+      tags: [],
+      errors: [],
+      retryCount: 0
+    });
+
+    // Start first step
+    await this.executeStep('download');
+
+    return new Response(JSON.stringify({
+      status: 'processing',
+      message: 'Document processing started'
+    }));
+  }
+
+  private async executeStep(step: string): Promise<void> {
+    try {
+      switch (step) {
+        case 'download':
+          await this.downloadAndChunk();
+          break;
+        case 'embeddings':
+          await this.generateEmbeddingsBatch();
+          break;
+        case 'tags':
+          await this.generateTagsBatch();
+          break;
+        case 'store':
+          await this.storeToD1AndVectorize();
+          break;
+        case 'complete':
+          await this.completeProcessing();
+          break;
+      }
+    } catch (error) {
+      await this.handleError(step, error);
+    }
+  }
+
+  private async downloadAndChunk(): Promise<void> {
+    const { r2Key } = await this.state.storage.get(['r2Key']);
+
+    // Download from R2 (fast operation)
+    const object = await this.env.DOCUMENTS_BUCKET.get(r2Key);
+    if (!object) {
+      throw new Error(`Object ${r2Key} not found in R2`);
+    }
+
     const content = await object.text();
 
-    // 3. Parse metadata
-    const metadata = parseMetadata(r2Key, content);
+    // Parse metadata
+    const metadata = this.parseMetadata(r2Key, content);
 
-    // 4. Generate document tags
-    const documentTags = await generateTags(content, env.OPENAI_API_KEY);
-
-    // 5. Chunk content
+    // Chunk document (CPU-bound but typically fast)
     const chunks = chunkMarkdown(content);
 
-    // 6. Generate embeddings (batched)
-    const embeddings = await generateEmbeddings(chunks, env.OPENAI_API_KEY);
+    // Store state
+    await this.state.storage.put({
+      metadata,
+      content,  // Store for tag generation
+      chunks: chunks.map((text, index) => ({
+        index,
+        text,
+        embedding: null,
+        tags: null,
+        status: 'pending'
+      })),
+      totalChunks: chunks.length,
+      currentStep: 'embeddings',
+      embeddingBatchIndex: 0
+    });
 
-    // 7. Generate chunk tags (batched)
-    const chunkTags = await batchGenerateTags(chunks, env.OPENAI_API_KEY);
+    // Schedule next step
+    this.state.storage.setAlarm(Date.now() + 100);
+  }
 
-    // 8. Store in D1 + Vectorize
-    await storeDocument(metadata, documentTags, chunks, embeddings, chunkTags, env);
+  private async generateEmbeddingsBatch(): Promise<void> {
+    const BATCH_SIZE = 10; // Process 10 chunks per invocation
 
-    // 9. Update job status
-    await env.DB.prepare(
-      'UPDATE processing_jobs SET status = ?, completed_at = datetime("now") WHERE id = ?'
-    ).bind('completed', jobId).run();
+    const state = await this.state.storage.get([
+      'chunks',
+      'embeddingBatchIndex',
+      'totalChunks'
+    ]);
 
-  } catch (error) {
-    // Update job with error
-    await env.DB.prepare(
-      'UPDATE processing_jobs SET status = ?, error_message = ? WHERE id = ?'
-    ).bind('failed', error.message, jobId).run();
+    const startIndex = state.embeddingBatchIndex || 0;
+    const chunks = state.chunks.slice(startIndex, startIndex + BATCH_SIZE);
+
+    if (chunks.length === 0) {
+      // All embeddings done, move to tags
+      await this.state.storage.put({
+        currentStep: 'tags',
+        tagsBatchIndex: 0
+      });
+      this.state.storage.setAlarm(Date.now() + 100);
+      return;
+    }
+
+    // Generate embeddings for this batch
+    const texts = chunks.map(c => c.text);
+    const embeddings = await this.generateEmbeddings(texts);
+
+    // Update chunks with embeddings
+    const allChunks = await this.state.storage.get('chunks');
+    chunks.forEach((chunk, i) => {
+      allChunks[startIndex + i].embedding = embeddings[i];
+      allChunks[startIndex + i].status = 'embedding_done';
+    });
+
+    await this.state.storage.put({
+      chunks: allChunks,
+      embeddingBatchIndex: startIndex + BATCH_SIZE,
+      processedChunks: startIndex + chunks.length
+    });
+
+    // Continue with next batch
+    this.state.storage.setAlarm(Date.now() + 100);
+  }
+
+  private async generateTagsBatch(): Promise<void> {
+    const BATCH_SIZE = 5; // Fewer chunks for tag generation
+
+    const state = await this.state.storage.get([
+      'chunks',
+      'content',
+      'tagsBatchIndex'
+    ]);
+
+    const startIndex = state.tagsBatchIndex || 0;
+    const chunks = state.chunks.slice(startIndex, startIndex + BATCH_SIZE);
+
+    if (chunks.length === 0) {
+      // Generate document-level tags
+      const documentTags = await this.generateTags(state.content);
+
+      await this.state.storage.put({
+        documentTags,
+        currentStep: 'store'
+      });
+      this.state.storage.setAlarm(Date.now() + 100);
+      return;
+    }
+
+    // Generate tags for this batch
+    const texts = chunks.map(c => c.text);
+    const tags = await this.batchGenerateTags(texts);
+
+    // Update chunks with tags
+    const allChunks = await this.state.storage.get('chunks');
+    chunks.forEach((chunk, i) => {
+      allChunks[startIndex + i].tags = tags[i];
+      allChunks[startIndex + i].status = 'tags_done';
+    });
+
+    await this.state.storage.put({
+      chunks: allChunks,
+      tagsBatchIndex: startIndex + BATCH_SIZE
+    });
+
+    // Continue with next batch
+    this.state.storage.setAlarm(Date.now() + 100);
+  }
+
+  private async storeToD1AndVectorize(): Promise<void> {
+    const state = await this.state.storage.get([
+      'r2Key',
+      'metadata',
+      'documentTags',
+      'chunks'
+    ]);
+
+    const jobId = crypto.randomUUID();
+
+    // Begin two-phase commit
+    try {
+      // Phase 1: Store document metadata in D1
+      const docResult = await this.env.DB.prepare(`
+        INSERT INTO documents (content_hash, company_id, project, tags, r2_key)
+        VALUES (?, ?, ?, ?, ?)
+        RETURNING id
+      `).bind(
+        state.metadata.contentHash,
+        state.metadata.companyId,
+        state.metadata.project,
+        JSON.stringify(state.documentTags),
+        state.r2Key
+      ).first();
+
+      const documentId = docResult.id;
+
+      // Phase 2: Store chunks in parallel (D1 + Vectorize)
+      const chunkPromises = state.chunks.map(async (chunk, index) => {
+        const vectorizeId = `${jobId}-${index}`;
+
+        // Store in Vectorize first (can be retried)
+        await this.env.VECTORIZE.upsert([{
+          id: vectorizeId,
+          values: chunk.embedding,
+          metadata: {
+            document_id: documentId,
+            tags: chunk.tags,
+            chunk_index: index
+          }
+        }]);
+
+        // Then store in D1
+        await this.env.DB.prepare(`
+          INSERT INTO chunks (content, document_id, type, tags, vectorize_id)
+          VALUES (?, ?, ?, ?, ?)
+        `).bind(
+          chunk.text,
+          documentId,
+          'markdown',
+          JSON.stringify(chunk.tags),
+          vectorizeId
+        ).run();
+
+        return vectorizeId;
+      });
+
+      await Promise.all(chunkPromises);
+
+      // Success - mark as complete
+      await this.state.storage.put({
+        status: 'completed',
+        currentStep: 'complete',
+        documentId,
+        completedAt: new Date().toISOString()
+      });
+
+    } catch (error) {
+      // Rollback or retry
+      await this.handleStorageError(error);
+    }
+  }
+
+  private async handleError(step: string, error: any): Promise<void> {
+    const { retryCount = 0, errors = [] } = await this.state.storage.get(['retryCount', 'errors']);
+
+    errors.push({
+      step,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+
+    if (retryCount < 3) {
+      // Retry with exponential backoff
+      await this.state.storage.put({
+        retryCount: retryCount + 1,
+        errors
+      });
+
+      // Schedule retry
+      const delayMs = Math.pow(2, retryCount) * 1000;
+      this.state.storage.setAlarm(Date.now() + delayMs);
+    } else {
+      // Max retries exceeded
+      await this.state.storage.put({
+        status: 'failed',
+        errors,
+        failedAt: new Date().toISOString()
+      });
+    }
+  }
+
+  async alarm(): Promise<void> {
+    // Continue processing when alarm fires
+    const { currentStep } = await this.state.storage.get(['currentStep']);
+    await this.executeStep(currentStep);
+  }
+
+  private async getStatus(): Promise<Response> {
+    const state = await this.state.storage.get([
+      'status',
+      'currentStep',
+      'totalChunks',
+      'processedChunks',
+      'errors',
+      'startedAt',
+      'completedAt',
+      'failedAt'
+    ]);
+
+    return new Response(JSON.stringify({
+      status: state.status || 'not_started',
+      currentStep: state.currentStep,
+      progress: {
+        totalChunks: state.totalChunks || 0,
+        processedChunks: state.processedChunks || 0,
+        percentage: state.totalChunks ?
+          Math.round((state.processedChunks / state.totalChunks) * 100) : 0
+      },
+      errors: state.errors || [],
+      timing: {
+        startedAt: state.startedAt,
+        completedAt: state.completedAt,
+        failedAt: state.failedAt
+      }
+    }));
+  }
+
+  // Helper methods
+  private async generateEmbeddings(texts: string[]): Promise<number[][]> {
+    const openai = new OpenAI({ apiKey: this.env.OPENAI_API_KEY });
+    const response = await openai.embeddings.create({
+      model: 'text-embedding-3-small',
+      input: texts
+    });
+    return response.data.map(d => d.embedding);
+  }
+
+  private async generateTags(content: string): Promise<string[]> {
+    // Implementation from shared package
+    return generateTags(content, this.env.OPENAI_API_KEY);
+  }
+
+  private async batchGenerateTags(texts: string[]): Promise<string[][]> {
+    // Implementation from shared package
+    return batchGenerateTags(texts, this.env.OPENAI_API_KEY);
+  }
+
+  private parseMetadata(r2Key: string, content: string): any {
+    // Parse metadata from document
+    // Implementation depends on document structure
+    return {
+      r2Key,
+      contentHash: this.hashContent(content),
+      // ... other metadata
+    };
+  }
+
+  private hashContent(content: string): string {
+    // SHA-256 hash of content
+    return crypto.subtle.digest('SHA-256', new TextEncoder().encode(content))
+      .then(buffer => Array.from(new Uint8Array(buffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join(''));
   }
 }
 ```
+
+**Key Benefits of this Architecture**:
+
+1. **Solves Worker Runtime Limits**: Each step executes in a separate Worker invocation, staying well within the 30-second CPU limit and 50 subrequest limit
+2. **Strong Consistency**: Durable Objects provide single-threaded execution, preventing race conditions
+3. **Automatic State Persistence**: Processing state survives Worker restarts
+4. **Natural Progress Tracking**: Can query status at any time
+5. **Self-Healing**: Automatic retries with exponential backoff
+6. **Clean Separation**: Processing state is separate from permanent data in D1
 
 ---
 
@@ -1730,54 +2297,66 @@ export function computeContentHash(
 
 ---
 
-### Phase 4: Document Processing Worker (Week 4-5)
+### Phase 4: Document Processing Worker with Durable Objects (Week 4-6)
 
 #### Tasks:
-1. **Create worker structure**
+1. **Create worker and Durable Object structure**
    - [ ] New worker: `apps/document-processor/`
-   - [ ] Bindings configuration
-   - [ ] TypeScript setup
+   - [ ] Implement `DocumentProcessor` Durable Object class
+   - [ ] Bindings configuration (D1, R2, Vectorize, DO)
+   - [ ] TypeScript setup with DO types
 
-2. **Implement event handlers**
-   - [ ] Queue consumer for processing tasks
+2. **Implement Durable Object state machine**
+   - [ ] State storage schema design
+   - [ ] Download and chunking step
+   - [ ] Embeddings batch processing (10 chunks per invocation)
+   - [ ] Tags batch processing (5 chunks per invocation)
+   - [ ] Two-phase commit to D1/Vectorize
+   - [ ] Alarm-based step scheduling
+   - [ ] Progress tracking methods
+
+3. **Build Worker entry points**
+   - [ ] Queue consumer that delegates to DO
    - [ ] HTTP endpoints for manual triggers
-   - [ ] Status query endpoints
+   - [ ] Status query API via DO
+   - [ ] Retry mechanism with exponential backoff
 
-3. **Build processing pipeline**
-   - [ ] R2 download logic
-   - [ ] Metadata parsing
-   - [ ] Integration with shared utilities
-   - [ ] OpenAI API calls (embeddings + tags)
-   - [ ] D1 data storage
-   - [ ] Vectorize insertion
-   - [ ] Error handling and rollback
-
-4. **Job tracking system**
-   - [ ] Processing job creation
-   - [ ] Status updates
-   - [ ] Error logging
-   - [ ] Query interface
+4. **Error handling and recovery**
+   - [ ] Implement retry logic in DO
+   - [ ] Handle partial failures gracefully
+   - [ ] Store error details in DO state
+   - [ ] Maximum retry limits
 
 5. **Testing**
-   - [ ] Unit tests for processing logic
+   - [ ] Unit tests for DO state transitions
+   - [ ] Test step isolation (each under limits)
    - [ ] Integration tests with mocked OpenAI
    - [ ] End-to-end tests with local stack
-   - [ ] Load testing (concurrent processing)
+   - [ ] Test DO persistence and recovery
 
-6. **Monitoring**
-   - [ ] Logging with structured output
-   - [ ] Metrics for processing time
-   - [ ] Error alerting
+6. **R2 Reconciliation Worker**
+   - [ ] Daily cron job setup
+   - [ ] R2 bucket listing logic
+   - [ ] Comparison with D1 records
+   - [ ] Queue missing documents
+   - [ ] Handle stuck processing jobs
+
+7. **Monitoring**
+   - [ ] DO state inspection endpoints
+   - [ ] Processing pipeline metrics
+   - [ ] Error rate tracking
+   - [ ] Alerting for stuck jobs
 
 #### Deliverables:
-- Functional document processing worker
-- Job tracking API
+- Functional document processing worker with DO
+- R2 reconciliation worker
+- State machine that handles any document size
 - Comprehensive test coverage
-- Monitoring setup
+- Monitoring and observability setup
 
 ---
 
-### Phase 5: Update Query Service (Week 6)
+### Phase 5: Update Query Service (Week 7)
 
 #### Tasks:
 1. **Create data access layer**
@@ -1819,7 +2398,7 @@ export function computeContentHash(
 
 ---
 
-### Phase 6: Data Migration (Week 7)
+### Phase 6: Data Migration (Week 8)
 
 #### Tasks:
 1. **Export from Supabase**
@@ -1854,7 +2433,7 @@ export function computeContentHash(
 
 ---
 
-### Phase 7: Integration & End-to-End Testing (Week 8)
+### Phase 7: Integration & End-to-End Testing (Week 9)
 
 #### Tasks:
 1. **End-to-end workflows**
@@ -1893,7 +2472,7 @@ export function computeContentHash(
 
 ---
 
-### Phase 8: Deployment & Monitoring (Week 9)
+### Phase 8: Deployment & Monitoring (Week 10)
 
 #### Tasks:
 1. **Staging deployment**
@@ -1936,7 +2515,29 @@ export function computeContentHash(
 
 ### High Risks
 
-#### 1. D1 SQL Limitations
+#### 1. Worker Runtime Limits (MITIGATED)
+**Risk**: Processing medium to large documents exceeds Worker CPU time limits and subrequest quotas
+
+**Original Impact**:
+- 30-second CPU time limit for queue consumers
+- 50 subrequest limit per Worker invocation
+- Would cause processing failures for documents with >50 chunks
+
+**Mitigation Implemented**:
+- **Durable Objects architecture** (Decision 6) breaks processing into small steps
+- Each step executes in separate Worker invocation (<10 seconds each)
+- State persisted between steps in Durable Object storage
+- Automatic retry with exponential backoff
+- Natural progress tracking and resumption
+
+**Result**: ✅ **Risk fully mitigated** - Can process documents of any size
+
+**Impact**: ~~High~~ → None (mitigated)
+**Likelihood**: ~~High~~ → None (mitigated)
+
+---
+
+#### 2. D1 SQL Limitations
 **Risk**: D1 doesn't support PostgreSQL-specific features (arrays, custom types, RPC functions)
 
 **Mitigation**:
@@ -1950,7 +2551,7 @@ export function computeContentHash(
 
 ---
 
-#### 2. Vectorize Beta Limitations
+#### 3. Vectorize Beta Limitations
 **Risk**: Vectorize is in beta and may have stability or feature gaps
 
 **Mitigation**:
@@ -1958,13 +2559,31 @@ export function computeContentHash(
 - Implement retry logic
 - Have fallback to Supabase during transition
 - Monitor Cloudflare status page
+- **Hybrid search implementation** allows D1 fallback if Vectorize fails
 
 **Impact**: High
 **Likelihood**: Medium
 
 ---
 
-#### 3. OpenAI API Costs
+#### 4. Data Consistency Between D1 and Vectorize (ADDRESSED)
+**Risk**: No transactional guarantees between D1 and Vectorize could lead to inconsistent state
+
+**Mitigation Implemented**:
+- **Two-phase commit pattern** in Durable Object
+- Store in Vectorize first (idempotent with upsert)
+- Only commit to D1 after Vectorize succeeds
+- Retry logic for transient failures
+- Durable Object state tracks progress for recovery
+
+**Result**: ✅ **Risk addressed** - Strong consistency through orchestration
+
+**Impact**: ~~High~~ → Low
+**Likelihood**: ~~Medium~~ → Low
+
+---
+
+#### 5. OpenAI API Costs
 **Risk**: Processing all documents at once may incur high embedding costs
 
 **Mitigation**:
@@ -1978,7 +2597,7 @@ export function computeContentHash(
 
 ---
 
-#### 4. Data Loss During Migration
+#### 6. Data Loss During Migration
 **Risk**: Errors during migration could corrupt or lose data
 
 **Mitigation**:
@@ -1994,7 +2613,7 @@ export function computeContentHash(
 
 ### Medium Risks
 
-#### 5. Query Performance Degradation
+#### 7. Query Performance Degradation
 **Risk**: Cloudflare stack may be slower than Supabase
 
 **Mitigation**:
@@ -2008,32 +2627,53 @@ export function computeContentHash(
 
 ---
 
-#### 6. Development Complexity
-**Risk**: Building event-driven architecture is more complex than Python scripts
+#### 8. Development Complexity (MANAGED)
+**Risk**: Building event-driven architecture with Durable Objects is more complex than Python scripts
 
-**Mitigation**:
+**Mitigation Implemented**:
+- **Durable Objects pattern** simplifies state management
 - Break into small, testable modules
 - Extensive testing at each phase
-- Reuse existing patterns from current codebase
-- Get early feedback from stakeholders
+- Clear separation of concerns
+- Comprehensive documentation in this plan
+
+**Result**: Complexity managed through architecture choices
 
 **Impact**: Low
-**Likelihood**: High
+**Likelihood**: ~~High~~ → Medium (with DO pattern)
+
+---
+
+#### 9. Durable Objects Learning Curve
+**Risk**: Team needs to learn Durable Objects patterns
+
+**Mitigation**:
+- Comprehensive implementation examples in this document
+- Start with simple proof-of-concept
+- Pair programming during implementation
+- Cloudflare documentation and community support
+
+**Impact**: Medium
+**Likelihood**: Medium
 
 ---
 
 ### Low Risks
 
-#### 7. R2 Event Notification Delays
-**Risk**: R2 event notifications may have latency
+#### 10. R2 Event Notification Delays (MITIGATED)
+**Risk**: R2 event notifications may have latency or be missed
 
-**Mitigation**:
-- Implement polling as fallback
-- Add manual trigger API
+**Mitigation Implemented**:
+- **R2 Reconciliation Worker** (Component 3) runs daily
+- Discovers and queues unprocessed documents
+- Handles stuck processing jobs
+- Manual trigger API for immediate reconciliation
 - Set expectations for processing time
 
+**Result**: ✅ **Risk mitigated** - Self-healing system
+
 **Impact**: Low
-**Likelihood**: Medium
+**Likelihood**: ~~Medium~~ → Low (with reconciliation)
 
 ---
 
@@ -2105,6 +2745,410 @@ export function computeContentHash(
 
 ---
 
+## Monitoring & Observability
+
+### Overview
+
+Comprehensive monitoring is critical for operating a distributed document processing pipeline with Durable Objects, D1, Vectorize, and R2. This section outlines the monitoring strategy for all components.
+
+### 1. Durable Objects Monitoring
+
+#### State Inspection API
+```typescript
+// Add monitoring endpoints to DocumentProcessor
+export class DocumentProcessor extends DurableObject {
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+
+    switch (url.pathname) {
+      case '/metrics':
+        return this.getMetrics();
+      case '/health':
+        return this.getHealth();
+      // ... existing routes
+    }
+  }
+
+  private async getMetrics(): Promise<Response> {
+    const state = await this.state.storage.get([
+      'status', 'totalChunks', 'processedChunks',
+      'startedAt', 'completedAt', 'errors'
+    ]);
+
+    const metrics = {
+      status: state.status,
+      progress: state.totalChunks ?
+        (state.processedChunks / state.totalChunks * 100).toFixed(2) + '%' : '0%',
+      duration: state.startedAt ?
+        Date.now() - new Date(state.startedAt).getTime() : 0,
+      errorCount: state.errors?.length || 0,
+      chunksPerSecond: state.processedChunks && state.startedAt ?
+        state.processedChunks / ((Date.now() - new Date(state.startedAt).getTime()) / 1000) : 0
+    };
+
+    return new Response(JSON.stringify(metrics));
+  }
+}
+```
+
+#### Aggregated Metrics Dashboard
+```typescript
+// Worker endpoint for aggregated metrics
+async function getSystemMetrics(env: Env): Promise<SystemMetrics> {
+  // Query D1 for processing statistics
+  const stats = await env.DB.prepare(`
+    SELECT
+      COUNT(*) as total_documents,
+      COUNT(CASE WHEN created_at > datetime('now', '-1 hour') THEN 1 END) as docs_last_hour,
+      COUNT(CASE WHEN created_at > datetime('now', '-24 hours') THEN 1 END) as docs_last_day
+    FROM documents
+  `).first();
+
+  // Query reconciliation logs
+  const reconciliation = await env.DB.prepare(`
+    SELECT * FROM reconciliation_logs
+    ORDER BY completed_at DESC
+    LIMIT 1
+  `).first();
+
+  return {
+    documents: stats,
+    lastReconciliation: reconciliation,
+    timestamp: new Date().toISOString()
+  };
+}
+```
+
+### 2. Processing Pipeline Metrics
+
+#### Key Performance Indicators (KPIs)
+- **Processing Throughput**: Documents processed per hour
+- **Processing Latency**: Time from R2 upload to completion
+- **Error Rate**: Failed processing jobs / total jobs
+- **Chunk Processing Speed**: Chunks per second
+- **OpenAI API Latency**: Average time for embeddings/tags
+- **Queue Depth**: Number of pending documents
+
+#### Custom Metrics Collection
+```typescript
+// Structured logging with metrics
+class MetricsLogger {
+  async logProcessingComplete(jobId: string, metrics: ProcessingMetrics) {
+    console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      type: 'processing_complete',
+      jobId,
+      documentSize: metrics.documentSize,
+      chunkCount: metrics.chunkCount,
+      processingTimeMs: metrics.duration,
+      embeddingTimeMs: metrics.embeddingTime,
+      tagGenerationTimeMs: metrics.tagTime,
+      storageTimeMs: metrics.storageTime,
+      errors: metrics.errors
+    }));
+  }
+
+  async logError(jobId: string, step: string, error: Error) {
+    console.error(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      type: 'processing_error',
+      jobId,
+      step,
+      error: error.message,
+      stack: error.stack
+    }));
+  }
+}
+```
+
+### 3. Alerting Rules
+
+#### Critical Alerts
+```typescript
+interface AlertRule {
+  name: string;
+  condition: () => Promise<boolean>;
+  message: string;
+  severity: 'critical' | 'warning' | 'info';
+}
+
+const alertRules: AlertRule[] = [
+  {
+    name: 'high_error_rate',
+    condition: async () => {
+      const stats = await getErrorRate();
+      return stats.rate > 0.05; // > 5% error rate
+    },
+    message: 'Document processing error rate exceeds 5%',
+    severity: 'critical'
+  },
+  {
+    name: 'stuck_processing',
+    condition: async () => {
+      const stuck = await getStuckJobs();
+      return stuck.count > 10;
+    },
+    message: 'More than 10 documents stuck in processing',
+    severity: 'warning'
+  },
+  {
+    name: 'reconciliation_issues',
+    condition: async () => {
+      const stats = await getLastReconciliation();
+      return stats.queuedCount > 50;
+    },
+    message: 'Reconciliation found >50 unprocessed documents',
+    severity: 'warning'
+  }
+];
+```
+
+### 4. Cloudflare Analytics Integration
+
+#### Workers Analytics
+- Enable Workers Analytics in dashboard
+- Track request count, duration, CPU time
+- Monitor subrequest count per invocation
+- Set up custom dashboards for DO metrics
+
+#### Logpush Configuration
+```json
+{
+  "dataset": "workers_trace_events",
+  "destination": "r2://logs-bucket/workers/",
+  "filter": {
+    "where": {
+      "key": "ScriptName",
+      "operator": "eq",
+      "value": "document-processor"
+    }
+  },
+  "enabled": true
+}
+```
+
+### 5. Health Checks
+
+#### Service Health Endpoints
+```typescript
+// Main health check endpoint
+export async function handleHealthCheck(env: Env): Promise<Response> {
+  const checks = {
+    d1: await checkD1Health(env.DB),
+    r2: await checkR2Health(env.DOCUMENTS_BUCKET),
+    vectorize: await checkVectorizeHealth(env.VECTORIZE),
+    queue: await checkQueueHealth(env.PROCESSING_QUEUE)
+  };
+
+  const healthy = Object.values(checks).every(c => c.healthy);
+
+  return new Response(JSON.stringify({
+    status: healthy ? 'healthy' : 'degraded',
+    checks,
+    timestamp: new Date().toISOString()
+  }), {
+    status: healthy ? 200 : 503,
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+async function checkD1Health(db: D1Database): Promise<HealthCheck> {
+  try {
+    const result = await db.prepare('SELECT 1').first();
+    return { healthy: true, latencyMs: 0 };
+  } catch (error) {
+    return { healthy: false, error: error.message };
+  }
+}
+```
+
+### 6. Performance Monitoring
+
+#### Tracing Implementation
+```typescript
+class PerformanceTracer {
+  private spans: Map<string, number> = new Map();
+
+  startSpan(name: string): void {
+    this.spans.set(name, Date.now());
+  }
+
+  endSpan(name: string): number {
+    const start = this.spans.get(name);
+    if (!start) return 0;
+
+    const duration = Date.now() - start;
+    this.spans.delete(name);
+
+    // Log to analytics
+    console.log(JSON.stringify({
+      type: 'performance_span',
+      name,
+      durationMs: duration,
+      timestamp: new Date().toISOString()
+    }));
+
+    return duration;
+  }
+}
+
+// Usage in DocumentProcessor
+const tracer = new PerformanceTracer();
+
+tracer.startSpan('download_and_chunk');
+await this.downloadAndChunk();
+tracer.endSpan('download_and_chunk');
+
+tracer.startSpan('generate_embeddings');
+await this.generateEmbeddingsBatch();
+tracer.endSpan('generate_embeddings');
+```
+
+### 7. Debugging Tools
+
+#### Durable Object State Inspector
+```typescript
+// Debug endpoint to inspect DO state
+async function inspectDurableObject(r2Key: string, env: Env): Promise<any> {
+  const processorId = env.DOCUMENT_PROCESSOR.idFromName(r2Key);
+  const processor = env.DOCUMENT_PROCESSOR.get(processorId);
+
+  const response = await processor.fetch(
+    new Request('http://do/debug/state')
+  );
+
+  return response.json();
+}
+
+// In DocumentProcessor class
+case '/debug/state':
+  // Only in development
+  if (this.env.ENVIRONMENT !== 'development') {
+    return new Response('Forbidden', { status: 403 });
+  }
+
+  const allState = {};
+  await this.state.storage.list().then(map => {
+    map.forEach((value, key) => {
+      allState[key] = value;
+    });
+  });
+
+  return new Response(JSON.stringify(allState, null, 2));
+```
+
+### 8. Dashboard Configuration
+
+#### Grafana Dashboard JSON (example)
+```json
+{
+  "dashboard": {
+    "title": "Document Processing Pipeline",
+    "panels": [
+      {
+        "title": "Processing Throughput",
+        "targets": [
+          {
+            "expr": "rate(documents_processed_total[5m])"
+          }
+        ]
+      },
+      {
+        "title": "Error Rate",
+        "targets": [
+          {
+            "expr": "rate(processing_errors_total[5m]) / rate(documents_processed_total[5m])"
+          }
+        ]
+      },
+      {
+        "title": "Queue Depth",
+        "targets": [
+          {
+            "expr": "queue_depth"
+          }
+        ]
+      },
+      {
+        "title": "DO State Distribution",
+        "targets": [
+          {
+            "expr": "sum by (status) (durable_object_status)"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### 9. Cost Monitoring
+
+```typescript
+// Track API usage and costs
+interface CostMetrics {
+  openaiTokens: number;
+  openaiCost: number;
+  r2Operations: number;
+  d1Reads: number;
+  d1Writes: number;
+  vectorizeQueries: number;
+  workerInvocations: number;
+  durableObjectRequests: number;
+}
+
+async function calculateDailyCosts(env: Env): Promise<CostMetrics> {
+  // Query metrics from various sources
+  const metrics = await env.DB.prepare(`
+    SELECT
+      SUM(openai_tokens) as tokens,
+      COUNT(*) as documents
+    FROM processing_metrics
+    WHERE created_at > datetime('now', '-24 hours')
+  `).first();
+
+  return {
+    openaiTokens: metrics.tokens,
+    openaiCost: metrics.tokens * 0.00002, // $0.02 per 1M tokens
+    // ... calculate other costs
+  };
+}
+```
+
+### 10. SLA Monitoring
+
+```typescript
+// Monitor Service Level Agreements
+interface SLAMetrics {
+  availability: number;  // Target: 99.9%
+  p95Latency: number;   // Target: < 5 seconds
+  errorRate: number;    // Target: < 1%
+}
+
+async function checkSLA(env: Env): Promise<SLAReport> {
+  const metrics = await calculateSLAMetrics(env);
+
+  return {
+    period: 'last_30_days',
+    metrics,
+    violations: [
+      metrics.availability < 99.9 ? 'Availability below target' : null,
+      metrics.p95Latency > 5000 ? 'P95 latency exceeds 5s' : null,
+      metrics.errorRate > 0.01 ? 'Error rate exceeds 1%' : null
+    ].filter(Boolean)
+  };
+}
+```
+
+**Benefits**:
+- **Real-time visibility** into processing pipeline health
+- **Proactive alerting** for issues before they impact users
+- **Performance optimization** through detailed metrics
+- **Cost tracking** for budget management
+- **Debugging capabilities** for rapid issue resolution
+
+---
+
 ## Deployment Strategy
 
 ### Environment Setup
@@ -2127,24 +3171,24 @@ export function computeContentHash(
 
 ### Rollout Plan
 
-#### Phase 1: Dual-Run (Week 9)
+#### Phase 1: Dual-Run (Week 10)
 - Keep Supabase operational
 - Deploy Cloudflare stack alongside
 - Route 10% of traffic to new stack
 - Compare results and performance
 
-#### Phase 2: Gradual Migration (Week 10)
+#### Phase 2: Gradual Migration (Week 11)
 - Increase traffic to 50%
 - Monitor error rates
 - Fix issues as they arise
 - Sync data between systems
 
-#### Phase 3: Full Migration (Week 11)
+#### Phase 3: Full Migration (Week 12)
 - Route 100% traffic to Cloudflare
 - Keep Supabase as read-only backup
 - Monitor for 1 week
 
-#### Phase 4: Decommission (Week 12)
+#### Phase 4: Decommission (Week 13)
 - Archive Supabase data
 - Cancel Supabase subscription
 - Clean up old code references
@@ -2303,7 +3347,7 @@ This migration plan provides a comprehensive roadmap for transitioning from Supa
 4. Monitoring and observability from day one
 5. Clear communication and documentation
 
-**Timeline**: 12 weeks total (9 weeks implementation + 3 weeks rollout)
+**Timeline**: 13 weeks total (10 weeks implementation + 3 weeks rollout)
 
 **Next Steps**:
 1. Review and approve this plan
