@@ -1,0 +1,148 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "portfolio-document-processor",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-10-28",
+  "compatibility_flags": ["nodejs_compat_v2"],
+
+  // ============================================================================
+  // Bindings - Default (Development)
+  // ============================================================================
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "portfolio-dev",
+      "database_id": "467f540e-2d86-461e-b9fb-98c80a736ec5"
+    }
+  ],
+
+  "vectorize": [
+    {
+      "binding": "VECTORIZE",
+      "index_name": "portfolio-embeddings-dev"
+    }
+  ],
+
+  "r2_buckets": [
+    {
+      "binding": "DOCUMENTS",
+      "bucket_name": "portfolio-documents-dev"
+    }
+  ],
+
+  "queues": {
+    "producers": [
+      {
+        "binding": "QUEUE",
+        "queue": "portfolio-doc-processing-dev"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "portfolio-doc-processing-dev",
+        "max_batch_size": 10,
+        "max_batch_timeout": 30,
+        "max_retries": 3,
+        "dead_letter_queue": "portfolio-doc-processing-dev-dlq"
+      }
+    ]
+  },
+
+  // Note: Durable Objects bindings will be added in Phase 4 when the DocumentProcessor class is implemented
+
+  "vars": {
+    "ENVIRONMENT": "development"
+  },
+
+  // ============================================================================
+  // Environment-Specific Overrides
+  // ============================================================================
+
+  "env": {
+    "staging": {
+      "name": "portfolio-document-processor-staging",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "portfolio-staging",
+          "database_id": "f87dc2f0-b2c3-4179-a0e9-f10beb004cdb"
+        }
+      ],
+      "vectorize": [
+        {
+          "binding": "VECTORIZE",
+          "index_name": "portfolio-embeddings-staging"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "DOCUMENTS",
+          "bucket_name": "portfolio-documents-staging"
+        }
+      ],
+      "queues": {
+        "producers": [
+          {
+            "binding": "QUEUE",
+            "queue": "portfolio-doc-processing-staging"
+          }
+        ],
+        "consumers": [
+          {
+            "queue": "portfolio-doc-processing-staging",
+            "max_batch_size": 10,
+            "max_batch_timeout": 30,
+            "max_retries": 3,
+            "dead_letter_queue": "portfolio-doc-processing-staging-dlq"
+          }
+        ]
+      },
+      "vars": {
+        "ENVIRONMENT": "staging"
+      }
+    },
+    "production": {
+      "name": "portfolio-document-processor-prod",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "portfolio-prod",
+          "database_id": "7862c8d9-7982-4ac5-981d-8371b7b8cc3f"
+        }
+      ],
+      "vectorize": [
+        {
+          "binding": "VECTORIZE",
+          "index_name": "portfolio-embeddings-prod"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "DOCUMENTS",
+          "bucket_name": "portfolio-documents-prod"
+        }
+      ],
+      "queues": {
+        "producers": [
+          {
+            "binding": "QUEUE",
+            "queue": "portfolio-doc-processing-prod"
+          }
+        ],
+        "consumers": [
+          {
+            "queue": "portfolio-doc-processing-prod",
+            "max_batch_size": 10,
+            "max_batch_timeout": 30,
+            "max_retries": 3,
+            "dead_letter_queue": "portfolio-doc-processing-prod-dlq"
+          }
+        ]
+      },
+      "vars": {
+        "ENVIRONMENT": "production"
+      }
+    }
+  }
+}

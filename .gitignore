@@ -95,3 +95,6 @@ coverage/
 supabase/.temp
 *.swp
 
+# Local development secrets (Cloudflare)
+**/.dev.vars
+
