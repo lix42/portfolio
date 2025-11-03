@@ -56,7 +56,7 @@ wrangler secret delete OPENAI_API_KEY --name portfolio-document-processor
 
 For GitHub Actions, set these repository secrets:
 - `CLOUDFLARE_API_TOKEN`: Cloudflare API token with Worker write permissions
-- `CLOUDFLARE_ACCOUNT_ID`: Your Cloudflare account ID (70e742defbfbc3bbf6228e06626c7766)
+- `CLOUDFLARE_ACCOUNT_ID`: Your Cloudflare account ID
 - `OPENAI_API_KEY`: OpenAI API key
 
 ## Storing Sensitive Data Locally

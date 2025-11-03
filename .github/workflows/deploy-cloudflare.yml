@@ -41,5 +41,5 @@ jobs:
 
 # Required secrets (configure in GitHub repository settings):
 # - CLOUDFLARE_API_TOKEN: API token with Worker write permissions
-# - CLOUDFLARE_ACCOUNT_ID: 70e742defbfbc3bbf6228e06626c7766
+# - CLOUDFLARE_ACCOUNT_ID: Your Cloudflare account ID
 # - OPENAI_API_KEY: OpenAI API key for embeddings

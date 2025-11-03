@@ -1,7 +1,5 @@
 {
   "created": "2025-11-03T01:43:00Z",
-  "account_id": "70e742defbfbc3bbf6228e06626c7766",
-  "account_email": "i@xuli.dev",
   "d1_databases": {
     "dev": {
       "database_name": "portfolio-dev",
