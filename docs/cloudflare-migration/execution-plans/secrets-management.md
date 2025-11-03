@@ -55,9 +55,28 @@ wrangler secret delete OPENAI_API_KEY --name portfolio-document-processor
 ## CI/CD Secrets
 
 For GitHub Actions, set these repository secrets:
-- `CLOUDFLARE_API_TOKEN`: Cloudflare API token with Worker write permissions
-- `CLOUDFLARE_ACCOUNT_ID`: Your Cloudflare account ID
-- `OPENAI_API_KEY`: OpenAI API key
+
+### CLOUDFLARE_API_TOKEN
+Cloudflare API token with the following permissions:
+- **Account Settings**: Read
+- **Workers Scripts**: Edit
+- **D1**: Edit
+- **Workers R2 Storage**: Edit
+- **Vectorize**: Edit
+
+**To create:**
+1. Go to https://dash.cloudflare.com/profile/api-tokens
+2. Click "Create Token" → "Create Custom Token"
+3. Add the permissions listed above for your account
+4. Set Account Resources to your specific account
+5. Leave IP filtering as "All IP addresses" (GitHub Actions uses dynamic IPs)
+6. Create and copy the token (you won't see it again!)
+
+### CLOUDFLARE_ACCOUNT_ID
+Your Cloudflare account ID (find at Dashboard → Account Home)
+
+### OPENAI_API_KEY
+OpenAI API key for embeddings generation
 
 ## Storing Sensitive Data Locally
 

@@ -40,6 +40,10 @@ jobs:
           echo "🚀 Full deployment will be enabled in Phase 8"
 
 # Required secrets (configure in GitHub repository settings):
-# - CLOUDFLARE_API_TOKEN: API token with Worker write permissions
+# See docs/cloudflare-migration/execution-plans/secrets-management.md for setup guide
+#
+# - CLOUDFLARE_API_TOKEN: Custom API token with permissions:
+#     Account Settings (Read), Workers Scripts (Edit), D1 (Edit),
+#     Workers R2 Storage (Edit), Vectorize (Edit)
 # - CLOUDFLARE_ACCOUNT_ID: Your Cloudflare account ID
 # - OPENAI_API_KEY: OpenAI API key for embeddings
