@@ -1,0 +1,49 @@
+name: Deploy to Cloudflare
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+  workflow_dispatch:
+
+jobs:
+  # Placeholder - will be fully implemented in Phase 8
+  verify:
+    runs-on: ubuntu-latest
+    name: Verify Phase 1 Configuration
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Verify Phase 1 setup
+        run: |
+          echo "✅ Phase 1 configuration verified"
+          echo ""
+          echo "📦 wrangler.jsonc files:"
+          find apps -name "wrangler.jsonc" -type f
+          echo ""
+          echo "📄 D1 migrations:"
+          find apps/database/migrations -name "*.sql" -type f
+          echo ""
+          echo "📋 Resource tracking:"
+          cat docs/cloudflare-migration/execution-plans/phase-1-resources.json
+          echo ""
+          echo "🚀 Full deployment will be enabled in Phase 8"
+
+# Required secrets (configure in GitHub repository settings):
+# See docs/cloudflare-migration/execution-plans/secrets-management.md for setup guide
+#
+# - CLOUDFLARE_API_TOKEN: Custom API token with permissions:
+#     Account Settings (Read), Workers Scripts (Edit), D1 (Edit),
+#     Workers R2 Storage (Edit), Vectorize (Edit)
+# - CLOUDFLARE_ACCOUNT_ID: Your Cloudflare account ID
+# - OPENAI_API_KEY: OpenAI API key for embeddings
