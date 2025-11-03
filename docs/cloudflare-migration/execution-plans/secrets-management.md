@@ -81,7 +81,7 @@ OpenAI API key for embeddings generation
 ## Storing Sensitive Data Locally
 
 For personal reference (NOT in repository), store sensitive data at:
-`/Users/lix/Documents/Obsidian/Notes/Notes/Portfolio/Secrets.md`
+For personal reference (NOT in repository), store sensitive data in a secure local location, for example, a password manager or an encrypted notes file.
 
 This includes:
 - API tokens
