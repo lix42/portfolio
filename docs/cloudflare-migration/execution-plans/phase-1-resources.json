@@ -1,0 +1,52 @@
+{
+  "created": "2025-11-03T01:43:00Z",
+  "account_id": "70e742defbfbc3bbf6228e06626c7766",
+  "account_email": "i@xuli.dev",
+  "d1_databases": {
+    "dev": {
+      "database_name": "portfolio-dev",
+      "database_id": "467f540e-2d86-461e-b9fb-98c80a736ec5",
+      "region": "WNAM"
+    },
+    "staging": {
+      "database_name": "portfolio-staging",
+      "database_id": "f87dc2f0-b2c3-4179-a0e9-f10beb004cdb",
+      "region": "WNAM"
+    },
+    "prod": {
+      "database_name": "portfolio-prod",
+      "database_id": "7862c8d9-7982-4ac5-981d-8371b7b8cc3f",
+      "region": "WNAM"
+    }
+  },
+  "vectorize_indexes": {
+    "dev": {
+      "index_name": "portfolio-embeddings-dev",
+      "dimensions": 1536,
+      "metric": "cosine"
+    },
+    "staging": {
+      "index_name": "portfolio-embeddings-staging",
+      "dimensions": 1536,
+      "metric": "cosine"
+    },
+    "prod": {
+      "index_name": "portfolio-embeddings-prod",
+      "dimensions": 1536,
+      "metric": "cosine"
+    }
+  },
+  "r2_buckets": {
+    "dev": "portfolio-documents-dev",
+    "staging": "portfolio-documents-staging",
+    "prod": "portfolio-documents-prod"
+  },
+  "queues": {
+    "dev": "portfolio-doc-processing-dev",
+    "dev_dlq": "portfolio-doc-processing-dev-dlq",
+    "staging": "portfolio-doc-processing-staging",
+    "staging_dlq": "portfolio-doc-processing-staging-dlq",
+    "prod": "portfolio-doc-processing-prod",
+    "prod_dlq": "portfolio-doc-processing-prod-dlq"
+  }
+}
