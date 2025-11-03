@@ -110,7 +110,7 @@ async function reconcileR2Documents(env: Env) {
 ## Configuration
 
 ```jsonc
-// wrangler.toml
+// wrangler.jsonc
 {
   "name": "r2-reconciliation",
   "triggers": {

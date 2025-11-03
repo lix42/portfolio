@@ -373,21 +373,26 @@ New file implementing `CloudflareDataAccess` class (shown above).
 
 Replace Supabase client with Cloudflare bindings (shown above).
 
-#### 4. Update `wrangler.toml`
+#### 4. Update `wrangler.jsonc`
 
-```toml
-[[d1_databases]]
-binding = "DB"
-database_name = "portfolio-db"
-database_id = "xxx"
+```jsonc
+{
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "portfolio-db",
+    "database_id": "xxx"
+  }],
 
-[[vectorize]]
-binding = "VECTORIZE"
-index_name = "portfolio-embeddings"
+  "vectorize": [{
+    "binding": "VECTORIZE",
+    "index_name": "portfolio-embeddings"
+  }],
 
-[[r2_buckets]]
-binding = "DOCUMENTS_BUCKET"
-bucket_name = "portfolio-documents"
+  "r2_buckets": [{
+    "binding": "DOCUMENTS_BUCKET",
+    "bucket_name": "portfolio-documents"
+  }]
+}
 ```
 
 #### 5. Update `src/types/env.ts`
@@ -491,7 +496,7 @@ describe('Performance', () => {
 - [ ] Update get-context.ts
 - [ ] Update chat.ts
 - [ ] Remove Supabase client usage
-- [ ] Update wrangler.toml
+- [ ] Update wrangler.jsonc
 
 ### Phase 3: Testing
 - [ ] Run unit tests

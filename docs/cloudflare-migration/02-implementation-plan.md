@@ -261,7 +261,7 @@ This document outlines the phased implementation approach for migrating from Sup
 6. **Cleanup**
    - [ ] Remove Supabase dependencies from package.json
    - [ ] Remove unused imports and code
-   - [ ] Update wrangler.toml with bindings
+   - [ ] Update wrangler.jsonc with bindings
    - [ ] Update documentation
 
 ### Deliverables

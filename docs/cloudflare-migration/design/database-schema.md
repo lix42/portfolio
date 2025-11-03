@@ -230,11 +230,14 @@ The original plan included `processing_jobs` and `batch_jobs` tables. These have
 
 ### Index Setup
 
-```typescript
-// wrangler.toml
-[[vectorize]]
-binding = "VECTORIZE"
-index_name = "portfolio-embeddings"
+```jsonc
+// wrangler.jsonc
+{
+  "vectorize": [{
+    "binding": "VECTORIZE",
+    "index_name": "portfolio-embeddings"
+  }]
+}
 ```
 
 ### Index Properties

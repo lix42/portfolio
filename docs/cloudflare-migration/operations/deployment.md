@@ -18,19 +18,25 @@ This document outlines the deployment strategy for the Cloudflare migration, inc
 **Purpose**: Local development and testing
 
 **Configuration**:
-```bash
-# wrangler.toml (dev)
-name = "portfolio-service-dev"
-compatibility_date = "2024-01-01"
+```jsonc
+// wrangler.jsonc (dev)
+{
+  "name": "portfolio-service-dev",
+  "compatibility_date": "2024-01-01",
 
-[env.dev]
-vars = { ENVIRONMENT = "development" }
+  "env": {
+    "dev": {
+      "vars": { "ENVIRONMENT": "development" },
 
-# Use local bindings
-[[env.dev.d1_databases]]
-binding = "DB"
-database_name = "portfolio-db"
-database_id = "local"  # Local D1 instance
+      // Use local bindings
+      "d1_databases": [{
+        "binding": "DB",
+        "database_name": "portfolio-db",
+        "database_id": "local"  // Local D1 instance
+      }]
+    }
+  }
+}
 ```
 
 **Tools**:
@@ -44,18 +50,26 @@ database_id = "local"  # Local D1 instance
 **Purpose**: Pre-production testing and validation
 
 **Configuration**:
-```bash
-[env.staging]
-vars = { ENVIRONMENT = "staging" }
+```jsonc
+// wrangler.jsonc (staging)
+{
+  "env": {
+    "staging": {
+      "vars": { "ENVIRONMENT": "staging" },
 
-[[env.staging.d1_databases]]
-binding = "DB"
-database_name = "portfolio-db-staging"
-database_id = "xxx-staging"
+      "d1_databases": [{
+        "binding": "DB",
+        "database_name": "portfolio-db-staging",
+        "database_id": "xxx-staging"
+      }],
 
-[[env.staging.vectorize]]
-binding = "VECTORIZE"
-index_name = "portfolio-embeddings-staging"
+      "vectorize": [{
+        "binding": "VECTORIZE",
+        "index_name": "portfolio-embeddings-staging"
+      }]
+    }
+  }
+}
 ```
 
 **Characteristics**:
