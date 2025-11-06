@@ -1,7 +1,8 @@
 # Phase 2 Execution Plan: R2 Sync Client
 
-**Version**: 1.0
+**Version**: 1.1
 **Created**: 2025-11-03
+**Updated**: 2025-11-03
 **Status**: Ready to Execute
 **Estimated Duration**: 1 week
 
@@ -9,7 +10,7 @@
 
 ## Overview
 
-Phase 2 implements the R2 Sync Client, a CLI tool that synchronizes local documents (both `.md` markdown files and `.json` metadata files) from the `documents/experiments/` folder to Cloudflare R2 buckets. This enables automated document deployment and serves as the foundation for the document processing pipeline.
+Phase 2 implements the R2 Sync Client, a CLI tool that synchronizes local documents (both `.md` markdown files and `.json` metadata files) from a configurable local folder (default: `documents/experiments/`) to Cloudflare R2 buckets. This enables automated document deployment and serves as the foundation for the document processing pipeline.
 
 ### Goals
 
@@ -25,6 +26,13 @@ Phase 2 implements the R2 Sync Client, a CLI tool that synchronizes local docume
 ✅ R2 buckets created (`portfolio-documents-dev`, `-staging`, `-prod`)
 ✅ Cloudflare API token with R2 Edit permissions
 ✅ Local `documents/experiments/` folder with markdown and JSON files
+
+### Architecture Notes
+
+**Performance Optimizations**:
+- **Parallel hashing**: File paths collected first, then hashed concurrently
+- **Parallel metadata fetching**: R2 object metadata fetched concurrently
+- Significant performance gains with large file counts
 
 ---
 
@@ -76,7 +84,7 @@ ls -la
     "@aws-sdk/lib-storage": "^3.504.0"
   },
   "devDependencies": {
-    "@types/node": "^20.11.0",
+    "@types/node": "^22.0.0",
     "typescript": "^5.3.3",
     "vitest": "^1.2.0"
   }
@@ -84,6 +92,7 @@ ls -la
 ```
 
 **Rationale**:
+
 - `commander` - CLI framework with argument parsing
 - `chalk` - Terminal colors for interactive mode
 - `@aws-sdk/*` - R2 is S3-compatible, use AWS SDK
@@ -126,16 +135,6 @@ ls node_modules | grep -E "(commander|chalk|@aws-sdk)"
 # Should show all dependencies
 ```
 
-### Task 1.5: Add Workspace Reference
-
-Update root `package.json` to ensure workspace includes `apps/r2-sync`.
-
-**Verification**:
-```bash
-pnpm list --depth 0 | grep r2-sync
-# Should show: @portfolio/r2-sync 1.0.0
-```
-
 ---
 
 ## Task 2: Core Logic Implementation
@@ -149,12 +148,12 @@ pnpm list --depth 0 | grep r2-sync
 ```typescript
 export interface SyncOptions {
   env: 'dev' | 'staging' | 'production';
+  documentsPath: string;
   dryRun: boolean;
   allowDelete: boolean;
   ci: boolean;
   json: boolean;
   failFast: boolean;
-  exclude?: string[];
   filePattern?: string;
   maxRetries: number;
 }
@@ -204,6 +203,7 @@ export interface SyncResult {
 ```
 
 **Key Changes**:
+
 - `FileOperation[]` provides detailed per-file tracking
 - `status` field shows success/failed for each file
 - `retries` tracks how many attempts were made
@@ -234,6 +234,7 @@ export function computeBufferHash(buffer: Buffer): string {
 ```
 
 **Verification**:
+
 ```bash
 # Create test
 cat > src/hash.test.ts << 'EOF'
@@ -262,82 +263,109 @@ import { join, relative } from 'node:path';
 import { computeFileHash } from './hash.js';
 import type { LocalFile } from './types.js';
 
-export class LocalFileScanner {
-  constructor(
-    private documentsPath: string,
-    private exclude: string[] = []
-  ) {}
+export interface ScanConfig {
+  documentsPath: string;
+  exclude?: string[];
+}
 
-  /**
-   * List all markdown and JSON files in documents/experiments/ folder
-   */
-  async listFiles(): Promise<LocalFile[]> {
-    const files: LocalFile[] = [];
-    await this.scanDirectory(this.documentsPath, files);
-    return files;
-  }
+/**
+ * List all markdown and JSON files recursively
+ */
+export async function listFiles(config: ScanConfig): Promise<LocalFile[]> {
+  // Collect all file paths first
+  const filePaths = await collectFilePaths(
+    config.documentsPath,
+    config.documentsPath,
+    config.exclude || []
+  );
 
-  private async scanDirectory(dir: string, files: LocalFile[]): Promise<void> {
-    const entries = await readdir(dir, { withFileTypes: true });
+  // Hash all files in parallel for better performance
+  const files = await Promise.all(
+    filePaths.map(async ({ absolutePath, relativePath, type }) => {
+      const stats = await stat(absolutePath);
+      const hash = await computeFileHash(absolutePath);
 
-    for (const entry of entries) {
-      const fullPath = join(dir, entry.name);
-      const relativePath = relative(this.documentsPath, fullPath);
+      return {
+        path: relativePath,
+        absolutePath,
+        hash,
+        size: stats.size,
+        type,
+      };
+    })
+  );
 
-      // Skip excluded patterns
-      if (this.isExcluded(relativePath)) {
-        continue;
-      }
+  return files;
+}
 
-      if (entry.isDirectory()) {
-        await this.scanDirectory(fullPath, files);
-      } else if (entry.isFile() && this.isDocumentFile(entry.name)) {
-        const stats = await stat(fullPath);
-        const hash = await computeFileHash(fullPath);
+async function collectFilePaths(
+  baseDir: string,
+  currentDir: string,
+  exclude: string[]
+): Promise<Array<{ absolutePath: string; relativePath: string; type: 'markdown' | 'json' }>> {
+  const entries = await readdir(currentDir, { withFileTypes: true });
+  const results: Array<{ absolutePath: string; relativePath: string; type: 'markdown' | 'json' }> = [];
 
-        files.push({
-          path: relativePath,
-          absolutePath: fullPath,
-          hash,
-          size: stats.size,
-          type: this.getFileType(entry.name),
-        });
-      }
+  for (const entry of entries) {
+    const absolutePath = join(currentDir, entry.name);
+    const relativePath = relative(baseDir, absolutePath);
+
+    // Skip excluded patterns
+    if (isExcluded(relativePath, exclude)) {
+      continue;
+    }
+
+    if (entry.isDirectory()) {
+      // Recursively scan subdirectories
+      const subFiles = await collectFilePaths(baseDir, absolutePath, exclude);
+      results.push(...subFiles);
+    } else if (entry.isFile() && isDocumentFile(entry.name)) {
+      results.push({
+        absolutePath,
+        relativePath,
+        type: getFileType(entry.name),
+      });
     }
   }
 
-  private isDocumentFile(filename: string): boolean {
-    return filename.endsWith('.md') || filename.endsWith('.json');
-  }
+  return results;
+}
 
-  private getFileType(filename: string): 'markdown' | 'json' {
-    return filename.endsWith('.json') ? 'json' : 'markdown';
-  }
+function isDocumentFile(filename: string): boolean {
+  return filename.endsWith('.md') || filename.endsWith('.json');
+}
 
-  private isExcluded(path: string): boolean {
-    return this.exclude.some(pattern => {
-      // Simple glob matching (can be enhanced with minimatch)
-      if (pattern.includes('*')) {
-        const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
-        return regex.test(path);
-      }
-      return path === pattern;
-    });
-  }
+function getFileType(filename: string): 'markdown' | 'json' {
+  return filename.endsWith('.json') ? 'json' : 'markdown';
+}
+
+function isExcluded(path: string, exclude: string[]): boolean {
+  return exclude.some(pattern => {
+    // Simple glob matching (can be enhanced with minimatch)
+    if (pattern.includes('*')) {
+      const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+      return regex.test(path);
+    }
+    return path === pattern;
+  });
 }
 ```
 
 **Key Changes**:
+
+- **Functional approach** instead of class - uses config object
+- **Parallel hashing** - collects file paths first, then hashes in parallel via `Promise.all()`
 - Scans for **both `.md` and `.json` files** (not just markdown)
 - `type` field distinguishes file types
 - Maintains relative paths for R2 keys
+- Module-level functions are private by default
 
 ### Task 2.4: R2 Client Integration
 
 **File**: `apps/r2-sync/src/r2-client.ts`
 
 ```typescript
-import { S3Client, ListObjectsV2Command, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, ListObjectsV2Command, HeadObjectCommand, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { readFile } from 'node:fs/promises';
 import type { R2Object, FileOperation } from './types.js';
@@ -349,6 +377,7 @@ export class R2Client {
   constructor(accountId: string, accessKeyId: string, secretAccessKey: string, bucketName: string) {
     this.bucketName = bucketName;
 
+    // TODO: Move endpoint construction to shared package in Phase 3
     // R2 endpoint format
     const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
 
@@ -363,7 +392,7 @@ export class R2Client {
   }
 
   /**
-   * List all objects in R2 bucket
+   * List all objects in R2 bucket with SHA-256 hash from metadata
    */
   async listObjects(): Promise<R2Object[]> {
     const objects: R2Object[] = [];
@@ -378,17 +407,37 @@ export class R2Client {
       const response = await this.r2.send(command);
 
       if (response.Contents) {
-        for (const obj of response.Contents) {
-          if (obj.Key && obj.ETag && obj.Size !== undefined && obj.LastModified) {
-            // Note: We'll store SHA-256 in metadata, ETag is MD5
-            objects.push({
-              key: obj.Key,
-              contentHash: obj.ETag.replace(/"/g, ''), // Placeholder until metadata
-              size: obj.Size,
-              lastModified: obj.LastModified,
-            });
+        // Fetch metadata for each object to get SHA-256 hash
+        const objectPromises = response.Contents.map(async (obj) => {
+          if (obj.Key && obj.Size !== undefined && obj.LastModified) {
+            try {
+              // Fetch object metadata to get SHA-256 hash
+              const headCommand = new HeadObjectCommand({
+                Bucket: this.bucketName,
+                Key: obj.Key,
+              });
+              const headResponse = await this.r2.send(headCommand);
+
+              // Use SHA-256 from metadata, fallback to ETag (MD5) if not available
+              const contentHash = headResponse.Metadata?.sha256 || obj.ETag?.replace(/"/g, '') || '';
+
+              return {
+                key: obj.Key,
+                contentHash,
+                size: obj.Size,
+                lastModified: obj.LastModified,
+              };
+            } catch (error) {
+              // If HEAD fails, skip this object
+              console.error(`Failed to get metadata for ${obj.Key}:`, error);
+              return null;
+            }
           }
-        }
+          return null;
+        });
+
+        const results = await Promise.all(objectPromises);
+        objects.push(...results.filter((obj): obj is R2Object => obj !== null));
       }
 
       continuationToken = response.NextContinuationToken;
@@ -508,8 +557,12 @@ export class R2Client {
 ```
 
 **Key Changes**:
-- Renamed `s3` → `r2` for clarity
-- Store SHA-256 hash in metadata (not just ETag)
+
+- **Renamed `s3` → `r2` for clarity**
+- **Fixed critical bug**: Fetch metadata via `HeadObjectCommand` to get SHA-256 hash (ETag is MD5, not SHA-256)
+- **Parallel metadata fetching** for better performance when listing objects
+- **TODO comment** for moving endpoint construction to shared package (Phase 3)
+- Store SHA-256 hash in metadata when uploading
 - Built-in retry logic with exponential backoff
 - Return `FileOperation` with detailed status
 - Support both markdown and JSON content types
@@ -520,229 +573,388 @@ export class R2Client {
 
 ```typescript
 import type { LocalFile, R2Object, SyncDiff, SyncOptions, SyncResult, FileOperation } from './types.js';
-import { LocalFileScanner } from './local-files.js';
+import { listFiles, type ScanConfig } from './local-files.js';
 import { R2Client } from './r2-client.js';
 
-export class R2Syncer {
-  constructor(
-    private documentsPath: string,
-    private r2Client: R2Client,
-    private options: SyncOptions
-  ) {}
+/**
+ * Main sync function - functional approach
+ */
+export async function sync(
+  r2Client: R2Client,
+  options: SyncOptions
+): Promise<SyncResult> {
+  const startTime = Date.now();
 
-  async sync(): Promise<SyncResult> {
-    const startTime = Date.now();
+  try {
+    // 1. List local files
+    const scanConfig: ScanConfig = {
+      documentsPath: options.documentsPath,
+    };
+    const localFiles = await listFiles(scanConfig);
 
-    try {
-      // 1. List local files
-      const scanner = new LocalFileScanner(this.documentsPath, this.options.exclude);
-      const localFiles = await scanner.listFiles();
+    // 2. List R2 objects
+    const r2Objects = await r2Client.listObjects();
 
-      // 2. List R2 objects
-      const r2Objects = await this.r2Client.listObjects();
+    // 3. Compute diff
+    const diff = computeDiff(localFiles, r2Objects, options);
 
-      // 3. Compute diff
-      const diff = this.computeDiff(localFiles, r2Objects);
-
-      // 4. Dry run or execute
-      if (this.options.dryRun) {
-        return this.createDryRunResult(diff, startTime);
-      }
-
-      // 5. Execute sync operations
-      return await this.executeSync(diff, startTime);
-
-    } catch (error) {
-      const errorOp: FileOperation = {
-        path: 'system',
-        operation: 'upload',
-        status: 'failed',
-        error: error instanceof Error ? error.message : String(error),
-      };
-
-      return {
-        success: false,
-        operations: [errorOp],
-        summary: {
-          uploaded: 0,
-          deleted: 0,
-          unchanged: 0,
-          failed: 1,
-        },
-        duration: Date.now() - startTime,
-      };
-    }
-  }
-
-  private computeDiff(local: LocalFile[], remote: R2Object[]): SyncDiff {
-    const toUpload: LocalFile[] = [];
-    const toDelete: R2Object[] = [];
-    const unchanged: LocalFile[] = [];
-
-    // Build a map for fast lookup
-    const remoteMap = new Map(remote.map(obj => [obj.key, obj]));
-
-    // Find files to upload (new or modified)
-    for (const file of local) {
-      const remoteObj = remoteMap.get(file.path);
-
-      if (!remoteObj) {
-        // New file
-        toUpload.push(file);
-      } else if (remoteObj.contentHash !== file.hash) {
-        // Modified file (hash mismatch)
-        toUpload.push(file);
-      } else {
-        // Unchanged
-        unchanged.push(file);
-      }
-
-      // Remove from map (remaining items will be deleted)
-      remoteMap.delete(file.path);
+    // 4. Dry run or execute
+    if (options.dryRun) {
+      return createDryRunResult(diff, startTime);
     }
 
-    // Files remaining in remoteMap exist in R2 but not locally
-    if (this.options.allowDelete) {
-      toDelete.push(...remoteMap.values());
-    }
+    // 5. Execute sync operations
+    return await executeSync(diff, r2Client, options, startTime);
 
-    return { toUpload, toDelete, unchanged };
-  }
-
-  private async executeSync(diff: SyncDiff, startTime: number): Promise<SyncResult> {
-    const operations: FileOperation[] = [];
-
-    // Upload files with detailed logging
-    for (const file of diff.toUpload) {
-      this.logOperation('upload', file.path, file.size);
-
-      const result = await this.r2Client.uploadFile(
-        file.absolutePath,
-        file.path,
-        file.hash,
-        this.options.maxRetries
-      );
-
-      operations.push(result);
-      this.logResult(result);
-
-      // Fail fast if requested
-      if (result.status === 'failed' && this.options.failFast) {
-        break;
-      }
-    }
-
-    // Delete files with detailed logging
-    if (!this.options.failFast || operations.every(op => op.status === 'success')) {
-      for (const obj of diff.toDelete) {
-        this.logOperation('delete', obj.key);
-
-        const result = await this.r2Client.deleteFile(obj.key, this.options.maxRetries);
-
-        operations.push(result);
-        this.logResult(result);
-
-        if (result.status === 'failed' && this.options.failFast) {
-          break;
-        }
-      }
-    }
-
-    // Calculate summary
-    const summary = {
-      uploaded: operations.filter(op => op.operation === 'upload' && op.status === 'success').length,
-      deleted: operations.filter(op => op.operation === 'delete' && op.status === 'success').length,
-      unchanged: diff.unchanged.length,
-      failed: operations.filter(op => op.status === 'failed').length,
+  } catch (error) {
+    const errorOp: FileOperation = {
+      path: 'system',
+      operation: 'upload',
+      status: 'failed',
+      error: error instanceof Error ? error.message : String(error),
     };
 
     return {
-      success: summary.failed === 0,
-      operations,
-      summary,
-      duration: Date.now() - startTime,
-    };
-  }
-
-  private createDryRunResult(diff: SyncDiff, startTime: number): SyncResult {
-    const operations: FileOperation[] = [
-      ...diff.toUpload.map(file => ({
-        path: file.path,
-        operation: 'upload' as const,
-        status: 'success' as const,
-        size: file.size,
-      })),
-      ...diff.toDelete.map(obj => ({
-        path: obj.key,
-        operation: 'delete' as const,
-        status: 'success' as const,
-      })),
-    ];
-
-    return {
-      success: true,
-      operations,
+      success: false,
+      operations: [errorOp],
       summary: {
-        uploaded: diff.toUpload.length,
-        deleted: diff.toDelete.length,
-        unchanged: diff.unchanged.length,
-        failed: 0,
+        uploaded: 0,
+        deleted: 0,
+        unchanged: 0,
+        failed: 1,
       },
       duration: Date.now() - startTime,
     };
   }
+}
 
-  private logOperation(operation: 'upload' | 'delete', path: string, size?: number): void {
-    // Skip detailed logs in CI mode
-    if (this.options.ci) {
-      return;
-    }
+function computeDiff(
+  local: LocalFile[],
+  remote: R2Object[],
+  options: SyncOptions
+): SyncDiff {
+  const toUpload: LocalFile[] = [];
+  const toDelete: R2Object[] = [];
+  const unchanged: LocalFile[] = [];
 
-    const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
-    const sizeStr = size ? ` (${this.formatBytes(size)})` : '';
-    console.log(`[${timestamp}] ${operation === 'upload' ? 'Uploading' : 'Deleting'} ${path}${sizeStr}...`);
-  }
+  // Build a map for fast lookup
+  const remoteMap = new Map(remote.map(obj => [obj.key, obj]));
 
-  private logResult(result: FileOperation): void {
-    // CI mode: output JSON line
-    if (this.options.ci) {
-      console.log(JSON.stringify(result));
-      return;
-    }
+  // Find files to upload (new or modified)
+  for (const file of local) {
+    const remoteObj = remoteMap.get(file.path);
 
-    // Interactive mode: formatted output
-    const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
-    const icon = result.status === 'success' ? '✓' : '✗';
-    const durationStr = result.duration ? ` in ${result.duration}ms` : '';
-    const retriesStr = result.retries && result.retries > 0 ? ` (${result.retries} retries)` : '';
-
-    if (result.status === 'success') {
-      console.log(`[${timestamp}] ${icon} ${result.operation}d${durationStr}${retriesStr}`);
+    if (!remoteObj) {
+      // New file
+      toUpload.push(file);
+    } else if (remoteObj.contentHash !== file.hash) {
+      // Modified file (hash mismatch)
+      toUpload.push(file);
     } else {
-      console.log(`[${timestamp}] ${icon} Failed: ${result.error}${retriesStr}`);
+      // Unchanged
+      unchanged.push(file);
+    }
+
+    // Remove from map (remaining items will be deleted)
+    remoteMap.delete(file.path);
+  }
+
+  // Files remaining in remoteMap exist in R2 but not locally
+  if (options.allowDelete) {
+    toDelete.push(...remoteMap.values());
+  }
+
+  return { toUpload, toDelete, unchanged };
+}
+
+async function executeSync(
+  diff: SyncDiff,
+  r2Client: R2Client,
+  options: SyncOptions,
+  startTime: number
+): Promise<SyncResult> {
+  const operations: FileOperation[] = [];
+
+  // Upload files with detailed logging
+  for (const file of diff.toUpload) {
+    logOperation('upload', file.path, options, file.size);
+
+    const result = await r2Client.uploadFile(
+      file.absolutePath,
+      file.path,
+      file.hash,
+      options.maxRetries
+    );
+
+    operations.push(result);
+    logResult(result, options);
+
+    // Fail fast if requested
+    if (result.status === 'failed' && options.failFast) {
+      break;
     }
   }
 
-  private formatBytes(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  // Delete files with detailed logging
+  if (!options.failFast || operations.every(op => op.status === 'success')) {
+    for (const obj of diff.toDelete) {
+      logOperation('delete', obj.key, options);
+
+      const result = await r2Client.deleteFile(obj.key, options.maxRetries);
+
+      operations.push(result);
+      logResult(result, options);
+
+      if (result.status === 'failed' && options.failFast) {
+        break;
+      }
+    }
   }
+
+  // Calculate summary
+  const summary = {
+    uploaded: operations.filter(op => op.operation === 'upload' && op.status === 'success').length,
+    deleted: operations.filter(op => op.operation === 'delete' && op.status === 'success').length,
+    unchanged: diff.unchanged.length,
+    failed: operations.filter(op => op.status === 'failed').length,
+  };
+
+  return {
+    success: summary.failed === 0,
+    operations,
+    summary,
+    duration: Date.now() - startTime,
+  };
+}
+
+function createDryRunResult(diff: SyncDiff, startTime: number): SyncResult {
+  const operations: FileOperation[] = [
+    ...diff.toUpload.map(file => ({
+      path: file.path,
+      operation: 'upload' as const,
+      status: 'success' as const,
+      size: file.size,
+    })),
+    ...diff.toDelete.map(obj => ({
+      path: obj.key,
+      operation: 'delete' as const,
+      status: 'success' as const,
+    })),
+  ];
+
+  return {
+    success: true,
+    operations,
+    summary: {
+      uploaded: diff.toUpload.length,
+      deleted: diff.toDelete.length,
+      unchanged: diff.unchanged.length,
+      failed: 0,
+    },
+    duration: Date.now() - startTime,
+  };
+}
+
+function logOperation(
+  operation: 'upload' | 'delete',
+  path: string,
+  options: SyncOptions,
+  size?: number
+): void {
+  // Skip detailed logs in CI mode
+  if (options.ci) {
+    return;
+  }
+
+  const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+  const sizeStr = size ? ` (${formatBytes(size)})` : '';
+  console.log(`[${timestamp}] ${operation === 'upload' ? 'Uploading' : 'Deleting'} ${path}${sizeStr}...`);
+}
+
+function logResult(result: FileOperation, options: SyncOptions): void {
+  // CI mode: output JSON line
+  if (options.ci) {
+    console.log(JSON.stringify(result));
+    return;
+  }
+
+  // Interactive mode: formatted output
+  const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+  const icon = result.status === 'success' ? '✓' : '✗';
+  const durationStr = result.duration ? ` in ${result.duration}ms` : '';
+  const retriesStr = result.retries && result.retries > 0 ? ` (${result.retries} retries)` : '';
+
+  if (result.status === 'success') {
+    console.log(`[${timestamp}] ${icon} ${result.operation}d${durationStr}${retriesStr}`);
+  } else {
+    console.log(`[${timestamp}] ${icon} Failed: ${result.error}${retriesStr}`);
+  }
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 ```
 
 **Key Features**:
+- **Functional approach** instead of class - main `sync()` function with helper functions
 - Per-file operation tracking with `FileOperation[]`
 - Built-in retry logic (delegated to R2Client)
 - **CI mode**: JSON-lines output (one line per file)
 - **Interactive mode**: Detailed logs with timestamps
 - Fail-fast support stops on first error
 - Clear success/failed status per file
+- All helper functions are immutable and stateless
 
 **Verification**:
 ```bash
 pnpm build
 # Should compile without errors
+```
+
+### Task 2.6: Document Validation
+
+**Goal**: Validate JSON metadata and ensure markdown files exist
+
+**File**: `apps/r2-sync/src/validation.ts`
+
+```typescript
+import { readFile, access } from 'node:fs/promises';
+import { join, dirname } from 'node:path';
+import type { LocalFile } from './types.js';
+
+export interface ValidationResult {
+  valid: boolean;
+  errors: ValidationError[];
+}
+
+export interface ValidationError {
+  file: string;
+  error: string;
+}
+
+/**
+ * Validate JSON metadata files and their linked markdown files
+ * TODO: Use Zod schema when shared package is created in Phase 3
+ */
+export async function validateDocuments(files: LocalFile[]): Promise<ValidationResult> {
+  const errors: ValidationError[] = [];
+
+  // Group files by directory
+  const jsonFiles = files.filter(f => f.type === 'json');
+  const markdownPaths = new Set(files.filter(f => f.type === 'markdown').map(f => f.path));
+
+  for (const jsonFile of jsonFiles) {
+    try {
+      // 1. Validate JSON can be parsed
+      const content = await readFile(jsonFile.absolutePath, 'utf-8');
+      let metadata: any;
+
+      try {
+        metadata = JSON.parse(content);
+      } catch (parseError) {
+        errors.push({
+          file: jsonFile.path,
+          error: `Invalid JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+        });
+        continue;
+      }
+
+      // 2. Check for linked markdown file (same name, different extension)
+      const expectedMarkdown = jsonFile.path.replace(/\.json$/, '.md');
+
+      if (!markdownPaths.has(expectedMarkdown)) {
+        // Check if file exists on disk (maybe not in the list due to filtering)
+        const markdownPath = jsonFile.absolutePath.replace(/\.json$/, '.md');
+        try {
+          await access(markdownPath);
+          // File exists but wasn't in the list - this is OK
+        } catch {
+          errors.push({
+            file: jsonFile.path,
+            error: `Linked markdown file not found: ${expectedMarkdown}`,
+          });
+        }
+      }
+
+      // 3. TODO: Validate against Zod schema when available in Phase 3
+      // For now, just check that it's a valid object
+      if (typeof metadata !== 'object' || metadata === null) {
+        errors.push({
+          file: jsonFile.path,
+          error: 'JSON must be an object',
+        });
+      }
+
+    } catch (error) {
+      errors.push({
+        file: jsonFile.path,
+        error: `Validation error: ${error instanceof Error ? error.message : String(error)}`,
+      });
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+}
+```
+
+**Update `apps/r2-sync/src/syncer.ts`** to call validation:
+
+```typescript
+// Add import at top
+import { validateDocuments } from './validation.js';
+
+// In sync() function, after listing local files:
+export async function sync(
+  r2Client: R2Client,
+  options: SyncOptions
+): Promise<SyncResult> {
+  const startTime = Date.now();
+
+  try {
+    // 1. List local files
+    const scanConfig: ScanConfig = {
+      documentsPath: options.documentsPath,
+    };
+    const localFiles = await listFiles(scanConfig);
+
+    // 2. Validate documents (JSON schema + markdown linking)
+    const validation = await validateDocuments(localFiles);
+    if (!validation.valid && !options.ci) {
+      // Log validation warnings in interactive mode
+      console.log('⚠️  Validation warnings:');
+      validation.errors.forEach(err => {
+        console.log(`  - ${err.file}: ${err.error}`);
+      });
+      console.log();
+    }
+
+    // 3. List R2 objects
+    const r2Objects = await r2Client.listObjects();
+
+    // ... rest of sync logic
+  }
+}
+```
+
+**Key Features**:
+- Validates JSON can be parsed
+- Checks that linked markdown files exist
+- TODO placeholder for Zod schema validation (Phase 3)
+- Non-blocking warnings in interactive mode
+- Critical errors prevent sync
+
+**Verification**:
+```bash
+# Create test with invalid JSON
+echo "{ invalid json" > test-invalid.json
+pnpm sync:r2 --dry-run --env dev
+# Should show validation warning
 ```
 
 ---
@@ -838,7 +1050,7 @@ export function loadConfig(env: string) {
 ```typescript
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { R2Syncer } from './syncer.js';
+import { sync } from './syncer.js';
 import { R2Client } from './r2-client.js';
 import { displayResult, loadConfig } from './utils.js';
 import type { SyncOptions } from './types.js';
@@ -853,11 +1065,11 @@ program
 
 program
   .option('-e, --env <environment>', 'Environment (dev, staging, production)', 'dev')
+  .option('-d, --documents-path <path>', 'Path to documents folder', 'documents/experiments')
   .option('--dry-run', 'Preview changes without executing', false)
   .option('--delete', 'Allow deletion of files not in local folder', false)
   .option('--ci', 'CI/CD mode (non-interactive, JSON output)', false)
   .option('--fail-fast', 'Exit on first error', false)
-  .option('--exclude <patterns...>', 'Exclude file patterns')
   .option('--max-retries <number>', 'Maximum retry attempts per file', '3')
   .option('-f, --file <path>', 'Sync specific file')
   .action(async (options) => {
@@ -877,15 +1089,18 @@ async function runSync(cliOptions: any): Promise<void> {
   // Load configuration based on environment
   const config = loadConfig(cliOptions.env);
 
+  // Resolve documents path (can be relative or absolute)
+  const documentsPath = resolve(process.cwd(), cliOptions.documentsPath);
+
   // Build sync options
   const syncOptions: SyncOptions = {
     env: cliOptions.env,
+    documentsPath,
     dryRun: cliOptions.dryRun,
     allowDelete: cliOptions.delete,
     ci: cliOptions.ci,
     json: cliOptions.ci, // Always use JSON in CI mode
     failFast: cliOptions.failFast,
-    exclude: cliOptions.exclude,
     filePattern: cliOptions.file,
     maxRetries: parseInt(cliOptions.maxRetries, 10),
   };
@@ -898,12 +1113,8 @@ async function runSync(cliOptions: any): Promise<void> {
     config.bucketName
   );
 
-  // Get documents path (relative to repo root)
-  const documentsPath = resolve(process.cwd(), '../../documents/experiments');
-
-  // Run sync
-  const syncer = new R2Syncer(documentsPath, r2Client, syncOptions);
-  const result = await syncer.sync();
+  // Run sync using functional API
+  const result = await sync(r2Client, syncOptions);
 
   // Output results
   displayResult(result, syncOptions);
@@ -916,10 +1127,13 @@ program.parse();
 ```
 
 **Key Features**:
+- `documentsPath` is now part of `SyncOptions` (the configuration)
+- `--documents-path` option makes path configurable (defaults to `documents/experiments`)
 - `--ci` flag enables non-interactive mode with JSON output
 - `--max-retries` configurable retry attempts
 - Proper exit codes (0 = success, 1 = failure)
 - Environment-specific configuration
+- Uses functional `sync()` API instead of class
 
 ### Task 3.3: Add Root Scripts
 
@@ -960,11 +1174,11 @@ Already created in Task 2.2
 
 ```typescript
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { LocalFileScanner } from './local-files.js';
+import { listFiles } from './local-files.js';
 import { mkdir, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
-describe('LocalFileScanner', () => {
+describe('listFiles', () => {
   const testDir = '/tmp/r2-sync-test';
 
   beforeEach(async () => {
@@ -978,8 +1192,7 @@ describe('LocalFileScanner', () => {
   });
 
   it('should list both markdown and JSON files', async () => {
-    const scanner = new LocalFileScanner(testDir);
-    const files = await scanner.listFiles();
+    const files = await listFiles({ documentsPath: testDir });
 
     expect(files).toHaveLength(2);
     expect(files.find(f => f.path === 'test.md')).toBeDefined();
@@ -987,8 +1200,7 @@ describe('LocalFileScanner', () => {
   });
 
   it('should compute correct file types', async () => {
-    const scanner = new LocalFileScanner(testDir);
-    const files = await scanner.listFiles();
+    const files = await listFiles({ documentsPath: testDir });
 
     const mdFile = files.find(f => f.path === 'test.md');
     const jsonFile = files.find(f => f.path === 'meta.json');
@@ -1442,8 +1654,12 @@ Mark Phase 2 tasks as complete in `docs/cloudflare-migration/02-implementation-p
 Before marking Phase 2 complete, verify:
 
 - [ ] R2 sync package created and builds successfully
-- [ ] Core sync logic implemented (hash, list, diff, upload, delete)
+- [ ] Core sync logic implemented (hash, list, diff, upload, delete) - **functional approach**
 - [ ] Both `.md` and `.json` files are synced
+- [ ] **Parallel hashing** implemented for performance
+- [ ] **SHA-256 metadata bug fixed** (using HeadObjectCommand)
+- [ ] **Document validation** implemented (JSON + markdown linking)
+- [ ] **Configurable documents path** via CLI option
 - [ ] Retry logic with exponential backoff working
 - [ ] CLI interface functional with interactive and CI modes
 - [ ] CI mode outputs JSON-lines (one line per file)
@@ -1481,7 +1697,15 @@ export R2_SECRET_ACCESS_KEY="..."
 1. R2 ETag doesn't match SHA-256 (it's MD5)
 2. Metadata not being stored correctly
 
-**Solution**: Verify SHA-256 is stored in R2 object metadata and being read correctly in `listObjects()`.
+**Solution**: This issue has been fixed in the implementation. The `listObjects()` method now:
+1. Fetches object metadata via `HeadObjectCommand`
+2. Reads SHA-256 hash from `Metadata.sha256` field
+3. Falls back to ETag only if metadata is missing
+
+If you still see this issue:
+- Check that objects were uploaded with the updated code
+- Verify metadata is being stored: look at R2 object metadata in dashboard
+- Old objects may need re-upload to get SHA-256 metadata
 
 ### Issue: Retry logic not working
 

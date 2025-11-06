@@ -17,7 +17,8 @@
     "paths": {
       "@/*": ["./apps/*"],
       "@service/*": ["./apps/service/*"],
-      "@ui/*": ["./apps/ui/*"],
+      "@ui2/*": ["./apps/ui2/*"],
+      "@rs-sync/*": ["./apps/rs-sync/*"],
       "@documents/*": ["./documents/*"]
     }
   }
