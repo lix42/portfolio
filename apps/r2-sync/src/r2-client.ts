@@ -1,6 +1,8 @@
 import { S3Client, ListObjectsV2Command, HeadObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { readFile } from 'node:fs/promises';
+import { HttpsProxyAgent } from 'hpagent';
+import { NodeHttpHandler } from '@smithy/node-http-handler';
 import type { R2Object, FileOperation } from './types.js';
 
 export class R2Client {
@@ -13,14 +15,30 @@ export class R2Client {
     // R2 endpoint format
     const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
 
-    this.r2 = new S3Client({
+    // Configure proxy agent if HTTP_PROXY or HTTPS_PROXY is set
+    const proxyUrl = process.env['HTTPS_PROXY'] || process.env['https_proxy'] ||
+                     process.env['HTTP_PROXY'] || process.env['http_proxy'];
+
+    const clientConfig: any = {
       region: 'auto',
       endpoint,
       credentials: {
         accessKeyId,
         secretAccessKey,
       },
-    });
+      forcePathStyle: true, // Required for R2
+    };
+
+    // Add proxy agent if proxy is configured
+    if (proxyUrl) {
+      const proxyAgent = new HttpsProxyAgent({ proxy: proxyUrl });
+      clientConfig.requestHandler = new NodeHttpHandler({
+        httpsAgent: proxyAgent,
+        httpAgent: proxyAgent,
+      });
+    }
+
+    this.r2 = new S3Client(clientConfig);
   }
 
   /**

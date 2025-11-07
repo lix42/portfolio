@@ -41,6 +41,16 @@ export async function sync(r2Client: R2Client, options: SyncOptions): Promise<Sy
     // 6. Execute sync operations
     return await executeSync(diff, r2Client, options, startTime);
   } catch (error) {
+    // Log full error details for debugging
+    if (!options.ci) {
+      console.error('\n🔍 Error details:', error);
+      if (error && typeof error === 'object' && '$response' in error) {
+        const awsError = error as any;
+        console.error('Response status:', awsError.$response?.statusCode);
+        console.error('Response headers:', awsError.$response?.headers);
+      }
+    }
+
     const errorOp: FileOperation = {
       path: 'system',
       operation: 'upload',
