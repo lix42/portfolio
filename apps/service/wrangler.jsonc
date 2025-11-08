@@ -41,7 +41,7 @@
   "r2_buckets": [
     {
       "binding": "DOCUMENTS",
-      "bucket_name": "portfolio-documents-dev"
+      "bucket_name": "portfolio-documents"
     }
   ],
 
@@ -69,12 +69,6 @@
           "index_name": "portfolio-embeddings-staging"
         }
       ],
-      "r2_buckets": [
-        {
-          "binding": "DOCUMENTS",
-          "bucket_name": "portfolio-documents-staging"
-        }
-      ],
       "vars": {
         "ENVIRONMENT": "staging"
       }
@@ -92,12 +86,6 @@
         {
           "binding": "VECTORIZE",
           "index_name": "portfolio-embeddings-prod"
-        }
-      ],
-      "r2_buckets": [
-        {
-          "binding": "DOCUMENTS",
-          "bucket_name": "portfolio-documents-prod"
         }
       ],
       "vars": {

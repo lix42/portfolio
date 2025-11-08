@@ -64,7 +64,7 @@ export function displayResult(result: SyncResult, options: SyncOptions): void {
   console.log();
 }
 
-export function loadConfig(env: string) {
+export function loadConfig() {
   // Load from environment variables
   const accountId = process.env['CLOUDFLARE_ACCOUNT_ID'];
   const accessKeyId = process.env['R2_ACCESS_KEY_ID'];
@@ -80,16 +80,10 @@ export function loadConfig(env: string) {
     );
   }
 
-  const bucketNames = {
-    dev: 'portfolio-documents-dev',
-    staging: 'portfolio-documents-staging',
-    production: 'portfolio-documents-prod',
-  };
-
   return {
     accountId,
     accessKeyId,
     secretAccessKey,
-    bucketName: bucketNames[env as keyof typeof bucketNames],
+    bucketName: 'portfolio-documents',
   };
 }

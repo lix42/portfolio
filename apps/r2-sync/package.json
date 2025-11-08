@@ -10,9 +10,6 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "sync": "node ./dist/cli.js",
-    "sync:dev": "node ./dist/cli.js --env dev",
-    "sync:staging": "node ./dist/cli.js --env staging",
-    "sync:prod": "node ./dist/cli.js --env production",
     "test": "vitest",
     "lint": "biome check ."
   },
@@ -26,6 +23,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "dotenv": "^17.2.3",
     "typescript": "^5.3.3",
     "vitest": "^1.2.0"
   }

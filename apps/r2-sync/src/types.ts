@@ -1,5 +1,4 @@
 export interface SyncOptions {
-  env: 'dev' | 'staging' | 'production';
   documentsPath: string;
   dryRun: boolean;
   allowDelete: boolean;

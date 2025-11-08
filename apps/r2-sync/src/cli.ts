@@ -1,10 +1,14 @@
 #!/usr/bin/env node
+import dotenv from 'dotenv';
 import { Command } from 'commander';
 import { sync } from './syncer.js';
 import { R2Client } from './r2-client.js';
 import { displayResult, loadConfig } from './utils.js';
 import type { SyncOptions } from './types.js';
 import { resolve } from 'node:path';
+
+// Load environment variables from .env.local (if it exists)
+dotenv.config({ path: '.env.local' });
 
 const program = new Command();
 
@@ -14,7 +18,6 @@ program
   .version('1.0.0');
 
 program
-  .option('-e, --env <environment>', 'Environment (dev, staging, production)', 'dev')
   .option('-d, --documents-path <path>', 'Path to documents folder', 'documents/experiments')
   .option('--dry-run', 'Preview changes without executing', false)
   .option('--delete', 'Allow deletion of files not in local folder', false)
@@ -36,15 +39,14 @@ program
   });
 
 async function runSync(cliOptions: any): Promise<void> {
-  // Load configuration based on environment
-  const config = loadConfig(cliOptions.env);
+  // Load configuration
+  const config = loadConfig();
 
   // Resolve documents path (can be relative or absolute)
   const documentsPath = resolve(process.cwd(), cliOptions.documentsPath);
 
   // Build sync options
   const syncOptions: SyncOptions = {
-    env: cliOptions.env,
     documentsPath,
     dryRun: cliOptions.dryRun,
     allowDelete: cliOptions.delete,

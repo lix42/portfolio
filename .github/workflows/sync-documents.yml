@@ -6,7 +6,6 @@ on:
       - 'documents/**'
     branches:
       - main
-      - staging
   workflow_dispatch:
 
 jobs:
@@ -35,17 +34,8 @@ jobs:
       - name: Build R2 sync tool
         run: pnpm --filter @portfolio/r2-sync build
 
-      - name: Sync to dev (staging branch)
-        if: github.ref == 'refs/heads/staging'
-        run: pnpm sync:r2 --ci --env dev
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-
-      - name: Sync to production (main branch)
-        if: github.ref == 'refs/heads/main'
-        run: pnpm sync:r2 --ci --env production
+      - name: Sync documents to R2
+        run: pnpm sync:r2 --ci
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
