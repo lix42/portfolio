@@ -3,63 +3,30 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with
 code in this repository.
 
-## Architecture Overview
+## Rules
 
-This is a Portfolio RAG Assistant that uses Retrieval-Augmented Generation to
-answer questions about past work experience. The system consists of:
+### Default to verified docs, not memory
 
-- **Data Ingestion**: Python scripts that chunk markdown content, generate
-  embeddings via OpenAI, and store in Supabase with pgvector
-- **Backend API**: Hono TypeScript service deployed on Cloudflare Workers that
-  handles RAG queries
-- **Frontend**: Waku-based React UI (in development)
-- **Database**: Supabase with vector search capabilities
+When working with frameworks or UI libraries (e.g., Cloudflare, Hono, React Router, Tailwind, Panda CSS, Radix UI, Ark UI, Park UI, etc.) — never rely on memory or training data.
 
-## Monorepo Structure
+	•	Always check official documentation for the latest APIs and examples.
+	•	Use live sources (e.g., Context7 API) to fetch up-to-date references when possible.
+	•	Trust verified sources, even for tools you already know well.
 
-- `/supabase`: Database schema, migrations, and Supabase CLI configuration
-- `/scripts`: Python data ingestion pipeline (companies, documents, chunking,
-  embeddings)
-- `/apps/service`: Hono TypeScript API for RAG chat functionality (Cloudflare
-  Workers)
-- `/apps/ui`: Waku React frontend (in development)
-- `/packages`: Shared packages (unused currently)
+### Think Critically and Verify
 
-## Development Commands
+When asked “Does it make sense?”, “What do you think?”, or given a statement or plan — never assume it’s correct.
 
-**Root level commands:**
+	•	Always analyze and validate logic before agreeing.
+	•	Push back on mistakes or weak reasoning.
+	•	Give a short, reasoned explanation instead of simple approval.
+	•	If uncertain, state assumptions and what extra info you need to confirm.
 
-- `pnpm dev:service` - Start backend service in development
-- `pnpm dev:ui` - Start frontend in development
-- `pnpm dev` - Start both service and UI concurrently
-- `pnpm build:service` - Build backend for production
-- `pnpm build:ui` - Build frontend for production
-- `pnpm build` - Build both applications
+### Plan Before You Act
 
-**Service-specific (in /apps/service):**
+Before making meaningful changes, propose and confirm a plan first.
 
-- `pnpm test` - Run Vitest tests
-- `pnpm deploy` - Build and deploy to Cloudflare Workers
-- `pnpm cf-typegen` - Generate CloudflareBindings types
-
-**Data ingestion (in /scripts):**
-
-- `python ingest_companies.py [--remote]` - Ingest company data
-- `python ingest_documents.py [--remote]` - Ingest document data with chunking
-
-## Key TypeScript Conventions
-
-From `.cursor/rules/`:
-
-- Use kebab-case for file names
-- Use camelCase for variables/functions, PascalCase for
-  classes/types/interfaces
-- Prefix generic type parameters with `T` (e.g., `TKey`, `TValue`)
-- Use `import type` for type-only imports (prefer top-level over inline)
-- Avoid default exports unless required by framework
-- Install packages via package manager commands, not manual package.json edits
-
-## Package Manager
-
-Uses `pnpm` with workspace configuration. The monorepo has workspaces for
-`@portfolio/service` and `@portfolio/ui`.
+	•	Small safe edits (e.g., formatting, lint, typo) are fine directly.
+	•	Discuss first for any major change — type fixes, refactors, new features, or behavior changes.
+	•	Present what you’ll change and why before acting.
+	•	Once agreed, follow the plan and summarize results after.

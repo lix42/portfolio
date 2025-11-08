@@ -14,6 +14,35 @@ Cloudflare Workers secrets are encrypted environment variables that are NOT stor
 - `SUPABASE_URL`: (Will be removed in Phase 5)
 - `SUPABASE_SERVICE_ROLE_KEY`: (Will be removed in Phase 5)
 
+## R2 API Tokens
+
+For R2 sync client, you need separate R2 API tokens (not the Cloudflare API token).
+
+### Creating R2 API Token
+
+1. Go to https://dash.cloudflare.com → R2
+2. Click "Manage R2 API Tokens"
+3. Click "Create API token"
+4. Configure:
+   - Name: `r2-sync-documents`
+   - Permissions: Admin Read & Write
+   - Buckets: All buckets (or select specific ones)
+5. Copy Access Key ID and Secret Access Key
+
+### Local Development
+
+Add to `.env` or export:
+```bash
+export R2_ACCESS_KEY_ID="your-access-key-id"
+export R2_SECRET_ACCESS_KEY="your-secret-access-key"
+```
+
+### GitHub Actions
+
+Add these repository secrets:
+- `R2_ACCESS_KEY_ID`
+- `R2_SECRET_ACCESS_KEY`
+
 ## Setting Secrets
 
 ### Via CLI (Production)
