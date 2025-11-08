@@ -17,23 +17,23 @@ CLI tool to synchronize local documents to Cloudflare R2 buckets.
 
 ```bash
 # Preview changes
-pnpm sync:r2 --dry-run --env dev
+pnpm sync:r2 --dry-run
 
 # Sync to dev environment
-pnpm sync:r2 --env dev
+pnpm sync:r2
 
 # Sync with deletions enabled
-pnpm sync:r2 --env dev --delete
+pnpm sync:r2  --delete
 
 # Fail fast (stop on first error)
-pnpm sync:r2 --env dev --fail-fast
+pnpm sync:r2  --fail-fast
 ```
 
 ### CI/CD Mode
 
 ```bash
 # Non-interactive mode with JSON output
-pnpm sync:r2 --ci --env production
+pnpm sync:r2 --ci
 
 # Each file operation outputs one JSON line
 # Final summary as last line
@@ -42,6 +42,7 @@ pnpm sync:r2 --ci --env production
 ## Environment Variables
 
 Required:
+
 - `CLOUDFLARE_ACCOUNT_ID` - Your Cloudflare account ID
 - `R2_ACCESS_KEY_ID` - R2 API token access key ID
 - `R2_SECRET_ACCESS_KEY` - R2 API token secret
@@ -49,6 +50,7 @@ Required:
 ## Output Formats
 
 ### Interactive Mode
+
 ```
 [10:23:45] Uploading experiments/webforms.md (10.0 KB)...
 [10:23:46] ✓ uploaded in 234ms
@@ -64,6 +66,7 @@ Required:
 ```
 
 ### CI Mode (JSON Lines)
+
 ```jsonl
 {"path":"experiments/webforms.md","operation":"upload","status":"success","size":10240,"duration":234}
 {"path":"experiments/webforms.json","operation":"upload","status":"success","size":84,"duration":156}

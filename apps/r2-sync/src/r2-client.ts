@@ -86,9 +86,15 @@ export class R2Client {
           return null;
         });
 
-        // TODO: use promise.allSettled to handle individual failures
-        const results = await Promise.all(objectPromises);
-        objects.push(...results.filter((obj): obj is R2Object => obj !== null));
+        const settledResults = await Promise.allSettled(objectPromises);
+        settledResults.forEach(result => {
+          if (result.status === 'fulfilled' && result.value) {
+            objects.push(result.value);
+          } else if (result.status === 'rejected') {
+            // TODO: handle individual object metadata fetch errors if needed
+            console.error(`Failed to get metadata for an object:`, result.reason);
+          }
+        });
       }
 
       continuationToken = response.NextContinuationToken;

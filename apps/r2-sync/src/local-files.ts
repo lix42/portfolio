@@ -1,5 +1,5 @@
 import { readdir, stat } from 'node:fs/promises';
-import { join, resolve} from 'node:path';
+import { join, relative, resolve} from 'node:path';
 import { computeFileHash } from './hash.js';
 import type { LocalFile } from './types.js';
 
@@ -22,7 +22,7 @@ export async function listFiles(config: ScanConfig): Promise<LocalFile[]> {
       const hash = await computeFileHash(path);
 
       return {
-        path,
+        path: relative(config.documentsPath, absolutePath),
         absolutePath,
         hash,
         size: stats.size,

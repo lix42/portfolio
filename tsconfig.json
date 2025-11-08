@@ -18,7 +18,7 @@
       "@/*": ["./apps/*"],
       "@service/*": ["./apps/service/*"],
       "@ui2/*": ["./apps/ui2/*"],
-      "@rs-sync/*": ["./apps/rs-sync/*"],
+      "@r2-sync/*": ["./apps/r2-sync/*"],
       "@documents/*": ["./documents/*"]
     }
   }

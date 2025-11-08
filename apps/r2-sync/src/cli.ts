@@ -38,6 +38,7 @@ program
     }
   });
 
+// TODO: use zod to validate CLI options
 async function runSync(cliOptions: any): Promise<void> {
   // Load configuration
   const config = loadConfig();
