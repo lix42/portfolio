@@ -35,7 +35,7 @@
       "!!**/dist/",
       "!!**/build/",
       "!**/*.d.ts",
-      "!reserarch/",
+      "!research/",
       "!.claude/",
       "!**/.wrangler",
       "!**/.react-router"

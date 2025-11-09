@@ -8,8 +8,8 @@
 
 ## Build, Test & Development Commands
 - `pnpm install` to bootstrap (Node 22.x required).
-- `pnpm dev` launches service (Wrangler on :5173) and UI (Waku dev server) together; use `pnpm dev:service` or `pnpm dev:ui` for focused work.
-- `pnpm build` runs Biome checks and TypeScript builds for both apps; rely on per-package commands when debugging.
+- `pnpm dev` (now powered by `turbo run dev`) launches service (Wrangler on :5173) and UI (Waku dev server) together; use `pnpm dev:service`, `pnpm dev:ui`, or `turbo run dev --filter @portfolio/<pkg>` for focused work.
+- `pnpm build` calls `turbo run build` so dependency graphs (e.g., `apps/service` → `packages/shared`) are respected; scope with `pnpm build:service`/`turbo run build --filter @portfolio/service` when debugging.
 - `pnpm test`, `pnpm test:service`, `pnpm test:ui` execute Vitest suites; add `--runInBand` if worker resources are limited.
 - `pnpm lint:check`, `pnpm format:check`, and `pnpm biome:check` gate PRs; use the `:fix` variants before committing.
 
