@@ -1,25 +1,22 @@
+import { ANSWER_QUESTION_PROMPT } from '@portfolio/shared';
 import type OpenAI from 'openai';
 import type {
   ResponseOutputItem,
   ResponseOutputMessage,
   ResponseOutputText,
 } from 'openai/resources/responses/responses.mjs';
-import {
-  generateUserPromptAnswerQuestion,
-  systemPromptAnswerQuestion,
-} from './utils/prompts';
+import { generateUserPromptAnswerQuestion } from './utils/prompts';
 
 export const answerQuestionWithChunks = async (
   context: string[],
   question: string,
   openai: OpenAI
 ) => {
-  const systemPrompt = systemPromptAnswerQuestion;
   const userPrompt = generateUserPromptAnswerQuestion(context, question);
   const response = await openai.responses.create({
     model: 'gpt-4o',
     input: [
-      { role: 'system', content: systemPrompt },
+      { role: 'system', content: ANSWER_QUESTION_PROMPT },
       { role: 'user', content: userPrompt },
     ],
   });
@@ -31,12 +28,11 @@ export const answerQuestionWithWholeDocument = async (
   question: string,
   openai: OpenAI
 ) => {
-  const systemPrompt = systemPromptAnswerQuestion;
   const userPrompt = generateUserPromptAnswerQuestion([document], question);
   const response = await openai.responses.create({
     model: 'gpt-4o',
     input: [
-      { role: 'system', content: systemPrompt },
+      { role: 'system', content: ANSWER_QUESTION_PROMPT },
       { role: 'user', content: userPrompt },
     ],
   });

@@ -5,17 +5,17 @@ import type { MockedFunction } from 'vitest';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import type { PreprocessQuestionResultType } from './preprocessQuestion';
 import { preprocessQuestion } from './preprocessQuestion';
-import {
-  developerPromptProcessQuestion,
-  generateUserPromptProcessQuestion,
-  systemPromptTags,
-} from './utils/prompts';
+import { generateUserPromptProcessQuestion } from './utils/prompts';
 
-// Mock the prompts module
+// Mock the shared package
+vi.mock('@portfolio/shared', () => ({
+  DEFINE_TAGS_PROMPT: 'Mock system prompt for tags',
+  PREPROCESS_QUESTION_PROMPT: 'Mock developer prompt for preprocessing',
+}));
+
+// Mock the prompts utils
 vi.mock('./utils/prompts', () => ({
   generateUserPromptProcessQuestion: vi.fn(),
-  systemPromptTags: 'Mock system prompt for tags',
-  developerPromptProcessQuestion: 'Mock developer prompt for preprocessing',
 }));
 
 describe('preprocessQuestion', () => {
@@ -109,11 +109,11 @@ describe('preprocessQuestion', () => {
       input: [
         {
           role: 'system',
-          content: systemPromptTags,
+          content: 'Mock system prompt for tags',
         },
         {
           role: 'developer',
-          content: developerPromptProcessQuestion,
+          content: 'Mock developer prompt for preprocessing',
         },
         {
           role: 'user',
