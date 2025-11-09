@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.2/schema.json",
   "linter": {
     "enabled": true,
     "rules": {
@@ -28,32 +28,18 @@
       "attributePosition": "auto"
     }
   },
-  "overrides": [
-    {
-      "includes": ["**/*.json", "**/*.jsonc"],
-      "formatter": {
-        "enabled": true
-      }
-    }
-  ],
   "files": {
-    "includes": ["*", "!**/*.css"],
-    "ignoreUnknown": true,
-    "maxSize": 2097152,
-    "experimentalScannerIgnores": [
-      "node_modules/**",
-      "**/dist/**",
-      "**/build/**",
-      ".waku/**",
-      "src/pages.gen.ts",
-      "worker-configuration.d.ts",
-      "wrangler.json*",
-      "**/*.d.ts",
-      "research/streaming.ts",
-      "**/.wrangler/**",
-      "**/.vite/**",
-      "app.css",
-      ".claude/**"
-    ]
+    "includes": [
+      "**",
+      "!!**/node_modules/",
+      "!!**/dist/",
+      "!!**/build/",
+      "!**/*.d.ts",
+      "!reserarch/",
+      "!.claude/",
+      "!**/.wrangler",
+      "!**/.react-router"
+    ],
+    "ignoreUnknown": true
   }
 }
