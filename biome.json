@@ -30,10 +30,10 @@
   },
   "files": {
     "includes": [
-      "*",
-      "!**/node_modules/",
-      "!**/dist/",
-      "!**/build/",
+      "**",
+      "!!**/node_modules/",
+      "!!**/dist/",
+      "!!**/build/",
       "!**/*.d.ts",
       "!reserarch/",
       "!.claude/",
