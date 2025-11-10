@@ -8,7 +8,6 @@
     "build": "$npm_execpath run eslint:check && tsc --noEmit && waku build --with-cloudflare",
     "preview": "waku start",
     "lint": "$npm_execpath run eslint:check",
-    "postinstall": "$npm_execpath  run cf-typegen",
     "lint:check": "eslint .",
     "lint:fix": "$npm_execpath run eslint:fix",
     "cf-typegen": "wrangler types -c ./wrangler.jsonc -c ../service/wrangler.jsonc",

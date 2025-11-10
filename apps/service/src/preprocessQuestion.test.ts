@@ -11,6 +11,7 @@ import { generateUserPromptProcessQuestion } from './utils/prompts';
 vi.mock('@portfolio/shared', () => ({
   DEFINE_TAGS_PROMPT: 'Mock system prompt for tags',
   PREPROCESS_QUESTION_PROMPT: 'Mock developer prompt for preprocessing',
+  TAG_GENERATION_MODEL: 'gpt-4o',
 }));
 
 // Mock the prompts utils

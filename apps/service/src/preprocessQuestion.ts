@@ -9,6 +9,7 @@
 import {
   DEFINE_TAGS_PROMPT,
   PREPROCESS_QUESTION_PROMPT,
+  TAG_GENERATION_MODEL,
 } from '@portfolio/shared';
 import type OpenAI from 'openai';
 import { zodTextFormat } from 'openai/helpers/zod';
@@ -76,7 +77,7 @@ export const preprocessQuestion = async (
 
   // Make API call to OpenAI with structured prompts and output parsing
   const response = await openai.responses.parse({
-    model: 'gpt-4o', // Use GPT-4 Omni for optimal tag generation quality
+    model: TAG_GENERATION_MODEL, // Use GPT-4 Omni for optimal tag generation quality
     input: [
       {
         role: 'system',

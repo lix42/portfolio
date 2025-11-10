@@ -23,7 +23,6 @@
     "test": "vitest",
     "build": "$npm_execpath run eslint:check && $npm_execpath run type:build",
     "deploy": "$npm_execpath install && $npm_execpath run build && $npm_execpath run deploy:wrangler",
-    "postinstall": "$npm_execpath  run cf-typegen",
     "eslint": "$npm_execpath run eslint:check",
     "eslint:check": "eslint .",
     "eslint:fix": "eslint --fix .",
