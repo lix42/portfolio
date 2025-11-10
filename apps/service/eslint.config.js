@@ -1,11 +1,7 @@
 // @ts-check
 
-import {
-  baseConfig,
-  cloudflareConfig,
-  testConfig,
-} from '@portfolio/eslint-config';
-import { vitestConfig } from '@portfolio/eslint-config/vitest.js';
+import { baseConfig, cloudflareConfig } from '@portfolio/eslint-config';
+import { testConfig } from '@portfolio/eslint-config/test.js';
 
 export default [
   ...baseConfig,
@@ -19,8 +15,5 @@ export default [
       'worker-configuration.d.ts',
     ],
   },
-  {
-    ...testConfig,
-    ...vitestConfig,
-  },
+  testConfig,
 ];

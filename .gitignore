@@ -66,6 +66,7 @@ Icon
 # Build and compile artifacts
 dist/
 build/
+.turbo/
 *.min.js
 *.min.css
 
@@ -97,4 +98,3 @@ supabase/.temp
 
 # Local development secrets (Cloudflare)
 **/.dev.vars
-

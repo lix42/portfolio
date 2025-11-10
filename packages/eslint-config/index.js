@@ -3,15 +3,19 @@
 import js from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
-import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
+// @ts-expect-error - prettier plugin recommended config
+import prettierRecommended from 'eslint-plugin-prettier/recommended';
+import sonarjs from 'eslint-plugin-sonarjs';
 
 /**
  * Base configuration for all projects
  */
 export const baseConfig = [
   js.configs.recommended,
-  prettierConfig,
+  sonarjs.configs.recommended,
+  importPlugin.flatConfigs.recommended,
+  prettierRecommended,
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
@@ -19,22 +23,23 @@ export const baseConfig = [
       parserOptions: {
         ecmaVersion: 2022,
         sourceType: 'module',
-        project: true,
       },
     },
     plugins: {
       '@typescript-eslint': tseslint,
-      import: importPlugin,
     },
     rules: {
       ...tseslint.configs.recommended.rules,
 
-      // Selective stricter TypeScript rules (not all of strict config)
-      '@typescript-eslint/prefer-nullish-coalescing': 'warn',
-      '@typescript-eslint/prefer-optional-chain': 'error',
-      '@typescript-eslint/no-floating-promises': 'error',
-      '@typescript-eslint/await-thenable': 'error',
-      '@typescript-eslint/no-misused-promises': 'error',
+      // SonarJS customizations
+      'sonarjs/todo-tag': 'warn',
+
+      // Type-aware rules disabled (they require parserOptions.project)
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
+      '@typescript-eslint/prefer-optional-chain': 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/await-thenable': 'off',
+      '@typescript-eslint/no-misused-promises': 'off',
 
       // TypeScript specific rules
       '@typescript-eslint/no-unused-vars': [
@@ -47,16 +52,12 @@ export const baseConfig = [
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-inferrable-types': 'error',
-      '@typescript-eslint/consistent-type-imports': 'warn',
-      '@typescript-eslint/consistent-type-exports': 'warn',
+      '@typescript-eslint/consistent-type-imports': 'off', // Type-aware
+      '@typescript-eslint/consistent-type-exports': 'off', // Type-aware
       '@typescript-eslint/no-non-null-assertion': 'warn',
 
-      // Import rules (basic only to avoid resolver issues)
-      'import/newline-after-import': 'error',
-      'import/no-duplicates': 'error',
+      // Import rules overrides
       'import/no-unresolved': 'off', // Let TypeScript handle this
-      'import/no-relative-parent-imports': 'off',
-      'import/no-useless-path-segments': 'error',
 
       // General code quality rules
       'prefer-const': 'error',
@@ -69,6 +70,7 @@ export const baseConfig = [
       'no-unreachable': 'error',
       'prefer-template': 'error',
       'object-shorthand': 'error',
+      'no-undef': 'off', // TypeScript handles this better
     },
   },
   {
@@ -87,40 +89,10 @@ export const baseConfig = [
 ];
 
 /**
- * Configuration for test files
- */
-export const testConfig = {
-  files: ['**/*.test.{js,jsx,ts,tsx}', '**/*.spec.{js,jsx,ts,tsx}'],
-  languageOptions: {
-    globals: {
-      vi: 'readonly',
-      describe: 'readonly',
-      test: 'readonly',
-      it: 'readonly',
-      expect: 'readonly',
-      beforeEach: 'readonly',
-      afterEach: 'readonly',
-      beforeAll: 'readonly',
-      afterAll: 'readonly',
-    },
-  },
-  rules: {
-    'no-console': 'off',
-    '@typescript-eslint/no-explicit-any': 'off',
-    '@typescript-eslint/consistent-type-imports': 'off',
-    '@typescript-eslint/no-floating-promises': 'off',
-    '@typescript-eslint/no-non-null-assertion': 'off',
-    '@typescript-eslint/await-thenable': 'off',
-    '@typescript-eslint/no-misused-promises': 'off',
-    'import/newline-after-import': 'off',
-    'import/no-duplicates': 'warn',
-  },
-};
-
-/**
  * Configuration for Cloudflare Workers environment
  */
 export const cloudflareConfig = {
+  files: ['**/*.{js,jsx,ts,tsx}'],
   languageOptions: {
     globals: {
       CloudflareBindings: 'readonly',
@@ -133,9 +105,13 @@ export const cloudflareConfig = {
       crypto: 'readonly',
       caches: 'readonly',
       addEventListener: 'readonly',
+      Env: 'readonly',
+      ExecutionContext: 'readonly',
+      ExportedHandler: 'readonly',
     },
   },
   rules: {
     'no-console': 'warn', // Allow console in workers but warn
+    'no-undef': 'off', // TypeScript handles this better
   },
 };

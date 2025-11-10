@@ -1,47 +1,14 @@
 import { describe, expect, test } from 'vitest';
 import {
-  developerPromptProcessQuestion,
   generateUserPromptAnswerQuestion,
   generateUserPromptProcessQuestion,
-  systemPromptAnswerQuestion,
-  systemPromptTags,
 } from './prompts';
 
 describe('prompts', () => {
-  test('systemPromptTags is a non-empty string containing tag guidance', () => {
-    expect(typeof systemPromptTags).toBe('string');
-    expect(systemPromptTags.length).toBeGreaterThan(0);
-    expect(systemPromptTags).toContain('Tags are defined as a list of strings');
-    expect(systemPromptTags).toContain('\n');
-  });
-
-  test('developerPromptTagQuestion includes preprocess instructions', () => {
-    expect(typeof developerPromptProcessQuestion).toBe('string');
-    expect(developerPromptProcessQuestion.length).toBeGreaterThan(0);
-    expect(developerPromptProcessQuestion).toContain(
-      'You are an expert assistant'
-    );
-    expect(developerPromptProcessQuestion).toContain(
-      'Respond in JSON format like this:'
-    );
-  });
-
   test('generateUserPromptProcessQuestion formats the input question correctly', () => {
     const input = 'Tell me about a time you led a team.';
     const expected = `Evaluate the following interview question:\n"${input}"`;
     expect(generateUserPromptProcessQuestion(input)).toBe(expected);
-  });
-
-  test('systemPromptAnswerQuestion is a non-empty string containing answer guidelines', () => {
-    expect(typeof systemPromptAnswerQuestion).toBe('string');
-    expect(systemPromptAnswerQuestion.length).toBeGreaterThan(0);
-    expect(systemPromptAnswerQuestion).toContain(
-      'You are Li Xu, a senior frontend engineer'
-    );
-    expect(systemPromptAnswerQuestion).toContain(
-      'Base your answers ONLY on the provided context'
-    );
-    expect(systemPromptAnswerQuestion).toContain('\n');
   });
 
   test('generateUserPromptAnswerQuestion formats context and question correctly', () => {

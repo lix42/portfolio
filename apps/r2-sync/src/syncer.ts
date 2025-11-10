@@ -1,12 +1,22 @@
-import type { LocalFile, R2Object, SyncDiff, SyncOptions, SyncResult, FileOperation } from './types.js';
-import { listFiles, type ScanConfig } from './local-files.js';
-import { R2Client } from './r2-client.js';
-import { validateDocuments } from './validation.js';
+import { listFiles, type ScanConfig } from "./local-files.js";
+import type { R2Client } from "./r2-client.js";
+import type {
+  FileOperation,
+  LocalFile,
+  R2Object,
+  SyncDiff,
+  SyncOptions,
+  SyncResult,
+} from "./types.js";
+import { validateDocuments } from "./validation.js";
 
 /**
  * Main sync function - functional approach
  */
-export async function sync(r2Client: R2Client, options: SyncOptions): Promise<SyncResult> {
+export async function sync(
+  r2Client: R2Client,
+  options: SyncOptions,
+): Promise<SyncResult> {
   const startTime = Date.now();
 
   try {
@@ -20,7 +30,7 @@ export async function sync(r2Client: R2Client, options: SyncOptions): Promise<Sy
     const validation = await validateDocuments(localFiles);
     if (!validation.valid && !options.ci) {
       // Log validation warnings in interactive mode
-      console.log('⚠️  Validation warnings:');
+      console.log("⚠️  Validation warnings:");
       validation.errors.forEach((err) => {
         console.log(`  - ${err.file}: ${err.error}`);
       });
@@ -43,18 +53,18 @@ export async function sync(r2Client: R2Client, options: SyncOptions): Promise<Sy
   } catch (error) {
     // Log full error details for debugging
     if (!options.ci) {
-      console.error('\n🔍 Error details:', error);
-      if (error && typeof error === 'object' && '$response' in error) {
+      console.error("\n🔍 Error details:", error);
+      if (error && typeof error === "object" && "$response" in error) {
         const awsError = error as any;
-        console.error('Response status:', awsError.$response?.statusCode);
-        console.error('Response headers:', awsError.$response?.headers);
+        console.error("Response status:", awsError.$response?.statusCode);
+        console.error("Response headers:", awsError.$response?.headers);
       }
     }
 
     const errorOp: FileOperation = {
-      path: 'system',
-      operation: 'upload',
-      status: 'failed',
+      path: "system",
+      operation: "upload",
+      status: "failed",
       error: error instanceof Error ? error.message : String(error),
     };
 
@@ -72,7 +82,11 @@ export async function sync(r2Client: R2Client, options: SyncOptions): Promise<Sy
   }
 }
 
-function computeDiff(local: LocalFile[], remote: R2Object[], options: SyncOptions): SyncDiff {
+function computeDiff(
+  local: LocalFile[],
+  remote: R2Object[],
+  options: SyncOptions,
+): SyncDiff {
   const toUpload: LocalFile[] = [];
   const toDelete: R2Object[] = [];
   const unchanged: LocalFile[] = [];
@@ -111,36 +125,41 @@ async function executeSync(
   diff: SyncDiff,
   r2Client: R2Client,
   options: SyncOptions,
-  startTime: number
+  startTime: number,
 ): Promise<SyncResult> {
   const operations: FileOperation[] = [];
 
   // Upload files with detailed logging
   for (const file of diff.toUpload) {
-    logOperation('upload', file.path, options, file.size);
+    logOperation("upload", file.path, options, file.size);
 
-    const result = await r2Client.uploadFile(file.absolutePath, file.path, file.hash, options.maxRetries);
+    const result = await r2Client.uploadFile(
+      file.absolutePath,
+      file.path,
+      file.hash,
+      options.maxRetries,
+    );
 
     operations.push(result);
     logResult(result, options);
 
     // Fail fast if requested
-    if (result.status === 'failed' && options.failFast) {
+    if (result.status === "failed" && options.failFast) {
       break;
     }
   }
 
   // Delete files with detailed logging
-  if (!options.failFast || operations.every((op) => op.status === 'success')) {
+  if (!options.failFast || operations.every((op) => op.status === "success")) {
     for (const obj of diff.toDelete) {
-      logOperation('delete', obj.key, options);
+      logOperation("delete", obj.key, options);
 
       const result = await r2Client.deleteFile(obj.key, options.maxRetries);
 
       operations.push(result);
       logResult(result, options);
 
-      if (result.status === 'failed' && options.failFast) {
+      if (result.status === "failed" && options.failFast) {
         break;
       }
     }
@@ -148,10 +167,14 @@ async function executeSync(
 
   // Calculate summary
   const summary = {
-    uploaded: operations.filter((op) => op.operation === 'upload' && op.status === 'success').length,
-    deleted: operations.filter((op) => op.operation === 'delete' && op.status === 'success').length,
+    uploaded: operations.filter(
+      (op) => op.operation === "upload" && op.status === "success",
+    ).length,
+    deleted: operations.filter(
+      (op) => op.operation === "delete" && op.status === "success",
+    ).length,
     unchanged: diff.unchanged.length,
-    failed: operations.filter((op) => op.status === 'failed').length,
+    failed: operations.filter((op) => op.status === "failed").length,
   };
 
   return {
@@ -166,14 +189,14 @@ function createDryRunResult(diff: SyncDiff, startTime: number): SyncResult {
   const operations: FileOperation[] = [
     ...diff.toUpload.map((file) => ({
       path: file.path,
-      operation: 'upload' as const,
-      status: 'success' as const,
+      operation: "upload" as const,
+      status: "success" as const,
       size: file.size,
     })),
     ...diff.toDelete.map((obj) => ({
       path: obj.key,
-      operation: 'delete' as const,
-      status: 'success' as const,
+      operation: "delete" as const,
+      status: "success" as const,
     })),
   ];
 
@@ -191,19 +214,22 @@ function createDryRunResult(diff: SyncDiff, startTime: number): SyncResult {
 }
 
 function logOperation(
-  operation: 'upload' | 'delete',
+  operation: "upload" | "delete",
   path: string,
   options: SyncOptions,
-  size?: number
+  size?: number,
 ): void {
   // Skip detailed logs in CI mode
   if (options.ci) {
     return;
   }
 
-  const timestamp = new Date().toISOString().split('T')[1]?.split('.')[0] ?? '00:00:00';
-  const sizeStr = size ? ` (${formatBytes(size)})` : '';
-  console.log(`[${timestamp}] ${operation === 'upload' ? 'Uploading' : 'Deleting'} ${path}${sizeStr}...`);
+  const timestamp =
+    new Date().toISOString().split("T")[1]?.split(".")[0] ?? "00:00:00";
+  const sizeStr = size ? ` (${formatBytes(size)})` : "";
+  console.log(
+    `[${timestamp}] ${operation === "upload" ? "Uploading" : "Deleting"} ${path}${sizeStr}...`,
+  );
 }
 
 function logResult(result: FileOperation, options: SyncOptions): void {
@@ -214,20 +240,28 @@ function logResult(result: FileOperation, options: SyncOptions): void {
   }
 
   // Interactive mode: formatted output
-  const timestamp = new Date().toISOString().split('T')[1]?.split('.')[0] ?? '00:00:00';
-  const icon = result.status === 'success' ? '✓' : '✗';
-  const durationStr = result.duration ? ` in ${result.duration}ms` : '';
-  const retriesStr = result.retries && result.retries > 0 ? ` (${result.retries} retries)` : '';
+  const timestamp =
+    new Date().toISOString().split("T")[1]?.split(".")[0] ?? "00:00:00";
+  const icon = result.status === "success" ? "✓" : "✗";
+  const durationStr = result.duration ? ` in ${result.duration}ms` : "";
+  const retriesStr =
+    result.retries && result.retries > 0 ? ` (${result.retries} retries)` : "";
 
-  if (result.status === 'success') {
-    console.log(`[${timestamp}] ${icon} ${result.operation}d${durationStr}${retriesStr}`);
+  if (result.status === "success") {
+    console.log(
+      `[${timestamp}] ${icon} ${result.operation}d${durationStr}${retriesStr}`,
+    );
   } else {
     console.log(`[${timestamp}] ${icon} Failed: ${result.error}${retriesStr}`);
   }
 }
 
 function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
