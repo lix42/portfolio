@@ -1,4 +1,7 @@
-import { ANSWER_QUESTION_PROMPT } from '@portfolio/shared';
+import {
+  ANSWER_QUESTION_PROMPT,
+  ANSWER_GENERATION_MODEL,
+} from '@portfolio/shared';
 import type OpenAI from 'openai';
 import type {
   ResponseOutputItem,
@@ -14,7 +17,7 @@ export const answerQuestionWithChunks = async (
 ) => {
   const userPrompt = generateUserPromptAnswerQuestion(context, question);
   const response = await openai.responses.create({
-    model: 'gpt-4o',
+    model: ANSWER_GENERATION_MODEL,
     input: [
       { role: 'system', content: ANSWER_QUESTION_PROMPT },
       { role: 'user', content: userPrompt },
@@ -30,7 +33,7 @@ export const answerQuestionWithWholeDocument = async (
 ) => {
   const userPrompt = generateUserPromptAnswerQuestion([document], question);
   const response = await openai.responses.create({
-    model: 'gpt-4o',
+    model: ANSWER_GENERATION_MODEL,
     input: [
       { role: 'system', content: ANSWER_QUESTION_PROMPT },
       { role: 'user', content: userPrompt },

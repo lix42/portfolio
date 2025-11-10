@@ -1,3 +1,4 @@
+import { ANSWER_GENERATION_MODEL } from '@portfolio/shared';
 import type OpenAI from 'openai';
 import type {
   ResponseOutputItem,
@@ -55,7 +56,7 @@ describe('answerQuestion', () => {
       );
 
       expect(mockOpenAI.responses.create).toHaveBeenCalledWith({
-        model: 'gpt-4o',
+        model: ANSWER_GENERATION_MODEL,
         input: [
           { role: 'system', content: expect.stringContaining('You are Li Xu') },
           {
@@ -84,7 +85,7 @@ describe('answerQuestion', () => {
       );
 
       expect(mockOpenAI.responses.create).toHaveBeenCalledWith({
-        model: 'gpt-4o',
+        model: ANSWER_GENERATION_MODEL,
         input: [
           { role: 'system', content: expect.any(String) },
           {
@@ -109,7 +110,7 @@ describe('answerQuestion', () => {
       await answerQuestionWithChunks(context, question, mockOpenAI);
 
       expect(mockOpenAI.responses.create).toHaveBeenCalledWith({
-        model: 'gpt-4o',
+        model: ANSWER_GENERATION_MODEL,
         input: [
           { role: 'system', content: expect.any(String) },
           {
@@ -164,7 +165,7 @@ describe('answerQuestion', () => {
       );
 
       expect(mockOpenAI.responses.create).toHaveBeenCalledWith({
-        model: 'gpt-4o',
+        model: ANSWER_GENERATION_MODEL,
         input: [
           { role: 'system', content: expect.stringContaining('You are Li Xu') },
           {
@@ -191,7 +192,7 @@ describe('answerQuestion', () => {
       await answerQuestionWithWholeDocument(document, question, mockOpenAI);
 
       expect(mockOpenAI.responses.create).toHaveBeenCalledWith({
-        model: 'gpt-4o',
+        model: ANSWER_GENERATION_MODEL,
         input: [
           { role: 'system', content: expect.any(String) },
           { role: 'user', content: expect.any(String) },
@@ -211,7 +212,7 @@ describe('answerQuestion', () => {
       await answerQuestionWithWholeDocument(document, question, mockOpenAI);
 
       expect(mockOpenAI.responses.create).toHaveBeenCalledWith({
-        model: 'gpt-4o',
+        model: ANSWER_GENERATION_MODEL,
         input: [
           { role: 'system', content: expect.any(String) },
           { role: 'user', content: expect.stringContaining('A'.repeat(100)) },

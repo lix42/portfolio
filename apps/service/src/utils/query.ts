@@ -1,9 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import {
-  EMBEDDING_MATCH_COUNT,
-  EMBEDDING_MATCH_THRESHOLD,
-  TAG_MATCH_COUNT,
-} from './const';
+import { VECTOR_SEARCH_TOP_K, TAG_MATCH_LIMIT } from '@portfolio/shared';
+import { EMBEDDING_MATCH_THRESHOLD } from './const';
 
 // Perform semantic search against the knowledge base using the generated embedding
 // The match_chunks_by_embedding RPC function finds the most similar content chunks
@@ -14,7 +11,7 @@ export const getChunksByEmbedding = (
   supabaseClient.rpc('match_chunks_by_embedding', {
     query_embedding: embedding, // Vector embedding to compare against stored chunks
     match_threshold: EMBEDDING_MATCH_THRESHOLD,
-    match_count: EMBEDDING_MATCH_COUNT,
+    match_count: VECTOR_SEARCH_TOP_K,
   });
 
 export const getChunksByTags = (
@@ -23,7 +20,7 @@ export const getChunksByTags = (
 ): ReturnType<typeof supabaseClient.rpc> =>
   supabaseClient.rpc('match_chunks_by_tags', {
     input_tags: tags,
-    top_k: TAG_MATCH_COUNT,
+    top_k: TAG_MATCH_LIMIT,
   });
 
 export const getDocumentById = async (

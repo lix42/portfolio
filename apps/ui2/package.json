@@ -9,7 +9,6 @@
     "lint:fix": "$npm_execpath run eslint:fix && $npm_execpath run stylelint:fix",
     "build": "react-router build",
     "deploy": "$npm_execpath  run build && wrangler deploy",
-    "postinstall": "$npm_execpath  run cf-typegen",
     "preview": "$npm_execpath  run build && vite preview",
     "type:gen": "$npm_execpath  run cf-typegen && react-router typegen",
     "type:check": "$npm_execpath  run type:gen && tsc -b",

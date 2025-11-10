@@ -1,14 +1,13 @@
+/**
+ * Service-specific constants for the Portfolio Query Service
+ *
+ * Note: Generic constants (models, embedding dimensions, search limits, etc.)
+ * have been migrated to @portfolio/shared for reuse across services.
+ */
+
 // Vector similarity threshold for semantic search
 // 0.25 = 25% similarity minimum - lower values return more but less relevant results
 export const EMBEDDING_MATCH_THRESHOLD = 0.25;
-
-// Maximum number of chunks to return from vector search
-// Limits response size while providing sufficient context for RAG
-export const EMBEDDING_MATCH_COUNT = 5;
-
-// Maximum number of chunks to return from tag-based search
-// Consistent limit across different search methods
-export const TAG_MATCH_COUNT = 5;
 
 // Weight multiplier for embedding similarity scores in hybrid ranking
 // Higher values prioritize semantic similarity over tag matches
