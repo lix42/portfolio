@@ -356,7 +356,6 @@ describe('preprocessQuestion', () => {
       { output_parsed: { is_valid: true, tags: ['tag3'] } },
     ];
 
-    /* eslint-disable @typescript-eslint/no-non-null-assertion */
     mockParse
       .mockResolvedValueOnce(
         // biome-ignore lint: test mock
@@ -370,7 +369,6 @@ describe('preprocessQuestion', () => {
         // biome-ignore lint: test mock
         createMockParseResponse(mockResponses[2]!.output_parsed)
       );
-    /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
     // Act
     const results = await Promise.all(

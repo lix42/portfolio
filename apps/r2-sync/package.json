@@ -11,11 +11,12 @@
     "dev": "tsc --watch",
     "sync": "node ./dist/cli.js",
     "test": "vitest",
-    "lint": "$npm_execpath run biome:check",
-    "biome": "$npm_execpath run biome:check",
-    "biome:check": "biome check .",
-    "biome:fix": "biome check --write",
-    "type:check": "tsc --noEmit"
+    "lint": "$npm_execpath run eslint:check",
+    "lint:fix": "$npm_execpath run eslint:fix",
+    "type:check": "tsc --noEmit",
+    "eslint": "$npm_execpath run eslint:check",
+    "eslint:check": "eslint .",
+    "eslint:fix": "eslint --fix ."
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.504.0",
@@ -26,6 +27,7 @@
     "hpagent": "^1.2.0"
   },
   "devDependencies": {
+    "@portfolio/eslint-config": "workspace:*",
     "@types/node": "^22.0.0",
     "dotenv": "^17.2.3",
     "typescript": "^5.3.3",

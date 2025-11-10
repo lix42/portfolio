@@ -16,13 +16,18 @@
     "dev": "tsc --watch",
     "test": "vitest",
     "test:watch": "vitest --watch",
-    "lint": "biome check ."
+    "lint": "$npm_execpath run eslint:check",
+    "lint:fix": "$npm_execpath run eslint:fix",
+    "eslint": "$npm_execpath run eslint:check",
+    "eslint:check": "eslint .",
+    "eslint:fix": "eslint --fix ."
   },
   "dependencies": {
     "openai": "^6.1.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@portfolio/eslint-config": "workspace:*",
     "@types/node": "^22.0.0",
     "typescript": "^5.3.3",
     "vitest": "^1.2.0"

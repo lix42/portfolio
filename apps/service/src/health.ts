@@ -1,5 +1,5 @@
 // Health check function
-export const health = (version: string = 'unknown') => {
+export const health = (version = 'unknown') => {
   return { ok: true, version };
 };
 

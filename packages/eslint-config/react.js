@@ -6,6 +6,7 @@ import reactHooksPlugin from 'eslint-plugin-react-hooks';
 
 /**
  * React-specific configuration
+ * Combines traditional react plugin, hooks, and a11y
  */
 export const reactConfig = {
   files: ['**/*.{jsx,tsx}'],
@@ -22,6 +23,7 @@ export const reactConfig = {
     'jsx-a11y': jsxA11yPlugin,
   },
   rules: {
+    // Using traditional plugins instead of @eslint-react to avoid configuration complexity
     ...reactPlugin.configs.recommended.rules,
     ...reactHooksPlugin.configs.recommended.rules,
     ...jsxA11yPlugin.configs.recommended.rules,

@@ -5,13 +5,10 @@
  */
 
 // Prompts
-export type {
-  PromptKey,
-  PreprocessQuestionResponse,
-} from './prompts';
+export type { PreprocessQuestionResponse, PromptKey } from "./prompts";
 export {
-  PROMPTS,
+  ANSWER_QUESTION_PROMPT,
   DEFINE_TAGS_PROMPT,
   PREPROCESS_QUESTION_PROMPT,
-  ANSWER_QUESTION_PROMPT,
-} from './prompts';
+  PROMPTS,
+} from "./prompts";
