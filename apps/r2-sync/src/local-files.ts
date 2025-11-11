@@ -1,7 +1,7 @@
-import { readdir, stat } from "node:fs/promises";
-import { join, relative, resolve } from "node:path";
-import { computeFileHash } from "./hash.js";
-import type { LocalFile } from "./types.js";
+import { readdir, stat } from 'node:fs/promises';
+import { join, relative, resolve } from 'node:path';
+import { computeFileHash } from './hash.js';
+import type { LocalFile } from './types.js';
 
 export interface ScanConfig {
   documentsPath: string;
@@ -28,17 +28,17 @@ export async function listFiles(config: ScanConfig): Promise<LocalFile[]> {
         size: stats.size,
         type,
       };
-    }),
+    })
   );
 
   return files;
 }
 
 async function collectFilePaths(
-  currentDir: string,
-): Promise<Array<{ path: string; type: "markdown" | "json" }>> {
+  currentDir: string
+): Promise<Array<{ path: string; type: 'markdown' | 'json' }>> {
   const entries = await readdir(currentDir, { withFileTypes: true });
-  const results: Array<{ path: string; type: "markdown" | "json" }> = [];
+  const results: Array<{ path: string; type: 'markdown' | 'json' }> = [];
 
   for (const entry of entries) {
     const path = join(currentDir, entry.name);
@@ -59,9 +59,9 @@ async function collectFilePaths(
 }
 
 function isDocumentFile(filename: string): boolean {
-  return filename.endsWith(".md") || filename.endsWith(".json");
+  return filename.endsWith('.md') || filename.endsWith('.json');
 }
 
-function getFileType(filename: string): "markdown" | "json" {
-  return filename.endsWith(".json") ? "json" : "markdown";
+function getFileType(filename: string): 'markdown' | 'json' {
+  return filename.endsWith('.json') ? 'json' : 'markdown';
 }

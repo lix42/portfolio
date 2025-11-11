@@ -7,6 +7,5 @@ export default [
   ...baseConfig,
   {
     ...reactConfig,
-    ignores: [...(baseConfig.find((config) => config.ignores)?.ignores || [])],
   },
 ];

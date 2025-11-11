@@ -1,5 +1,5 @@
-import chalk from "chalk";
-import type { SyncOptions, SyncResult } from "./types.js";
+import chalk from 'chalk';
+import type { SyncOptions, SyncResult } from './types.js';
 
 /**
  * Helper function to limit concurrent operations
@@ -7,7 +7,7 @@ import type { SyncOptions, SyncResult } from "./types.js";
 export async function mapLimit<T, R>(
   items: T[],
   limit: number,
-  fn: (x: T) => Promise<R>,
+  fn: (x: T) => Promise<R>
 ): Promise<R[]> {
   const out: Array<R | undefined> = new Array(items.length);
   let i = 0;
@@ -39,12 +39,12 @@ export function displayResult(result: SyncResult, options: SyncOptions): void {
   console.log();
 
   if (options.dryRun) {
-    console.log(chalk.cyan("🔍 Dry Run - Preview Changes:"));
+    console.log(chalk.cyan('🔍 Dry Run - Preview Changes:'));
   } else {
     console.log(
       result.success
-        ? chalk.green("✓ Sync Complete")
-        : chalk.red("✗ Sync Failed"),
+        ? chalk.green('✓ Sync Complete')
+        : chalk.red('✗ Sync Failed')
     );
   }
 
@@ -53,15 +53,15 @@ export function displayResult(result: SyncResult, options: SyncOptions): void {
   console.log(`  Deleted:   ${chalk.red(result.summary.deleted)}`);
   console.log(`  Unchanged: ${chalk.gray(result.summary.unchanged)}`);
   console.log(
-    `  Failed:    ${result.summary.failed > 0 ? chalk.red(result.summary.failed) : chalk.gray(result.summary.failed)}`,
+    `  Failed:    ${result.summary.failed > 0 ? chalk.red(result.summary.failed) : chalk.gray(result.summary.failed)}`
   );
   console.log(`  Duration:  ${(result.duration / 1000).toFixed(2)}s`);
 
   if (result.summary.failed > 0 && !options.ci) {
     console.log();
-    console.log(chalk.red("Failed Operations:"));
+    console.log(chalk.red('Failed Operations:'));
     result.operations
-      .filter((op) => op.status === "failed")
+      .filter((op) => op.status === 'failed')
       .forEach((op) => {
         console.log(chalk.red(`  ✗ ${op.path}: ${op.error}`));
       });
@@ -72,17 +72,17 @@ export function displayResult(result: SyncResult, options: SyncOptions): void {
 
 export function loadConfig() {
   // Load from environment variables
-  const accountId = process.env["CLOUDFLARE_ACCOUNT_ID"];
-  const accessKeyId = process.env["R2_ACCESS_KEY_ID"];
-  const secretAccessKey = process.env["R2_SECRET_ACCESS_KEY"];
+  const accountId = process.env['CLOUDFLARE_ACCOUNT_ID'];
+  const accessKeyId = process.env['R2_ACCESS_KEY_ID'];
+  const secretAccessKey = process.env['R2_SECRET_ACCESS_KEY'];
 
   if (!accountId || !accessKeyId || !secretAccessKey) {
     throw new Error(
-      "Missing required environment variables:\n" +
-        "  - CLOUDFLARE_ACCOUNT_ID\n" +
-        "  - R2_ACCESS_KEY_ID\n" +
-        "  - R2_SECRET_ACCESS_KEY\n\n" +
-        "See docs/cloudflare-migration/execution-plans/secrets-management.md",
+      'Missing required environment variables:\n' +
+        '  - CLOUDFLARE_ACCOUNT_ID\n' +
+        '  - R2_ACCESS_KEY_ID\n' +
+        '  - R2_SECRET_ACCESS_KEY\n\n' +
+        'See docs/cloudflare-migration/execution-plans/secrets-management.md'
     );
   }
 
@@ -90,6 +90,6 @@ export function loadConfig() {
     accountId,
     accessKeyId,
     secretAccessKey,
-    bucketName: "portfolio-documents",
+    bucketName: 'portfolio-documents',
   };
 }

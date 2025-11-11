@@ -32,7 +32,7 @@ app.onError((err, c) => {
   }
   let stack = [];
   if ('stack' in error) {
-    // biome-ignore lint/suspicious/noExplicitAny: call stack from error object
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     stack = error.stack as any;
   }
   return c.json({ message, status, stack, error }, 500);
