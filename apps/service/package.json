@@ -28,6 +28,7 @@
     "eslint:fix": "eslint --fix .",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "type:check": "tsc --noEmit",
+    "type:check:ci": "tsc --noEmit",
     "type:build": "tsc --project tsconfig.type.json",
     "deploy:wrangler": "wrangler deploy --minify"
   },

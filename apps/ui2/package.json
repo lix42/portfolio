@@ -12,6 +12,7 @@
     "preview": "$npm_execpath  run build && vite preview",
     "type:gen": "$npm_execpath  run cf-typegen && react-router typegen",
     "type:check": "$npm_execpath  run type:gen && tsc -b",
+    "type:check:ci": "react-router typegen && tsc -b",
     "eslint": "$npm_execpath run eslint:check",
     "eslint:check": "eslint .",
     "eslint:fix": "eslint --fix .",
