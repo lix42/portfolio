@@ -72,7 +72,7 @@
       "outputs": []
     },
     "type:check:ci": {
-      "dependsOn": ["^type:check:ci"],
+      "dependsOn": ["^build"],
       "outputs": []
     },
     "type:build": {
