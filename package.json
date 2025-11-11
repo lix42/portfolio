@@ -18,6 +18,8 @@
     "test:ui2": "turbo run test --filter=@portfolio/ui2",
     "test:r2": "turbo run test --filter=@portfolio/r2-sync",
     "test": "turbo run test",
+    "type:check:ci": "turbo run type:check:ci",
+    "cf-typegen": "turbo run cf-typegen",
     "sync:r2": "turbo run sync --filter=@portfolio/r2-sync",
     "lint": "turbo run lint",
     "lint:check": "turbo run lint:check",
@@ -43,6 +45,9 @@
     ],
     "**/*.{json,jsonc}": [
       "prettier --write"
+    ],
+    "apps/**/wrangler.{json,jsonc}": [
+      "pnpm cf-typegen"
     ]
   }
 }

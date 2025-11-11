@@ -26,6 +26,9 @@ jobs:
       - name: Run lint checks
         run: pnpm lint:check
 
+      - name: Run type checks
+        run: pnpm type:check:ci
+
       - name: Run tests
         run: pnpm test
 
