@@ -12,6 +12,7 @@
     "lint:check": "eslint .",
     "lint:fix": "$npm_execpath run eslint:fix",
     "cf-typegen": "wrangler types -c ./wrangler.jsonc -c ../service/wrangler.jsonc",
+    "type:check:ci": "tsc --noEmit",
     "eslint": "$npm_execpath run eslint:check",
     "eslint:check": "eslint .",
     "eslint:fix": "eslint --fix ."
