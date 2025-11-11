@@ -8,6 +8,5 @@ export default [
     rules: {
       "no-console": "off",
     },
-    ignores: [...(baseConfig.find((config) => config.ignores)?.ignores || [])],
   },
 ];

@@ -1,5 +1,6 @@
 // @ts-check
 
+import gitignore from 'eslint-config-flat-gitignore';
 import js from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
@@ -12,6 +13,7 @@ import sonarjs from 'eslint-plugin-sonarjs';
  * Base configuration for all projects
  */
 export const baseConfig = [
+  gitignore(),
   js.configs.recommended,
   sonarjs.configs.recommended,
   importPlugin.flatConfigs.recommended,
