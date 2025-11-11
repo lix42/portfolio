@@ -14,7 +14,7 @@
     "lint": "$npm_execpath run eslint:check",
     "lint:fix": "$npm_execpath run eslint:fix",
     "type:check": "tsc --noEmit",
-    "type:check:ci": "tsc --noEmit",
+    "type:check:ci": "$npm_execpath run type:check",
     "eslint": "$npm_execpath run eslint:check",
     "eslint:check": "eslint .",
     "eslint:fix": "eslint --fix ."
