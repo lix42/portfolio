@@ -166,5 +166,3 @@ def ingest_chunks(
     except Exception as e:
         print(f"[ERROR] Exception during chunk insert for {project}: {e}")
         return 0
-
-
