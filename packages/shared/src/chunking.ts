@@ -1,6 +1,8 @@
 import { MAX_CHUNK_TOKENS, CHUNK_OVERLAP_TOKENS } from './constants';
 import { Chunk, ChunkBuilder, ChunkOptions } from './utils/chunkBuilder';
 
+export type { Chunk, ChunkOptions } from './utils/chunkBuilder';
+
 /**
  * Chunk markdown content into context-aware segments
  *

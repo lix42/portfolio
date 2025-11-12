@@ -4,6 +4,12 @@
  * Shared business logic and utilities for Portfolio RAG Assistant
  */
 
+// Utils
+export { mapLimit } from './asyncWorker';
+
+// Chunking
+export type { Chunk, ChunkOptions } from './chunking';
+export { chunkMarkdown } from './chunking';
 // Constants
 export {
   ANSWER_GENERATION_MODEL,
@@ -22,11 +28,26 @@ export {
   TAG_MATCH_LIMIT,
   VECTOR_SEARCH_TOP_K,
 } from './constants';
-// Prompts
+// Embeddings
+export type { EmbeddingOptions } from './embeddings';
+export {
+  cosineSimilarity,
+  generateEmbedding,
+  generateEmbeddingsBatch,
+} from './embeddings';
 export type { PreprocessQuestionResponse, PromptKey } from './prompts';
+// Prompts
 export {
   ANSWER_QUESTION_PROMPT,
   DEFINE_TAGS_PROMPT,
   PREPROCESS_QUESTION_PROMPT,
   PROMPTS,
 } from './prompts';
+// Tags
+export type { TagGenerationOptions } from './tags';
+export {
+  generateTags,
+  generateTagsBatch,
+  normalizeTag,
+  parseTags,
+} from './tags';

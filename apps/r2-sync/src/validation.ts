@@ -1,7 +1,8 @@
 import { access, readFile } from 'node:fs/promises';
 
+import { mapLimit } from '@portfolio/shared';
+
 import type { LocalFile } from './types.js';
-import { mapLimit } from './utils.js';
 
 export interface ValidationResult {
   valid: boolean;
