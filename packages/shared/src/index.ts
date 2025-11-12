@@ -43,6 +43,22 @@ export {
   PREPROCESS_QUESTION_PROMPT,
   PROMPTS,
 } from './prompts';
+// Schemas
+export type {
+  ChatRequest,
+  ChatResponse,
+  DocumentMetadata,
+  HealthResponse,
+  SyncOptions,
+} from './schemas';
+export {
+  chatRequestSchema,
+  chatResponseSchema,
+  documentMetadataSchema,
+  healthResponseSchema,
+  syncOptionsSchema,
+  validateDocumentMetadata,
+} from './schemas';
 // Tags
 export type { TagGenerationOptions } from './tags';
 export {
