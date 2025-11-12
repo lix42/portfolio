@@ -1,9 +1,9 @@
 // @ts-check
 
-import gitignore from 'eslint-config-flat-gitignore';
 import js from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
+import gitignore from 'eslint-config-flat-gitignore';
 import importPlugin from 'eslint-plugin-import';
 // @ts-expect-error - prettier plugin recommended config
 import prettierRecommended from 'eslint-plugin-prettier/recommended';
@@ -60,6 +60,22 @@ export const baseConfig = [
 
       // Import rules overrides
       'import/no-unresolved': 'off', // Let TypeScript handle this
+      'import/order': [
+        'error',
+        {
+          groups: [
+            'builtin',
+            'external',
+            'internal',
+            ['parent', 'sibling', 'index'],
+          ],
+          'newlines-between': 'always',
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
+        },
+      ],
 
       // General code quality rules
       'prefer-const': 'error',

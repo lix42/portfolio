@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+
 import {
   DeleteObjectCommand,
   HeadObjectCommand,
@@ -8,6 +9,7 @@ import {
 import { Upload } from '@aws-sdk/lib-storage';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
 import { HttpsProxyAgent } from 'hpagent';
+
 import type { FileOperation, R2Object } from './types.js';
 
 export class R2Client {

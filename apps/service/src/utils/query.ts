@@ -1,5 +1,6 @@
+import { TAG_MATCH_LIMIT, VECTOR_SEARCH_TOP_K } from '@portfolio/shared';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { VECTOR_SEARCH_TOP_K, TAG_MATCH_LIMIT } from '@portfolio/shared';
+
 import { EMBEDDING_MATCH_THRESHOLD } from './const';
 
 // Perform semantic search against the knowledge base using the generated embedding

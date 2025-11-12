@@ -1,6 +1,7 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
 import { Hono } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
+
 import chat, { answerQuestion } from './chat';
 import type { ChatServiceBinding } from './chatServiceBinding';
 import { health } from './health';

@@ -4,6 +4,7 @@ import {
   waitOnExecutionContext,
 } from 'cloudflare:test';
 import { describe, expect, test, vi } from 'vitest';
+
 import Entrypoint from './index';
 
 vi.mock('openai', () => {

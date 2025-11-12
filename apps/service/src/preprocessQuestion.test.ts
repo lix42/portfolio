@@ -3,6 +3,7 @@ import type { Responses } from 'openai/resources';
 import type { ParsedResponse } from 'openai/resources/responses/responses.mjs';
 import type { MockedFunction } from 'vitest';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+
 import type { PreprocessQuestionResultType } from './preprocessQuestion';
 import { preprocessQuestion } from './preprocessQuestion';
 import { generateUserPromptProcessQuestion } from './utils/prompts';
