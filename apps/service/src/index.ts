@@ -1,13 +1,21 @@
+import { apiReference } from '@scalar/hono-api-reference';
 import { WorkerEntrypoint } from 'cloudflare:workers';
 import { Hono } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import { describeRoute, openAPIRouteHandler, resolver } from 'hono-openapi';
 
 import chat, { answerQuestion } from './chat';
 import type { ChatServiceBinding } from './chatServiceBinding';
 import { health } from './health';
+import { openAPIConfig } from './openapi/config';
+import { HealthResponseSchema } from './schemas';
 
 export * from './fetchResponseTypes';
 
+// Create main app (for OpenAPI endpoint at root level)
+const main = new Hono<{ Bindings: CloudflareBindings }>();
+
+// Create v1 app with basePath
 const app = new Hono<{ Bindings: CloudflareBindings }>().basePath('/v1');
 
 // Custom Not Found Message
@@ -41,10 +49,47 @@ app.onError((err, c) => {
 
 // Routing
 app.get('/', (c) => c.text('Hono!!'));
-app.get('/health', (c) =>
-  c.json(health(JSON.stringify(c.env.CF_VERSION_METADATA)))
+app.get(
+  '/health',
+  describeRoute({
+    summary: 'Health check endpoint',
+    description:
+      'Returns service health status and version information for monitoring and uptime checks',
+    tags: ['Health'],
+    responses: {
+      200: {
+        description: 'Service is healthy and operational',
+        content: {
+          'application/json': {
+            schema: resolver(HealthResponseSchema),
+          },
+        },
+      },
+    },
+  }),
+  (c) => c.json(health(JSON.stringify(c.env.CF_VERSION_METADATA)))
 );
 app.route('/chat', chat);
+
+// Mount v1 app to main app
+main.route('/', app);
+
+// Add OpenAPI spec endpoint at root level
+main.get(
+  '/openapi.json',
+  openAPIRouteHandler(app, { documentation: openAPIConfig })
+);
+
+// Add interactive API documentation UI
+main.get(
+  '/docs',
+  apiReference({
+    theme: 'purple',
+    spec: {
+      url: '/openapi.json',
+    },
+  })
+);
 
 export default class
   extends WorkerEntrypoint<CloudflareBindings>
@@ -59,7 +104,7 @@ export default class
     } else {
       requestToFetch = request;
     }
-    return app.fetch(requestToFetch, this.env, this.ctx);
+    return main.fetch(requestToFetch, this.env, this.ctx);
   }
 
   health = async () => {
