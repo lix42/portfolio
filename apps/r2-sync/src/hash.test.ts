@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { computeBufferHash } from './hash.js';
 
 describe('computeBufferHash', () => {

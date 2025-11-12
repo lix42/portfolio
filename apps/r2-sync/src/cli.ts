@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 import { resolve } from 'node:path';
+
 import { Command } from 'commander';
 import dotenv from 'dotenv';
+
 import { R2Client } from './r2-client.js';
 import { sync } from './syncer.js';
 import type { SyncOptions } from './types.js';

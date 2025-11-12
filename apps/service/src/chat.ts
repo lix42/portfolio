@@ -12,6 +12,7 @@ import { Hono } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import OpenAI from 'openai';
 import { z } from 'zod';
+
 import {
   answerQuestionWithChunks,
   extractAssistantAnswer,

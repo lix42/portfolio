@@ -5,6 +5,7 @@ import type {
   ResponseOutputMessage,
 } from 'openai/resources/responses/responses.mjs';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
+
 import {
   answerQuestionWithChunks,
   answerQuestionWithWholeDocument,

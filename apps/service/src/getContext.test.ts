@@ -1,6 +1,7 @@
 import type { PostgrestResponse, SupabaseClient } from '@supabase/supabase-js';
 import type { MockedFunction } from 'vitest';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+
 import { getContext } from './getContext';
 import * as queryModule from './utils/query';
 

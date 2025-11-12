@@ -1,9 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import {
+  CHARS_PER_TOKEN,
   estimateTokens,
   exceedsTokenLimit,
   MAX_CHUNK_TOKENS,
-  CHARS_PER_TOKEN,
 } from './constants';
 
 describe('constants', () => {

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import { chunkMarkdown } from './chunking';
 
 describe('chunkMarkdown', () => {

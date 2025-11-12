@@ -1,6 +1,6 @@
 import {
-  ANSWER_QUESTION_PROMPT,
   ANSWER_GENERATION_MODEL,
+  ANSWER_QUESTION_PROMPT,
 } from '@portfolio/shared';
 import type OpenAI from 'openai';
 import type {
@@ -8,6 +8,7 @@ import type {
   ResponseOutputMessage,
   ResponseOutputText,
 } from 'openai/resources/responses/responses.mjs';
+
 import { generateUserPromptAnswerQuestion } from './utils/prompts';
 
 export const answerQuestionWithChunks = async (

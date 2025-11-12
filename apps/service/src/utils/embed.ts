@@ -1,5 +1,5 @@
-import type OpenAI from 'openai';
 import { EMBEDDING_MODEL } from '@portfolio/shared';
+import type OpenAI from 'openai';
 
 /**
  * Generates an embedding vector for the given message using the provided OpenAI client.

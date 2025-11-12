@@ -1,21 +1,22 @@
-import type { HealthResponse } from "@portfolio/service";
-import { Welcome } from "../welcome/welcome";
+import type { HealthResponse } from '@portfolio/service';
+
+import { Welcome } from '../welcome/welcome';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore this tpe is generated with react router codegen
-import type { Route } from "./+types/home";
+import type { Route } from './+types/home';
 
 // eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
+    { title: 'New React Router App' },
+    { name: 'description', content: 'Welcome to React Router!' },
   ];
 }
 
 export async function loader({ context }: Route.LoaderArgs) {
   const message = context.cloudflare.env.VALUE_FROM_CLOUDFLARE;
   const chatService = context.cloudflare.env.CHAT_SERVICE;
-  const endpoint = new URL("/v1/health", "https://chat-service");
+  const endpoint = new URL('/v1/health', 'https://chat-service');
 
   try {
     const response = await chatService.fetch(endpoint);
@@ -36,12 +37,12 @@ export async function loader({ context }: Route.LoaderArgs) {
     };
   } catch (error) {
     const messageFromError =
-      error instanceof Error ? error.message : "Unknown error";
+      error instanceof Error ? error.message : 'Unknown error';
     return {
       message,
       health: {
         ok: false,
-        version: "unknown",
+        version: 'unknown',
         error: messageFromError,
       },
     };
