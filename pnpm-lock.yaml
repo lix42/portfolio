@@ -264,9 +264,6 @@ importers:
       eslint:
         specifier: ^9.37.0
         version: 9.38.0(jiti@2.6.1)
-      eslint-config-flat-gitignore:
-        specifier: ^2.1.0
-        version: 2.1.0(eslint@9.38.0(jiti@2.6.1))
       eslint-config-prettier:
         specifier: ^10.1.8
         version: 10.1.8(eslint@9.38.0(jiti@2.6.1))
@@ -300,6 +297,10 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+    devDependencies:
+      eslint-config-flat-gitignore:
+        specifier: ^2.1.0
+        version: 2.1.0(eslint@9.38.0(jiti@2.6.1))
 
   packages/shared:
     dependencies:

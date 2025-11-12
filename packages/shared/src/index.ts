@@ -6,27 +6,40 @@
 
 // Constants
 export {
-  ANSWER_GENERATION_MODEL,
-  CHARS_PER_TOKEN,
-  CHUNK_OVERLAP_TOKENS,
-  EMBEDDING_BATCH_SIZE,
-  EMBEDDING_DIMENSIONS,
   EMBEDDING_MODEL,
-  estimateTokens,
-  exceedsTokenLimit,
+  EMBEDDING_DIMENSIONS,
+  TAG_GENERATION_MODEL,
+  ANSWER_GENERATION_MODEL,
   MAX_CHUNK_TOKENS,
+  CHUNK_OVERLAP_TOKENS,
+  VECTOR_SEARCH_TOP_K,
+  TAG_MATCH_LIMIT,
+  EMBEDDING_BATCH_SIZE,
+  TAG_BATCH_SIZE,
   MAX_RETRY_ATTEMPTS,
   RETRY_BACKOFF_MS,
-  TAG_BATCH_SIZE,
-  TAG_GENERATION_MODEL,
-  TAG_MATCH_LIMIT,
-  VECTOR_SEARCH_TOP_K,
+  CHARS_PER_TOKEN,
+  estimateTokens,
+  exceedsTokenLimit,
 } from './constants';
-// Prompts
-export type { PreprocessQuestionResponse, PromptKey } from './prompts';
+
+// Chunking
+export type { Chunk, ChunkOptions } from './chunking';
+export { chunkMarkdown } from './chunking';
+
+// Embeddings
+export type { EmbeddingOptions } from './embeddings';
 export {
-  ANSWER_QUESTION_PROMPT,
-  DEFINE_TAGS_PROMPT,
-  PREPROCESS_QUESTION_PROMPT,
-  PROMPTS,
-} from './prompts';
+  cosineSimilarity,
+  generateEmbedding,
+  generateEmbeddingsBatch,
+} from './embeddings';
+
+// Tags
+export type { TagGenerationOptions } from './tags';
+export {
+  generateTags,
+  generateTagsBatch,
+  normalizeTag,
+  parseTags,
+} from './tags';
