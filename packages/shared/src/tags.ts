@@ -1,11 +1,12 @@
 import OpenAI from 'openai';
 
+import { mapLimit } from './asyncWorker';
 import { TAG_GENERATION_MODEL } from './constants';
 import { DEFINE_TAGS_PROMPT } from './prompts';
 
 export interface TagGenerationOptions {
   model?: string;
-  apiKey: string;
+  apiKey?: string;
 }
 
 /**
@@ -13,9 +14,10 @@ export interface TagGenerationOptions {
  */
 export async function generateTags(
   content: string,
-  options: TagGenerationOptions
+  options: TagGenerationOptions,
+  instance?: OpenAI
 ): Promise<string[]> {
-  const openai = new OpenAI({ apiKey: options.apiKey });
+  const openai = instance ?? new OpenAI({ apiKey: options.apiKey });
 
   const response = await openai.chat.completions.create({
     model: options.model ?? TAG_GENERATION_MODEL,
@@ -29,7 +31,7 @@ export async function generateTags(
     temperature: 0.3, // Lower temperature for more consistent tagging
   });
 
-  const tagsText = response.choices[0].message.content;
+  const tagsText = response.choices[0]?.message.content;
   return parseTags(tagsText || '');
 }
 
@@ -45,8 +47,7 @@ export async function generateTagsBatch(
     return [];
   }
 
-  const promises = contents.map((content) => generateTags(content, options));
-  return Promise.all(promises);
+  return mapLimit(contents, 5, (content) => generateTags(content, options));
 }
 
 /**
@@ -82,10 +83,7 @@ export function parseTags(response: string): string[] {
     tags.push(...response.split(/\s+/));
   }
 
-  return tags
-    .map(normalizeTag)
-    .filter((tag) => tag.length > 0)
-    .slice(0, 5); // Limit to 5 tags
+  return tags.map(normalizeTag).filter((tag) => tag.length > 0);
 }
 
 /**

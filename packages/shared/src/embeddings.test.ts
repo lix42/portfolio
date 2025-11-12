@@ -1,17 +1,17 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { EMBEDDING_DIMENSIONS } from './constants';
 import {
+  cosineSimilarity,
   generateEmbedding,
   generateEmbeddingsBatch,
-  cosineSimilarity,
 } from './embeddings';
 
 // Mock OpenAI
 vi.mock('openai', () => {
   return {
-    default: vi.fn().mockImplementation(() => ({
-      embeddings: {
+    default: class MockOpenAI {
+      embeddings = {
         create: vi.fn().mockImplementation(({ input }) => {
           const inputs = Array.isArray(input) ? input : [input];
           return Promise.resolve({
@@ -20,8 +20,8 @@ vi.mock('openai', () => {
             })),
           });
         }),
-      },
-    })),
+      };
+    },
   };
 });
 
@@ -34,13 +34,6 @@ describe('embeddings', () => {
 
       expect(embedding).toHaveLength(EMBEDDING_DIMENSIONS);
       expect(embedding[0]).toBe(0.1);
-    });
-
-    it('should throw error if dimensions mismatch', async () => {
-      // This test would need a different mock setup
-      // For now, just verify happy path
-      const embedding = await generateEmbedding('test', { apiKey });
-      expect(embedding).toHaveLength(1536);
     });
   });
 
@@ -85,6 +78,15 @@ describe('embeddings', () => {
       const b = [1, 0, 0];
 
       expect(() => cosineSimilarity(a, b)).toThrow('same dimensions');
+    });
+
+    it('should return 0 for zero vectors', () => {
+      const a = [1, 2, 3];
+      const b = [0, 0, 0];
+      const c = [0, 0, 0];
+      expect(cosineSimilarity(a, b)).toBe(0);
+      expect(cosineSimilarity(b, a)).toBe(0);
+      expect(cosineSimilarity(b, c)).toBe(0);
     });
   });
 });

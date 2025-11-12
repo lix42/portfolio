@@ -1,10 +1,10 @@
 import OpenAI from 'openai';
 
-import { EMBEDDING_MODEL, EMBEDDING_DIMENSIONS } from './constants';
+import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from './constants';
 
 export interface EmbeddingOptions {
   model?: string;
-  apiKey: string;
+  apiKey?: string;
 }
 
 /**
@@ -12,16 +12,17 @@ export interface EmbeddingOptions {
  */
 export async function generateEmbedding(
   text: string,
-  options: EmbeddingOptions
+  options: EmbeddingOptions,
+  instance?: OpenAI
 ): Promise<number[]> {
-  const openai = new OpenAI({ apiKey: options.apiKey });
+  const openai = instance ?? new OpenAI({ apiKey: options.apiKey });
 
   const response = await openai.embeddings.create({
     model: options.model ?? EMBEDDING_MODEL,
     input: text,
   });
 
-  const embedding = response.data[0].embedding;
+  const embedding = response.data[0]?.embedding ?? [];
 
   // Validate dimensions
   if (embedding.length !== EMBEDDING_DIMENSIONS) {
@@ -39,13 +40,14 @@ export async function generateEmbedding(
  */
 export async function generateEmbeddingsBatch(
   texts: string[],
-  options: EmbeddingOptions
+  options: EmbeddingOptions,
+  instance?: OpenAI
 ): Promise<number[][]> {
   if (texts.length === 0) {
     return [];
   }
 
-  const openai = new OpenAI({ apiKey: options.apiKey });
+  const openai = instance ?? new OpenAI({ apiKey: options.apiKey });
 
   const response = await openai.embeddings.create({
     model: options.model ?? EMBEDDING_MODEL,
@@ -79,9 +81,17 @@ export function cosineSimilarity(a: number[], b: number[]): number {
   let normB = 0;
 
   for (let i = 0; i < a.length; i++) {
-    dotProduct += a[i] * b[i];
-    normA += a[i] * a[i];
-    normB += b[i] * b[i];
+    const numA = a[i];
+    const numB = b[i];
+    if (numA === undefined || numB === undefined) {
+      continue;
+    }
+    dotProduct += numA * numB;
+    normA += numA * numA;
+    normB += numB * numB;
+  }
+  if (normA === 0 || normB === 0) {
+    return 0;
   }
 
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));

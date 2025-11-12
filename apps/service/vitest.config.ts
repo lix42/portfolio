@@ -8,6 +8,11 @@ export default defineWorkersConfig({
     },
   },
   test: {
+    coverage: {
+      provider: 'istanbul',
+      reporter: ['text', 'json', 'html'],
+      reportsDirectory: './coverage',
+    },
     poolOptions: {
       workers: {
         isolatedStorage: false,

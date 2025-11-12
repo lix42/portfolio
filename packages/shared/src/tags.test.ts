@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import { parseTags, normalizeTag } from './tags';
+import { normalizeTag, parseTags } from './tags';
 
 describe('tags', () => {
   describe('parseTags', () => {
@@ -26,13 +26,6 @@ describe('tags', () => {
 
       expect(tags).toContain('ownership');
       expect(tags).toContain('frontend_architecture');
-    });
-
-    it('should limit to 5 tags', () => {
-      const response = 'tag1, tag2, tag3, tag4, tag5, tag6, tag7';
-      const tags = parseTags(response);
-
-      expect(tags.length).toBeLessThanOrEqual(5);
     });
 
     it('should normalize tags', () => {
