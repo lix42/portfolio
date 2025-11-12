@@ -24,13 +24,13 @@
   },
   "dependencies": {
     "openai": "^6.1.0",
-    "zod": "^3.25.76"
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@portfolio/eslint-config": "workspace:*",
     "@types/node": "^22.0.0",
-    "@vitest/coverage-v8": "^4.0.8",
+    "@vitest/coverage-v8": "^4.0.10",
     "typescript": "^5.3.3",
-    "vitest": "^4.0.8"
+    "vitest": "^4.0.10"
   }
 }
