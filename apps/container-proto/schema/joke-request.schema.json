@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://portfolio.local/container/joke-request.schema.json",
+  "title": "JokeRequest",
+  "type": "object",
+  "properties": {
+    "topic": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional topic to guide the joke prompt"
+    },
+    "audience": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Audience or tone that should influence the joke"
+    }
+  },
+  "required": [],
+  "additionalProperties": false
+}
