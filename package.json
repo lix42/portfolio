@@ -8,9 +8,9 @@
     "node": ">=22 <23"
   },
   "scripts": {
-    "dev:service": "turbo run dev --filter=@portfolio/service",
-    "dev:ui2": "turbo run dev --filter=@portfolio/ui2",
-    "dev": "turbo run dev --parallel --filter=@portfolio/service --filter=@portfolio/ui",
+    "dev": "turbo run dev --parallel --filter=@portfolio/shared --filter=@portfolio/service --filter=@portfolio/ui2",
+    "dev:service": "turbo run dev --parallel --filter=@portfolio/shared --filter=@portfolio/service",
+    "dev:ui2": "turbo run dev --parallel --filter=@portfolio/shared --filter=@portfolio/ui2",
     "build:service": "turbo run build --filter=@portfolio/service",
     "build:ui2": "turbo run build --filter=@portfolio/ui2",
     "build:r2": "turbo run build --filter=@portfolio/r2-sync",
