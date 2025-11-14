@@ -6,12 +6,11 @@
  * to provide relevant responses from a knowledge base.
  */
 
-import { zValidator } from '@hono/zod-validator';
 import { createClient } from '@supabase/supabase-js';
 import { Hono } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import { describeRoute, resolver, validator as zValidator } from 'hono-openapi';
 import OpenAI from 'openai';
-import { z } from 'zod';
 
 import {
   answerQuestionWithChunks,
@@ -19,6 +18,11 @@ import {
 } from './answerQuestion';
 import { getContext } from './getContext';
 import { preprocessQuestion } from './preprocessQuestion';
+import {
+  ChatErrorResponseSchema,
+  ChatRequestSchema,
+  ChatSuccessResponseSchema,
+} from './schemas';
 import { embed } from './utils/embed';
 
 /**
@@ -26,14 +30,6 @@ import { embed } from './utils/embed';
  * Uses CloudflareBindings for environment variable typing
  */
 const app = new Hono<{ Bindings: CloudflareBindings }>();
-
-/**
- * Zod schema for validating incoming chat requests
- * Ensures the request body contains a valid message string
- */
-const schema = z.object({
-  message: z.string(),
-});
 
 /**
  * POST / - Chat message processing endpoint
@@ -57,18 +53,54 @@ const schema = z.object({
  *   -d '{"message": "How do I implement authentication?"}'
  * ```
  */
-app.post('/', zValidator('json', schema), async (c) => {
-  // Extract and validate the message from the request body
-  const { message } = c.req.valid('json');
-  const result = await answerQuestion(message, c.env);
+app.post(
+  '/',
+  describeRoute({
+    summary: 'Chat with AI about portfolio',
+    description:
+      'Ask questions about portfolio, work experience, skills, and projects. Uses RAG (Retrieval-Augmented Generation) to provide accurate, context-aware answers.',
+    tags: ['Chat'],
+    responses: {
+      200: {
+        description: 'Successfully generated answer',
+        content: {
+          'application/json': {
+            schema: resolver(ChatSuccessResponseSchema),
+          },
+        },
+      },
+      400: {
+        description: 'Invalid or missing message',
+        content: {
+          'application/json': {
+            schema: resolver(ChatErrorResponseSchema),
+          },
+        },
+      },
+      500: {
+        description: 'Internal server error during processing',
+        content: {
+          'application/json': {
+            schema: resolver(ChatErrorResponseSchema),
+          },
+        },
+      },
+    },
+  }),
+  zValidator('json', ChatRequestSchema),
+  async (c) => {
+    // Extract and validate the message from the request body
+    const { message } = c.req.valid('json');
+    const result = await answerQuestion(message, c.env);
 
-  if (result.hasError) {
-    return c.json({ error: result.error }, result.code);
+    if (result.hasError) {
+      return c.json({ error: result.error }, result.code);
+    }
+    // Return successful response with the original message, generated tags, and search results
+    // Provide empty array as fallback if no search results are found
+    return c.json({ answer: result.answer });
   }
-  // Return successful response with the original message, generated tags, and search results
-  // Provide empty array as fallback if no search results are found
-  return c.json({ answer: result.answer });
-});
+);
 
 export type ChatResponse = { error: string } | { answer: string };
 
