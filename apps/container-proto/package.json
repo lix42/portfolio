@@ -1,0 +1,24 @@
+{
+  "name": "@portfolio/container-proto",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "deploy": "wrangler deploy",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "cf-typegen": "node -e \"require('fs').mkdirSync('.wrangler',{recursive:true});\" && wrangler types .wrangler/container-bindings.d.ts --env-interface CloudflareContainerBindings"
+  },
+  "dependencies": {
+    "@cfworker/json-schema": "^4.1.1",
+    "@cloudflare/containers": "^0.0.12",
+    "@cloudflare/workers-types": "^4.20250419.0",
+    "json-schema-to-ts": "^3.1.1"
+  },
+  "devDependencies": {
+    "@portfolio/eslint-config": "workspace:*",
+    "eslint": "^9.37.0",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.42.0"
+  }
+}

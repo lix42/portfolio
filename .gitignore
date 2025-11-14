@@ -95,6 +95,7 @@ coverage/
 .temp
 supabase/.temp
 *.swp
+.wrangler/
 
 # Local development secrets (Cloudflare)
 **/.dev.vars

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://portfolio.local/container/joke-response.schema.json",
+  "title": "JokeResponse",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the generated joke"
+    },
+    "message": {
+      "type": "string",
+      "description": "Joke content returned to the client"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["openai", "fallback"],
+      "description": "Where the joke content originated"
+    }
+  },
+  "required": ["id", "message", "source"],
+  "additionalProperties": false
+}
