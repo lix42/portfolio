@@ -47,5 +47,25 @@
       "binding": "CHAT_SERVICE",
       "service": "chat-service"
     }
-  ]
+  ],
+  "env": {
+    "staging": {
+      "name": "chat-ui2-staging",
+      "services": [
+        {
+          "binding": "CHAT_SERVICE",
+          "service": "chat-service-staging"
+        }
+      ]
+    },
+    "production": {
+      "name": "chat-ui2-prod",
+      "services": [
+        {
+          "binding": "CHAT_SERVICE",
+          "service": "chat-service-prod"
+        }
+      ]
+    }
+  }
 }
