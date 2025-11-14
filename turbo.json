@@ -11,7 +11,8 @@
     "CLOUDFLARE_ACCOUNT_ID",
     "CLOUDFLARE_API_TOKEN",
     "CLOUDFLARE_API_KEY",
-    "CLOUDFLARE_EMAIL"
+    "CLOUDFLARE_EMAIL",
+    "CLOUDFLARE_ENV"
   ],
   "tasks": {
     "dev": {
