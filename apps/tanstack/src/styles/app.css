@@ -1,0 +1,115 @@
+:root {
+  color-scheme: light dark;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  background-color: #0b0c10;
+  color: #f8f8f8;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: radial-gradient(circle at top, rgba(71, 121, 255, 0.25), transparent 60%),
+    linear-gradient(180deg, rgba(10, 11, 24, 0.9) 0%, rgba(5, 6, 14, 1) 100%);
+}
+
+.app {
+  margin: 0 auto;
+  max-width: 960px;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.app__header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.app__header h1 {
+  margin: 0;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+}
+
+.app__header p {
+  margin-top: 0.75rem;
+  color: rgba(248, 248, 248, 0.75);
+}
+
+.app__main {
+  display: flex;
+  justify-content: center;
+}
+
+.health {
+  background: rgba(13, 17, 37, 0.6);
+  border: 1px solid rgba(96, 128, 255, 0.35);
+  border-radius: 16px;
+  box-shadow: 0 16px 45px rgba(10, 20, 45, 0.35);
+  padding: 2rem;
+  max-width: 480px;
+  width: 100%;
+  backdrop-filter: blur(18px);
+}
+
+.health__message {
+  margin: 0 0 1.5rem;
+  font-size: 1.125rem;
+  text-align: center;
+  color: rgba(248, 248, 248, 0.85);
+}
+
+.health__details {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+}
+
+.health__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.health__row dt {
+  font-weight: 600;
+  color: rgba(248, 248, 248, 0.7);
+}
+
+.health__value {
+  margin: 0;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  min-width: 120px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.health__value--ok {
+  color: #0ddc8d;
+  background: rgba(13, 220, 141, 0.12);
+}
+
+.health__value--error {
+  color: #ff7b7b;
+  background: rgba(255, 91, 91, 0.16);
+}
+
+@media (max-width: 600px) {
+  .health {
+    padding: 1.5rem;
+  }
+
+  .health__row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .health__value {
+    width: 100%;
+  }
+}

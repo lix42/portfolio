@@ -1,0 +1,19 @@
+/**
+ * Wrangler configuration for the TanStack Start prototype.
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "chat-tanstack-ui",
+  "compatibility_date": "2025-10-28",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@tanstack/react-start/server-entry",
+  "vars": {
+    "VALUE_FROM_CLOUDFLARE": "Hello from TanStack Start"
+  },
+  "services": [
+    {
+      "binding": "CHAT_SERVICE",
+      "service": "chat-service"
+    }
+  ]
+}
