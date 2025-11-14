@@ -1,0 +1,38 @@
+{
+  "name": "@portfolio/tanstack-ui",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build && tsc --noEmit",
+    "preview": "vite preview",
+    "deploy": "pnpm run build && wrangler deploy",
+    "cf-typegen": "wrangler types",
+    "type:check": "tsc --noEmit",
+    "type:check:ci": "tsc --noEmit",
+    "lint": "pnpm run lint:check",
+    "lint:check": "eslint .",
+    "lint:fix": "eslint --fix ."
+  },
+  "dependencies": {
+    "@portfolio/service": "workspace:*",
+    "@tanstack/react-router": "^1.136.1",
+    "@tanstack/react-router-devtools": "^1.136.1",
+    "@tanstack/react-start": "^1.136.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.13.7",
+    "@portfolio/eslint-config": "workspace:*",
+    "@types/node": "^22.10.1",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^4.6.0",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.7",
+    "vite-tsconfig-paths": "^5.1.4",
+    "wrangler": "^4.45.0"
+  }
+}
