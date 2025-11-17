@@ -1,7 +1,8 @@
+import type { HealthResponse } from '@service/src/health';
 import { createFileRoute } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 import { env } from 'cloudflare:workers';
-import type { HealthResponse } from '@service/src/health';
+
 import { HealthStatus } from '~/components/HealthStatus';
 import type { ServiceHealth } from '~/components/HealthStatus';
 
@@ -30,7 +31,8 @@ const fetchHealth = createServerFn({ method: 'GET' }).handler(async () => {
 
     return { message, health } satisfies LoaderData;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
 
     const health: ServiceHealth = {
       ok: false,

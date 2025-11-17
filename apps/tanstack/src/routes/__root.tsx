@@ -1,6 +1,12 @@
 /// <reference types="vite/client" />
-import { HeadContent, Outlet, Scripts, createRootRoute } from '@tanstack/react-router';
+import {
+  HeadContent,
+  Outlet,
+  Scripts,
+  createRootRoute,
+} from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+
 import appCss from '~/styles/app.css?url';
 
 export const Route = createRootRoute({
@@ -10,7 +16,8 @@ export const Route = createRootRoute({
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       {
         name: 'description',
-        content: 'TanStack Start prototype that calls the @portfolio/service health endpoint.',
+        content:
+          'TanStack Start prototype that calls the @portfolio/service health endpoint.',
       },
       { title: 'Portfolio TanStack Start Prototype' },
     ],
@@ -35,7 +42,9 @@ function RootDocument() {
             <Outlet />
           </main>
         </div>
-        {import.meta.env.DEV ? <TanStackRouterDevtools position="bottom-right" /> : null}
+        {import.meta.env.DEV ? (
+          <TanStackRouterDevtools position="bottom-right" />
+        ) : null}
         <Scripts />
       </body>
     </html>

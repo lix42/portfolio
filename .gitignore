@@ -100,3 +100,6 @@ supabase/.temp
 
 # Local development secrets (Cloudflare)
 **/.dev.vars
+
+# Cloudflare
+.wrangler/

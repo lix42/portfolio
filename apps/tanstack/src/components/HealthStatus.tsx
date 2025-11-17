@@ -16,7 +16,13 @@ export function HealthStatus({ message, health }: HealthStatusProps) {
       <dl className="health__details" aria-label="Service health information">
         <div className="health__row">
           <dt>Status</dt>
-          <dd className={health.ok ? 'health__value health__value--ok' : 'health__value health__value--error'}>
+          <dd
+            className={
+              health.ok
+                ? 'health__value health__value--ok'
+                : 'health__value health__value--error'
+            }
+          >
             {health.ok ? 'Healthy' : 'Unavailable'}
           </dd>
         </div>
@@ -27,7 +33,9 @@ export function HealthStatus({ message, health }: HealthStatusProps) {
         {health.error ? (
           <div className="health__row">
             <dt>Error</dt>
-            <dd className="health__value health__value--error">{health.error}</dd>
+            <dd className="health__value health__value--error">
+              {health.error}
+            </dd>
           </div>
         ) : null}
       </dl>
