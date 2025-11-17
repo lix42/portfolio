@@ -91,10 +91,12 @@ coverage/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.container
 .sass-cache/
 .temp
 supabase/.temp
 *.swp
+.wrangler/
 
 # Local development secrets (Cloudflare)
 **/.dev.vars

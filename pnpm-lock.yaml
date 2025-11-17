@@ -30,6 +30,34 @@ importers:
         specifier: ^2.6.0
         version: 2.6.0
 
+  apps/container-proto:
+    dependencies:
+      '@cfworker/json-schema':
+        specifier: ^4.1.1
+        version: 4.1.1
+      '@cloudflare/containers':
+        specifier: ^0.0.12
+        version: 0.0.12
+      '@cloudflare/workers-types':
+        specifier: ^4.20250419.0
+        version: 4.20251014.0
+      json-schema-to-ts:
+        specifier: ^3.1.1
+        version: 3.1.1
+    devDependencies:
+      '@portfolio/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      eslint:
+        specifier: ^9.37.0
+        version: 9.38.0(jiti@2.6.1)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      wrangler:
+        specifier: ^4.42.0
+        version: 4.45.3(@cloudflare/workers-types@4.20251014.0)
+
   apps/r2-sync:
     dependencies:
       '@aws-sdk/client-s3':
@@ -641,6 +669,10 @@ packages:
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
+  '@babel/runtime@7.28.4':
+    resolution: {integrity: sha512-Q/N6JNWvIvPnLDvjlE1OUBLPQHH6l3CltCEsHIujp45zQUSSh8K+gHnaEX45yAT1nyngnINhvWtzN+Nb9D8RAQ==}
+    engines: {node: '>=6.9.0'}
+
   '@babel/template@7.27.2':
     resolution: {integrity: sha512-LPDZ85aEJyYSd18/DkjNh4/y1ntkE5KwUHWTiqgRxruuZL2F1yuHligVHLvcHY2vMHXttKFpJn6LwfI7cw7ODw==}
     engines: {node: '>=6.9.0'}
@@ -718,6 +750,12 @@ packages:
 
   '@cacheable/utils@2.1.0':
     resolution: {integrity: sha512-ZdxfOiaarMqMj+H7qwlt5EBKWaeGihSYVHdQv5lUsbn8MJJOTW82OIwirQ39U5tMZkNvy3bQE+ryzC+xTAb9/g==}
+
+  '@cfworker/json-schema@4.1.1':
+    resolution: {integrity: sha512-gAmrUZSGtKc3AiBL71iNWxDsyUC5uMaKKGdvzYsBoTW/xi42JQHl7eKV2OYzCUqvc+D2RCcf7EXY2iCyFIk6og==}
+
+  '@cloudflare/containers@0.0.12':
+    resolution: {integrity: sha512-LKx76VpMmJDeagOrDCZWnOnt7psfe8T7FI6HfeVjJlWJCd7xLiMYi9aR9d+noYIuvO5SdPLTalFI9q9acFR98g==}
 
   '@cloudflare/kv-asset-handler@0.4.0':
     resolution: {integrity: sha512-+tv3z+SPp+gqTIcImN9o0hqE9xyfQjI1XD9pL6NuKjua9B1y7mNYv0S9cP+QEbA4ppVgGZEmKOvHX5G5Ei1CVA==}
@@ -3777,6 +3815,10 @@ packages:
     resolution: {integrity: sha512-fi0NG4bPjCHunUJffmLd0gxssIgkNmArMvis4iNah6Owg1MCJjWhEcDLmsK6iGkJq3tHwbDkTlce70/tmXN4cQ==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
 
+  json-schema-to-ts@3.1.1:
+    resolution: {integrity: sha512-+DWg8jCJG2TEnpy7kOm/7/AxaYoaRbjVB4LFZLySZlWn8exGs3A4OLJR966cVvU26N7X9TWxl+Jsw7dzAqKT6g==}
+    engines: {node: '>=16'}
+
   json-schema-traverse@0.4.1:
     resolution: {integrity: sha512-xbbCH5dCYU5T8LcEhhuh7HJ88HXuW3qsI3Y0zOZFKfZEHcpWiHU/Jxzk629Brsab/mMiHQti9wMP+845RPe3Vg==}
 
@@ -5008,6 +5050,9 @@ packages:
   tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
 
+  ts-algebra@2.0.0:
+    resolution: {integrity: sha512-FPAhNPFMrkwz76P7cdjdmiShwMynZYN6SgOujD1urY4oNm80Ou9oMdmbR45LotcKOXoy7wSmHkRFE6Mxbrhefw==}
+
   ts-api-utils@1.4.3:
     resolution: {integrity: sha512-i3eMG77UTMD0hZhgRS562pv83RC6ukSAC2GMNWc+9dieh/+jDM5u5YG+NHX6VNDRHQcHwmsTHctP9LhbC3WxVw==}
     engines: {node: '>=16'}
@@ -6181,6 +6226,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@babel/runtime@7.28.4': {}
+
   '@babel/template@7.27.2':
     dependencies:
       '@babel/code-frame': 7.27.1
@@ -6256,6 +6303,10 @@ snapshots:
   '@cacheable/utils@2.1.0':
     dependencies:
       keyv: 5.5.3
+
+  '@cfworker/json-schema@4.1.1': {}
+
+  '@cloudflare/containers@0.0.12': {}
 
   '@cloudflare/kv-asset-handler@0.4.0':
     dependencies:
@@ -9576,6 +9627,11 @@ snapshots:
 
   json-parse-even-better-errors@3.0.2: {}
 
+  json-schema-to-ts@3.1.1:
+    dependencies:
+      '@babel/runtime': 7.28.4
+      ts-algebra: 2.0.0
+
   json-schema-traverse@0.4.1: {}
 
   json-schema-traverse@1.0.0: {}
@@ -10861,6 +10917,8 @@ snapshots:
       is-number: 7.0.0
 
   tr46@0.0.3: {}
+
+  ts-algebra@2.0.0: {}
 
   ts-api-utils@1.4.3(typescript@5.9.3):
     dependencies:

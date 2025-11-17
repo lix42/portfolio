@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "esnext",
+    "lib": ["esnext"],
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "types": ["@cloudflare/workers-types"],
+    "baseUrl": "./",
+    "paths": {
+      "@schema/*": ["./schema/*"]
+    }
+  },
+  "include": ["src", "worker-configuration.d.ts", "schema/*.json"],
+  "exclude": ["node_modules", "dist"]
+}
