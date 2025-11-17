@@ -42,6 +42,16 @@ jobs:
       - name: Type-check Worker sources
         run: pnpm typecheck
 
+      - name: Set up OPENAI_API_KEY secret
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/container-proto
+          command: secret put OPENAI_API_KEY
+        env:
+          WRANGLER_SECRET_VALUE: ${{ secrets.OPENAI_API_KEY }}
+
       - name: Deploy with Wrangler
         uses: cloudflare/wrangler-action@v3
         with:
@@ -49,5 +59,3 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/container-proto
           command: deploy
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

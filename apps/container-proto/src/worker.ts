@@ -1,5 +1,6 @@
 import { Validator } from '@cfworker/json-schema';
 import { Container, getContainer } from '@cloudflare/containers';
+import { env } from 'cloudflare:workers';
 import type { DurableObjectStub } from 'cloudflare:workers';
 import type { FromSchema } from 'json-schema-to-ts';
 
@@ -15,17 +16,10 @@ const jokeResponseValidator = new Validator(jokeResponseSchema);
 export class FastAPIContainer extends Container<CloudflareContainerBindings> {
   defaultPort = 8000;
   sleepAfter = '5m';
-
-  constructor(state: DurableObjectState, env: CloudflareContainerBindings) {
-    super(state, env, {
-      defaultPort: 8000,
-      sleepAfter: '5m',
-      enableInternet: true,
-      envVars: {
-        OPENAI_API_KEY: env.OPENAI_API_KEY ?? '',
-      },
-    });
-  }
+  enableInternet = true;
+  envVars = {
+    OPENAI_API_KEY: env.OPENAI_API_KEY,
+  };
 }
 
 type FetchHandler = ExportedHandler<CloudflareContainerBindings>;
@@ -54,7 +48,7 @@ const handler: FetchHandler = {
     const url = new URL(request.url);
     const containerStub = getContainer(
       env.MY_FASTAPI_CONTAINER,
-      'fastapi-prototype'
+      'fastapi-prototype-v1'
     );
 
     if (url.pathname === '/schema/joke-response') {
@@ -65,9 +59,26 @@ const handler: FetchHandler = {
       return Response.json(jokeRequestSchema);
     }
 
+    if (url.pathname === '/debug/worker-env') {
+      return Response.json({
+        module_env_keys: Object.keys(env),
+        module_env_has_OPENAI_API_KEY: 'OPENAI_API_KEY' in env,
+        module_env_OPENAI_API_KEY_type: typeof env.OPENAI_API_KEY,
+        module_env_OPENAI_API_KEY_value: env.OPENAI_API_KEY
+          ? `${String(env.OPENAI_API_KEY).substring(0, 7)}...`
+          : null,
+        handler_env_keys: Object.keys(env),
+        handler_env_has_OPENAI_API_KEY: 'OPENAI_API_KEY' in env,
+      });
+    }
+
     try {
       if (url.pathname === '/api/health') {
         return forwardJson(containerStub, '/health');
+      }
+
+      if (url.pathname === '/api/debug/env') {
+        return forwardJson(containerStub, '/debug/env');
       }
 
       if (url.pathname === '/api/joke') {

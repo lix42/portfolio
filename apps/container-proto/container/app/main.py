@@ -49,6 +49,18 @@ class JokeResponse(BaseModel):
 app = FastAPI(title="Cloudflare Container FastAPI Prototype")
 
 
+@app.on_event("startup")
+async def startup_event() -> None:
+    """Log environment info at startup for debugging."""
+    api_key = os.getenv("OPENAI_API_KEY")
+    if api_key:
+        # Only log that the key exists, not the actual value
+        print(f"✓ OPENAI_API_KEY is set (length: {len(api_key)})")
+    else:
+        print("✗ OPENAI_API_KEY is NOT set - will use fallback jokes")
+    print(f"FastAPI app started successfully")
+
+
 def _validate_against_shared_schema(instance: dict[str, Any], *, validator: Draft202012Validator) -> None:
     try:
         validator.validate(instance)
@@ -59,7 +71,10 @@ def _validate_against_shared_schema(instance: dict[str, Any], *, validator: Draf
 async def _generate_openai_joke(payload: JokeRequest) -> str:
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
+        print("DEBUG: OPENAI_API_KEY not found in environment")
         raise OpenAIError("OPENAI_API_KEY is not configured for the container instance")
+
+    print(f"DEBUG: Attempting to call OpenAI API...")
 
     client = AsyncOpenAI(api_key=api_key)
     prompt_parts = ["Tell me a short, family-friendly programming joke."]
@@ -75,7 +90,7 @@ async def _generate_openai_joke(payload: JokeRequest) -> str:
                 "role": "user",
                 "content": [
                     {
-                        "type": "text",
+                        "type": "input_text",
                         "text": " ".join(prompt_parts),
                     }
                 ],
@@ -84,7 +99,9 @@ async def _generate_openai_joke(payload: JokeRequest) -> str:
         max_output_tokens=120,
     )
     if not response.output:
+        print("DEBUG: OpenAI returned no output")
         raise OpenAIError("No output returned from OpenAI")
+    print(f"DEBUG: OpenAI API call successful")
     return response.output_text.strip()
 
 
@@ -94,8 +111,9 @@ async def build_joke(payload: JokeRequest) -> tuple[str, Literal["openai", "fall
         if not joke_text:
             raise OpenAIError("Generated text was empty")
         return joke_text, "openai"
-    except (OpenAIError, RuntimeError):
+    except (OpenAIError, RuntimeError) as exc:
         # Fall back to a deterministic joke so that the prototype remains usable without OpenAI
+        print(f"DEBUG: Falling back to deterministic joke. Reason: {type(exc).__name__}: {exc}")
         return random.choice(FALLBACK_JOKES), "fallback"
 
 
@@ -104,6 +122,18 @@ async def health() -> dict[str, str]:
     """Simple health endpoint used by the Worker to confirm container readiness."""
 
     return {"status": "ok"}
+
+
+@app.get("/debug/env")
+async def debug_env() -> dict[str, Any]:
+    """Debug endpoint to check environment variables (remove in production)."""
+    api_key = os.getenv("OPENAI_API_KEY")
+    return {
+        "version": "1",
+        "has_openai_key": bool(api_key),
+        "openai_key_length": len(api_key) if api_key else 0,
+        "openai_key_prefix": api_key[:7] if api_key and len(api_key) > 7 else None,
+    }
 
 
 @app.post("/joke", response_model=JokeResponse)
