@@ -5,11 +5,8 @@
   "workers_dev": true,
   // Fill this in before deploying or rely on CLOUDFLARE_ACCOUNT_ID environment variable.
   "account_id": "",
-  "vars": {
-    // This placeholder ensures wrangler will prompt for the secret before deploys.
-    // Store the real key with `wrangler secret put OPENAI_API_KEY`.
-    "OPENAI_API_KEY": "",
-  },
+  // Store secrets with `wrangler secret put OPENAI_API_KEY`.
+  // Do not add secrets to vars section - it prevents the actual secret from being used.
   "containers": [
     {
       "class_name": "FastAPIContainer",

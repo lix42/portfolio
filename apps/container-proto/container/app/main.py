@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import json
 import os
+import random
 import uuid
 from pathlib import Path
 from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
 from jsonschema import Draft202012Validator, ValidationError
 from openai import AsyncOpenAI, OpenAIError
 from pydantic import BaseModel, ConfigDict
@@ -96,8 +96,7 @@ async def build_joke(payload: JokeRequest) -> tuple[str, Literal["openai", "fall
         return joke_text, "openai"
     except (OpenAIError, RuntimeError):
         # Fall back to a deterministic joke so that the prototype remains usable without OpenAI
-        fallback_index = uuid.uuid4().int % len(FALLBACK_JOKES)
-        return FALLBACK_JOKES[fallback_index], "fallback"
+        return random.choice(FALLBACK_JOKES), "fallback"
 
 
 @app.get("/health", response_model=dict[str, str])
@@ -108,7 +107,7 @@ async def health() -> dict[str, str]:
 
 
 @app.post("/joke", response_model=JokeResponse)
-async def joke(request: JokeRequest) -> JSONResponse:
+async def joke(request: JokeRequest) -> JokeResponse:
     """Generate or fall back to a shared-schema compliant joke payload."""
 
     payload = request.model_dump(exclude_none=True)
@@ -118,7 +117,7 @@ async def joke(request: JokeRequest) -> JSONResponse:
     response = JokeResponse(id=str(uuid.uuid4()), message=message, source=source)
     response_payload = response.model_dump()
     _validate_against_shared_schema(response_payload, validator=RESPONSE_VALIDATOR)
-    return JSONResponse(content=response_payload)
+    return response
 
 
 @app.get("/", response_model=dict[str, str])
