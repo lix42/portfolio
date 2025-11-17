@@ -1,0 +1,38 @@
+{
+  "name": "@portfolio/document-processor",
+  "version": "1.0.0",
+  "description": "Event-driven document processing with Durable Objects",
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "lint": "$npm_execpath run eslint:check",
+    "lint:fix": "$npm_execpath run eslint:fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build": "$npm_execpath run eslint:check && $npm_execpath run type:check",
+    "deploy": "$npm_execpath install && $npm_execpath run build && $npm_execpath run deploy:wrangler",
+    "deploy:staging": "$npm_execpath run deploy -- --env staging",
+    "deploy:prod": "$npm_execpath run deploy -- --env production",
+    "eslint": "$npm_execpath run eslint:check",
+    "eslint:check": "eslint .",
+    "eslint:fix": "eslint --fix .",
+    "cf-typegen": "wrangler types",
+    "type:check": "tsc --noEmit",
+    "type:check:ci": "$npm_execpath run type:check",
+    "deploy:wrangler": "wrangler deploy --minify",
+    "tail": "wrangler tail",
+    "tail:staging": "wrangler tail --env staging",
+    "tail:prod": "wrangler tail --env production"
+  },
+  "dependencies": {
+    "@portfolio/shared": "workspace:*",
+    "openai": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0",
+    "wrangler": "^4.45.0"
+  }
+}

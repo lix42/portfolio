@@ -191,7 +191,7 @@ export class R2Syncer {
   },
   "dependencies": {
     "commander": "^11.0.0",
-    "wrangler": "^3.0.0",
+    "wrangler": "^4.45.0",
     "chalk": "^5.0.0"
   }
 }

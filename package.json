@@ -30,7 +30,15 @@
     "check:biome": "biome check .",
     "fix:biome": "biome check --write .",
     "prepare": "husky",
-    "deps:outdated": "pnpm -r outdated"
+    "deps:outdated": "pnpm -r outdated",
+    "db:migrate:local": "wrangler d1 execute portfolio-sql-staging --local --file",
+    "db:migrate:staging": "wrangler d1 execute portfolio-sql-staging --remote --file",
+    "db:migrate:prod": "wrangler d1 execute portfolio-sql-prod --remote --file",
+    "db:query:local": "wrangler d1 execute portfolio-sql-staging --local --command",
+    "db:query:staging": "wrangler d1 execute portfolio-sql-staging --remote --command",
+    "db:query:prod": "wrangler d1 execute portfolio-sql-prod --remote --command",
+    "db:shell:staging": "wrangler d1 execute portfolio-sql-staging --remote",
+    "db:shell:prod": "wrangler d1 execute portfolio-sql-prod --remote"
   },
   "keywords": [],
   "author": "i@xuli.dev",
@@ -51,9 +59,6 @@
     ],
     "**/*.{json,jsonc}": [
       "prettier --write"
-    ],
-    "apps/**/wrangler.{json,jsonc}": [
-      "pnpm cf-typegen"
     ]
   }
 }
