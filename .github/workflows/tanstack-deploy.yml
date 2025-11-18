@@ -1,0 +1,49 @@
+name: Deploy TanStack UI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/tanstack/**'
+      - '.github/workflows/tanstack-deploy.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Lint, typecheck, and deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: apps/tanstack
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint sources
+        run: pnpm lint
+
+      - name: Type-check sources
+        run: pnpm type:check
+
+      - name: Deploy with Wrangler
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/tanstack
+          command: deploy
