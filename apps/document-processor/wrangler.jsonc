@@ -13,30 +13,30 @@
     {
       "binding": "DB",
       "database_name": "portfolio-dev",
-      "database_id": "467f540e-2d86-461e-b9fb-98c80a736ec5"
-    }
+      "database_id": "467f540e-2d86-461e-b9fb-98c80a736ec5",
+    },
   ],
 
   "vectorize": [
     {
       "binding": "VECTORIZE",
-      "index_name": "portfolio-embeddings-dev"
-    }
+      "index_name": "portfolio-embeddings-dev",
+    },
   ],
 
   "r2_buckets": [
     {
       "binding": "DOCUMENTS",
-      "bucket_name": "portfolio-documents"
-    }
+      "bucket_name": "portfolio-documents",
+    },
   ],
 
   "queues": {
     "producers": [
       {
         "binding": "QUEUE",
-        "queue": "portfolio-doc-processing-dev"
-      }
+        "queue": "portfolio-doc-processing-dev",
+      },
     ],
     "consumers": [
       {
@@ -44,15 +44,15 @@
         "max_batch_size": 10,
         "max_batch_timeout": 30,
         "max_retries": 3,
-        "dead_letter_queue": "portfolio-doc-processing-dev-dlq"
-      }
-    ]
+        "dead_letter_queue": "portfolio-doc-processing-dev-dlq",
+      },
+    ],
   },
 
   // Note: Durable Objects bindings will be added in Phase 4 when the DocumentProcessor class is implemented
 
   "vars": {
-    "ENVIRONMENT": "development"
+    "ENVIRONMENT": "development",
   },
 
   // ============================================================================
@@ -65,22 +65,22 @@
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "portfolio-staging",
-          "database_id": "f87dc2f0-b2c3-4179-a0e9-f10beb004cdb"
-        }
+          "database_name": "portfolio-sql-staging",
+          "database_id": "f87dc2f0-b2c3-4179-a0e9-f10beb004cdb",
+        },
       ],
       "vectorize": [
         {
           "binding": "VECTORIZE",
-          "index_name": "portfolio-embeddings-staging"
-        }
+          "index_name": "portfolio-embeddings-staging",
+        },
       ],
       "queues": {
         "producers": [
           {
             "binding": "QUEUE",
-            "queue": "portfolio-doc-processing-staging"
-          }
+            "queue": "portfolio-doc-processing-staging",
+          },
         ],
         "consumers": [
           {
@@ -88,35 +88,35 @@
             "max_batch_size": 10,
             "max_batch_timeout": 30,
             "max_retries": 3,
-            "dead_letter_queue": "portfolio-doc-processing-staging-dlq"
-          }
-        ]
+            "dead_letter_queue": "portfolio-doc-processing-staging-dlq",
+          },
+        ],
       },
       "vars": {
-        "ENVIRONMENT": "staging"
-      }
+        "ENVIRONMENT": "staging",
+      },
     },
     "production": {
       "name": "portfolio-document-processor-prod",
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "portfolio-prod",
-          "database_id": "7862c8d9-7982-4ac5-981d-8371b7b8cc3f"
-        }
+          "database_name": "portfolio-sql-prod",
+          "database_id": "7862c8d9-7982-4ac5-981d-8371b7b8cc3f",
+        },
       ],
       "vectorize": [
         {
           "binding": "VECTORIZE",
-          "index_name": "portfolio-embeddings-prod"
-        }
+          "index_name": "portfolio-embeddings-prod",
+        },
       ],
       "queues": {
         "producers": [
           {
             "binding": "QUEUE",
-            "queue": "portfolio-doc-processing-prod"
-          }
+            "queue": "portfolio-doc-processing-prod",
+          },
         ],
         "consumers": [
           {
@@ -124,13 +124,13 @@
             "max_batch_size": 10,
             "max_batch_timeout": 30,
             "max_retries": 3,
-            "dead_letter_queue": "portfolio-doc-processing-prod-dlq"
-          }
-        ]
+            "dead_letter_queue": "portfolio-doc-processing-prod-dlq",
+          },
+        ],
       },
       "vars": {
-        "ENVIRONMENT": "production"
-      }
-    }
-  }
+        "ENVIRONMENT": "production",
+      },
+    },
+  },
 }

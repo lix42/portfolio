@@ -12,11 +12,11 @@
       "enabled": true,
       "head_sampling_rate": 1,
       "persist": true,
-      "invocation_logs": true
-    }
+      "invocation_logs": true,
+    },
   },
   "version_metadata": {
-    "binding": "CF_VERSION_METADATA"
+    "binding": "CF_VERSION_METADATA",
   },
 
   // ============================================================================
@@ -27,26 +27,26 @@
     {
       "binding": "DB",
       "database_name": "portfolio-dev",
-      "database_id": "467f540e-2d86-461e-b9fb-98c80a736ec5"
-    }
+      "database_id": "467f540e-2d86-461e-b9fb-98c80a736ec5",
+    },
   ],
 
   "vectorize": [
     {
       "binding": "VECTORIZE",
-      "index_name": "portfolio-embeddings-dev"
-    }
+      "index_name": "portfolio-embeddings-dev",
+    },
   ],
 
   "r2_buckets": [
     {
       "binding": "DOCUMENTS",
-      "bucket_name": "portfolio-documents"
-    }
+      "bucket_name": "portfolio-documents",
+    },
   ],
 
   "vars": {
-    "ENVIRONMENT": "development"
+    "ENVIRONMENT": "development",
   },
 
   // ============================================================================
@@ -59,40 +59,40 @@
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "portfolio-staging",
-          "database_id": "f87dc2f0-b2c3-4179-a0e9-f10beb004cdb"
-        }
+          "database_name": "portfolio-sql-staging",
+          "database_id": "f87dc2f0-b2c3-4179-a0e9-f10beb004cdb",
+        },
       ],
       "vectorize": [
         {
           "binding": "VECTORIZE",
-          "index_name": "portfolio-embeddings-staging"
-        }
+          "index_name": "portfolio-embeddings-staging",
+        },
       ],
       "vars": {
-        "ENVIRONMENT": "staging"
-      }
+        "ENVIRONMENT": "staging",
+      },
     },
     "production": {
       "name": "chat-service-prod",
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "portfolio-prod",
-          "database_id": "7862c8d9-7982-4ac5-981d-8371b7b8cc3f"
-        }
+          "database_name": "portfolio-sql-prod",
+          "database_id": "7862c8d9-7982-4ac5-981d-8371b7b8cc3f",
+        },
       ],
       "vectorize": [
         {
           "binding": "VECTORIZE",
-          "index_name": "portfolio-embeddings-prod"
-        }
+          "index_name": "portfolio-embeddings-prod",
+        },
       ],
       "vars": {
-        "ENVIRONMENT": "production"
-      }
-    }
-  }
+        "ENVIRONMENT": "production",
+      },
+    },
+  },
 
   // ============================================================================
   // Bindings Configuration Examples (Reference)
