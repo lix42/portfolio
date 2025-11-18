@@ -22,7 +22,7 @@ export function convertStateToStatus(
 
   // Calculate processed chunks
   const processedChunks = state.chunks.filter(
-    (c) => c.status === 'stored' || c.status === 'tags_done'
+    (c) => c.status === 'stored'
   ).length;
 
   const timing: {

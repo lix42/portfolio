@@ -35,10 +35,15 @@ export async function stepGenerateEmbeddingsBatch(
     apiKey: context.env.OPENAI_API_KEY,
   });
 
+  if (embeddings.length === 0) {
+    throw new Error('No embeddings returned from OpenAI');
+  }
+
   // Update chunks with embeddings
   embeddings.forEach((embedding, idx) => {
     const chunk = batch[idx];
     if (!chunk) {
+      console.error('Chunk not found, index:', idx);
       return;
     }
     chunk.embedding = embedding;

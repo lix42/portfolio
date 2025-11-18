@@ -75,6 +75,11 @@ export async function insertIntoD1(
   // Execute all inserts in a batch
   await db.batch(chunkInserts);
 
+  // Mark chunks as stored in the state
+  state.chunks.forEach((chunk) => {
+    chunk.status = 'stored';
+  });
+
   console.log(
     `[${state.r2Key}] Inserted document ${documentId} with ${state.chunks.length} chunks into D1`
   );

@@ -42,6 +42,10 @@ export class DocumentProcessor implements DurableObject {
     const path = url.pathname;
 
     try {
+      if (!this.env.OPENAI_API_KEY) {
+        throw new Error('OPENAI_API_KEY not configured');
+      }
+
       // Route handlers
       if (path === '/process' && request.method === 'POST') {
         const { r2Key } = (await request.json()) as { r2Key: string };
@@ -81,6 +85,10 @@ export class DocumentProcessor implements DurableObject {
    * Start processing a new document
    */
   private async startProcessing(r2Key: string): Promise<void> {
+    if (!r2Key) {
+      throw new Error('r2Key required');
+    }
+
     // Check if already processing
     const existing = await this.state.storage.get<ProcessingState>('state');
     if (

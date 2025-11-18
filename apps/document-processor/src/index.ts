@@ -87,7 +87,7 @@ export default {
         );
       }
 
-      // Manual processing trigger: POST /process?r2Key=...
+      // Manual processing trigger: POST /process with JSON body: { "r2Key": "..." }
       if (path === '/process' && request.method === 'POST') {
         const { r2Key } = (await request.json()) as { r2Key: string };
 
