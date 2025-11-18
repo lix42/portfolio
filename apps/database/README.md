@@ -6,12 +6,17 @@ This directory contains D1 database migration scripts.
 
 ```bash
 # Local database
-wrangler d1 execute portfolio-dev \
+wrangler d1 execute portfolio-sql-staging \
   --local \
   --file=apps/database/migrations/0001_initial_schema.sql
 
-# Remote dev database
-wrangler d1 execute portfolio-dev \
+# Remote staging database
+wrangler d1 execute portfolio-sql-staging \
+  --remote \
+  --file=apps/database/migrations/0001_initial_schema.sql
+
+# Remote production database
+wrangler d1 execute portfolio-sql-prod \
   --remote \
   --file=apps/database/migrations/0001_initial_schema.sql
 ```
