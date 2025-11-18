@@ -28,5 +28,15 @@ Before making meaningful changes, propose and confirm a plan first.
 
 	•	Small safe edits (e.g., formatting, lint, typo) are fine directly.
 	•	Discuss first for any major change — type fixes, refactors, new features, or behavior changes.
-	•	Present what you’ll change and why before acting.
+	•	Present what you'll change and why before acting.
 	•	Once agreed, follow the plan and summarize results after.
+
+### Code Organization
+
+Prefer pure functions over classes. Use classes only when required (Durable Objects, framework APIs).
+
+File organization pattern:
+	•	types.ts - Type definitions and interfaces
+	•	utils.ts or utils/ - Pure utility functions
+	•	Feature folders (e.g., steps/) for domain logic
+	•	Class files contain minimal orchestration only
