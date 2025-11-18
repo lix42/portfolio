@@ -6,8 +6,10 @@
     "dev": "wrangler dev --port 8787",
     "deploy": "wrangler deploy",
     "lint": "eslint .",
+    "lint:check": "eslint .",
     "typecheck": "tsc --noEmit",
-    "cf-typegen": "node -e \"require('fs').mkdirSync('.wrangler',{recursive:true});\" && wrangler types .wrangler/container-bindings.d.ts --env-interface CloudflareContainerBindings"
+    "type:check:ci": "$npm_execpath run typecheck",
+    "cf-typegen": "wrangler types"
   },
   "dependencies": {
     "@cfworker/json-schema": "^4.1.1",
