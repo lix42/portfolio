@@ -1,28 +1,33 @@
 import { Validator } from '@cfworker/json-schema';
 import { Container, getContainer } from '@cloudflare/containers';
 import { env } from 'cloudflare:workers';
-import type { DurableObjectStub } from 'cloudflare:workers';
-import type { FromSchema } from 'json-schema-to-ts';
 
 import jokeRequestSchema from '../schema/joke-request.schema.json';
 import jokeResponseSchema from '../schema/joke-response.schema.json';
-import type { CloudflareContainerBindings } from '../worker-configuration';
 
-export type JokeRequest = FromSchema<typeof jokeRequestSchema>;
-export type JokeResponse = FromSchema<typeof jokeResponseSchema>;
+export type JokeRequest = {
+  topic?: string;
+  audience?: string;
+};
 
-const jokeResponseValidator = new Validator(jokeResponseSchema);
+export type JokeResponse = {
+  id: string;
+  message: string;
+  source: 'openai' | 'fallback';
+};
 
-export class FastAPIContainer extends Container<CloudflareContainerBindings> {
-  defaultPort = 8000;
-  sleepAfter = '5m';
-  enableInternet = true;
-  envVars = {
+const jokeResponseValidator = new Validator(jokeResponseSchema as any);
+
+export class FastAPIContainer extends Container<Env> {
+  override defaultPort = 8000;
+  override sleepAfter = '5m';
+  override enableInternet = true;
+  override envVars = {
     OPENAI_API_KEY: env.OPENAI_API_KEY,
   };
 }
 
-type FetchHandler = ExportedHandler<CloudflareContainerBindings>;
+type FetchHandler = ExportedHandler<Env>;
 
 const buildJokeRequest = (url: URL): Partial<JokeRequest> => {
   const payload: Partial<JokeRequest> = {};
