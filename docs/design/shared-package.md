@@ -287,7 +287,7 @@ packages/shared/src/prompts.ts
 
 ## Related Documents
 
-- [High-Level Design](../01-high-level-design.md)
+- [High-Level Design](./cloudflare-migration-high-level.md)
 - [Document Processor](./document-processor.md) - Uses this package
 - [Query Service](./query-service.md) - Uses this package
 - [Implementation Plan](../02-implementation-plan.md)

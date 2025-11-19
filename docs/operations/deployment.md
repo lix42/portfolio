@@ -373,7 +373,7 @@ if (p95Latency > 5000) {
 
 ## Related Documents
 
-- [High-Level Design](../01-high-level-design.md)
+- [High-Level Design](./cloudflare-migration-high-level.md)
 - [Implementation Plan](../02-implementation-plan.md)
 - [Monitoring & Observability](./monitoring.md)
 - [Risk Assessment](./risk-assessment.md)

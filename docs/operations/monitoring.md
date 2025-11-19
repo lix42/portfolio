@@ -367,7 +367,7 @@ async function checkSLA(env: Env): Promise<SLAReport> {
 
 ## Related Documents
 
-- [High-Level Design](../01-high-level-design.md)
+- [High-Level Design](./cloudflare-migration-high-level.md)
 - [Document Processor](../design/document-processor.md)
 - [Deployment Strategy](./deployment.md)
 - [Risk Assessment](./risk-assessment.md)

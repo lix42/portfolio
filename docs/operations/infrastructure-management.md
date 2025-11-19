@@ -13,15 +13,15 @@ This guide covers how to manage Cloudflare infrastructure resources (D1, Vectori
 
 ## Environment Strategy
 
-### Production Environments Only
+### Two-Environment Setup
 
 We use **only two environments**:
 - **staging**: Pre-production testing
 - **production**: Live production
 
-**No dev environment** - local development uses:
+**Local development** uses:
 - Local D1 (via `wrangler dev --local`)
-- Remote staging resources (R2, Vectorize, Queues) for testing
+- Remote staging resources for testing
 - Miniflare for full local simulation (optional)
 
 ### Resource Naming Convention
@@ -29,14 +29,16 @@ We use **only two environments**:
 ```
 {resource-type}-{environment}
 
-Examples:
-- portfolio-staging (D1)
-- portfolio-prod (D1)
+Actual Resources:
+- portfolio-sql-staging (D1)
+- portfolio-sql-prod (D1)
 - portfolio-embeddings-staging (Vectorize)
 - portfolio-embeddings-prod (Vectorize)
-- portfolio-documents (R2 - shared across environments)
+- portfolio-documents (R2 - single shared bucket)
 - portfolio-doc-processing-staging (Queue)
 - portfolio-doc-processing-prod (Queue)
+- portfolio-doc-processing-staging-dlq (Dead Letter Queue)
+- portfolio-doc-processing-prod-dlq (Dead Letter Queue)
 ```
 
 ---
@@ -94,12 +96,12 @@ EOF
 
 ```bash
 # Apply to local database
-wrangler d1 execute portfolio-staging \
+wrangler d1 execute portfolio-sql-staging \
   --local \
   --file=apps/database/migrations/0003_add_chunk_tokens_column.sql
 
 # Verify locally
-wrangler d1 execute portfolio-staging \
+wrangler d1 execute portfolio-sql-staging \
   --local \
   --command="SELECT * FROM chunks LIMIT 1;"
 ```
@@ -108,12 +110,12 @@ wrangler d1 execute portfolio-staging \
 
 ```bash
 # Apply to remote staging
-wrangler d1 execute portfolio-staging \
+wrangler d1 execute portfolio-sql-staging \
   --remote \
   --file=apps/database/migrations/0003_add_chunk_tokens_column.sql
 
 # Verify
-wrangler d1 execute portfolio-staging \
+wrangler d1 execute portfolio-sql-staging \
   --remote \
   --command="SELECT COUNT(*) FROM chunks WHERE tokens IS NOT NULL;"
 ```
@@ -122,12 +124,12 @@ wrangler d1 execute portfolio-staging \
 
 ```bash
 # Apply to remote production
-wrangler d1 execute portfolio-prod \
+wrangler d1 execute portfolio-sql-prod \
   --remote \
   --file=apps/database/migrations/0003_add_chunk_tokens_column.sql
 
 # Verify
-wrangler d1 execute portfolio-prod \
+wrangler d1 execute portfolio-sql-prod \
   --remote \
   --command="SELECT COUNT(*) FROM chunks WHERE tokens IS NOT NULL;"
 ```
@@ -256,17 +258,17 @@ Future wrangler versions may support migrations natively:
 
 **Uses**:
 - Local D1 (in-memory SQLite)
-- Remote staging R2/Vectorize/Queues (shared)
+- Remote staging R2/Vectorize/Queues
 
 **Setup**:
 
 ```bash
 # 1. Apply migrations locally
-wrangler d1 execute portfolio-staging \
+wrangler d1 execute portfolio-sql-staging \
   --local \
   --file=apps/database/migrations/0001_initial_schema.sql
 
-wrangler d1 execute portfolio-staging \
+wrangler d1 execute portfolio-sql-staging \
   --local \
   --file=apps/database/migrations/0002_test_data.sql
 
@@ -285,13 +287,13 @@ pnpm dev
   // Default bindings - used by wrangler dev
   "d1_databases": [{
     "binding": "DB",
-    "database_name": "portfolio-staging",
-    "database_id": "f87dc2f0-b2c3-4179-a0e9-f10beb004cdb"
+    "database_name": "portfolio-sql-staging",
+    "database_id": "b287f8a6-1760-4092-8f2f-3f3f453cfe4f"
   }],
 
   "r2_buckets": [{
     "binding": "DOCUMENTS_BUCKET",
-    "bucket_name": "portfolio-documents"  // Shared
+    "bucket_name": "portfolio-documents"
   }],
 
   "vectorize": [{
@@ -391,10 +393,14 @@ For **isolated testing**:
 
 ```bash
 # Create database
-wrangler d1 create portfolio-{environment}
+wrangler d1 create portfolio-sql-{environment}
 
 # Note the database_id from output
 # Add to wrangler.jsonc
+
+# Existing databases:
+# - portfolio-sql-staging (b287f8a6-1760-4092-8f2f-3f3f453cfe4f)
+# - portfolio-sql-prod (e8ae40da-e089-47f8-8845-7586f7a555ec)
 ```
 
 #### Vectorize Index
@@ -412,11 +418,14 @@ wrangler vectorize list
 #### R2 Bucket
 
 ```bash
-# Create bucket
+# Create bucket (single shared bucket for all environments)
 wrangler r2 bucket create portfolio-documents
 
 # Verify
 wrangler r2 bucket list
+
+# Existing bucket:
+# - portfolio-documents (shared across all environments)
 ```
 
 #### Queue
@@ -455,13 +464,13 @@ Durable Objects are defined in code and automatically created on first use.
 
 ```bash
 # Delete database (⚠️ DESTRUCTIVE)
-wrangler d1 delete portfolio-{environment}
+wrangler d1 delete portfolio-sql-{environment}
 
 # Delete Vectorize index (⚠️ DESTRUCTIVE)
 wrangler vectorize delete portfolio-embeddings-{environment}
 
 # Delete R2 bucket (⚠️ DESTRUCTIVE - must be empty)
-wrangler r2 bucket delete portfolio-documents-{environment}
+wrangler r2 bucket delete portfolio-documents
 
 # Delete queue (⚠️ DESTRUCTIVE)
 wrangler queues delete portfolio-doc-processing-{environment}
@@ -479,7 +488,7 @@ wrangler r2 bucket list
 wrangler queues list
 
 # Inspect database
-wrangler d1 execute portfolio-staging \
+wrangler d1 execute portfolio-sql-staging \
   --remote \
   --command="SELECT name FROM sqlite_master WHERE type='table';"
 
@@ -505,14 +514,14 @@ wrangler queues consumer add portfolio-doc-processing-staging \
 ```json
 {
   "scripts": {
-    "db:migrate:local": "wrangler d1 execute portfolio-staging --local --file",
-    "db:migrate:staging": "wrangler d1 execute portfolio-staging --remote --file",
-    "db:migrate:prod": "wrangler d1 execute portfolio-prod --remote --file",
-    "db:query:local": "wrangler d1 execute portfolio-staging --local --command",
-    "db:query:staging": "wrangler d1 execute portfolio-staging --remote --command",
-    "db:query:prod": "wrangler d1 execute portfolio-prod --remote --command",
-    "db:shell:staging": "wrangler d1 execute portfolio-staging --remote",
-    "db:shell:prod": "wrangler d1 execute portfolio-prod --remote"
+    "db:migrate:local": "wrangler d1 execute portfolio-sql-staging --local --file",
+    "db:migrate:staging": "wrangler d1 execute portfolio-sql-staging --remote --file",
+    "db:migrate:prod": "wrangler d1 execute portfolio-sql-prod --remote --file",
+    "db:query:local": "wrangler d1 execute portfolio-sql-staging --local --command",
+    "db:query:staging": "wrangler d1 execute portfolio-sql-staging --remote --command",
+    "db:query:prod": "wrangler d1 execute portfolio-sql-prod --remote --command",
+    "db:shell:staging": "wrangler d1 execute portfolio-sql-staging --remote",
+    "db:shell:prod": "wrangler d1 execute portfolio-sql-prod --remote"
   }
 }
 ```
@@ -555,10 +564,10 @@ pnpm db:shell:staging
 **D1**:
 ```bash
 # Export database
-wrangler d1 export portfolio-prod > backup-$(date +%Y%m%d).sql
+wrangler d1 export portfolio-sql-prod > backup-$(date +%Y%m%d).sql
 
 # Restore database
-wrangler d1 execute portfolio-prod --file=backup-20251116.sql
+wrangler d1 execute portfolio-sql-prod --file=backup-20251116.sql
 ```
 
 **R2**:
@@ -574,5 +583,5 @@ wrangler d1 execute portfolio-prod --file=backup-20251116.sql
 ## Related Documents
 
 - [Database Schema Design](../design/database-schema.md)
-- [Phase 1 Execution Plan](../execution-plans/phase-1-execution-plan.md)
 - [Deployment Strategy](./deployment.md)
+- [Resource Setup Checklist](./resource-setup-checklist.md)

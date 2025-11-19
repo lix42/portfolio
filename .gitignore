@@ -103,3 +103,7 @@ supabase/.temp
 
 # Cloudflare
 .wrangler/
+
+# Short-term planning documents
+plan/
+!plan/README.md

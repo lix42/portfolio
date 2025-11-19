@@ -23,7 +23,7 @@ This documentation set describes the migration from Supabase (PostgreSQL + pgvec
 
 ### Core Documents
 
-1. **[High-Level Design](./01-high-level-design.md)**
+1. **[High-Level Design]./cloudflare-migration-high-level.md)**
    - Architecture comparison (current vs target)
    - Component diagram and data flow
    - Key architectural decisions summary
@@ -97,7 +97,7 @@ This documentation set describes the migration from Supabase (PostgreSQL + pgvec
 
 ### For Developers
 
-1. Start with [High-Level Design](./01-high-level-design.md) to understand the architecture
+1. Start with [High-Level Design]./cloudflare-migration-high-level.md) to understand the architecture
 2. Review [Implementation Plan](./02-implementation-plan.md) for timeline and phases
 3. Deep dive into relevant [Design Specifications](#design-specifications) for your work
 4. Check [Operations](./operations/monitoring.md) docs for monitoring and deployment
@@ -110,7 +110,7 @@ This documentation set describes the migration from Supabase (PostgreSQL + pgvec
 
 ### For Reviewers
 
-1. Start with [High-Level Design](./01-high-level-design.md) for context
+1. Start with [High-Level Design]./cloudflare-migration-high-level.md) for context
 2. Focus on specific design specs based on area of expertise
 3. Review embedded decisions in each design spec
 4. Check [Risk Assessment](./operations/risk-assessment.md) for concerns

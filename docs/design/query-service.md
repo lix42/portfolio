@@ -537,7 +537,7 @@ Keep Supabase operational during dual-run phase for easy rollback.
 
 ## Related Documents
 
-- [High-Level Design](../01-high-level-design.md)
+- [High-Level Design](./cloudflare-migration-high-level.md)
 - [Database Schema](./database-schema.md)
 - [Document Processor](./document-processor.md)
 - [Implementation Plan](../02-implementation-plan.md)

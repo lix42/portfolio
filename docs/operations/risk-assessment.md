@@ -278,7 +278,7 @@ This document outlines the risks associated with migrating from Supabase to Clou
 
 ## Related Documents
 
-- [High-Level Design](../01-high-level-design.md)
+- [High-Level Design](./cloudflare-migration-high-level.md)
 - [Implementation Plan](../02-implementation-plan.md)
 - [Deployment Strategy](./deployment.md)
 - [Monitoring & Observability](./monitoring.md)
