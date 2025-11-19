@@ -201,5 +201,5 @@ export class R2Syncer {
 
 ## Related Documents
 
-- [High-Level Design](../01-high-level-design.md)
+- [High-Level Design](./cloudflare-migration-high-level.md)
 - [Implementation Plan](../02-implementation-plan.md)

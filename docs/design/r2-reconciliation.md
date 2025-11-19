@@ -154,5 +154,5 @@ async function reconcileR2Documents(env: Env) {
 ## Related Documents
 
 - [Document Processor](./document-processor.md)
-- [High-Level Design](../01-high-level-design.md)
+- [High-Level Design](./cloudflare-migration-high-level.md)
 - [Monitoring & Observability](../operations/monitoring.md)

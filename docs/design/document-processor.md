@@ -805,7 +805,7 @@ export { DocumentProcessor } from './document-processor';
 
 ## Related Documents
 
-- [High-Level Design](../01-high-level-design.md)
+- [High-Level Design](./cloudflare-migration-high-level.md)
 - [Database Schema](./database-schema.md)
 - [R2 Reconciliation](./r2-reconciliation.md)
 - [Shared Package](./shared-package.md)

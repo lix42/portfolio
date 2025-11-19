@@ -479,7 +479,7 @@ For a typical portfolio with:
 
 ## Related Documents
 
-- [High-Level Design](../01-high-level-design.md)
+- [High-Level Design](./cloudflare-migration-high-level.md)
 - [Document Processor](./document-processor.md) - Uses this schema
 - [Query Service](./query-service.md) - Queries this schema
 - [Implementation Plan](../02-implementation-plan.md) - Migration timeline
