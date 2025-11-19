@@ -41,7 +41,8 @@
     "hono": "^4.9.9",
     "hono-openapi": "^1.1.1",
     "openai": "^6.1.0",
-    "zod": "^3.25.76",
+    "openapi-types": "^12.1.3",
+    "zod": "^4.1.11",
     "zod-openapi": "^4.2.4"
   },
   "devDependencies": {

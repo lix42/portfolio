@@ -1,4 +1,4 @@
-import { apiReference } from '@scalar/hono-api-reference';
+import { Scalar } from '@scalar/hono-api-reference';
 import { WorkerEntrypoint } from 'cloudflare:workers';
 import { Hono } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
@@ -82,12 +82,10 @@ main.get(
 
 // Add interactive API documentation UI
 main.get(
-  '/docs',
-  apiReference({
+  '/scalar',
+  Scalar({
+    url: '/openapi.json',
     theme: 'purple',
-    spec: {
-      url: '/openapi.json',
-    },
   })
 );
 
