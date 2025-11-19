@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { resolve } from 'node:path';
 
 import { Command } from 'commander';
@@ -23,7 +22,7 @@ program
   .option(
     '-d, --documents-path <path>',
     'Path to documents folder',
-    'documents/experiments'
+    '../../documents'
   )
   .option('--dry-run', 'Preview changes without executing', false)
   .option('--delete', 'Allow deletion of files not in local folder', false)

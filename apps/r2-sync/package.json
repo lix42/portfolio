@@ -7,8 +7,8 @@
     "r2-sync": "./dist/cli.js"
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "sync": "node ./dist/cli.js",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
@@ -34,6 +34,7 @@
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^4.0.8",
     "dotenv": "^17.2.3",
+    "tsup": "^8.5.1",
     "typescript": "^5.3.3",
     "vitest": "^4.0.8"
   }
