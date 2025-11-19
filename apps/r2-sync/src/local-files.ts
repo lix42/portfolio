@@ -12,8 +12,11 @@ export interface ScanConfig {
  * List all markdown and JSON files recursively
  */
 export async function listFiles(config: ScanConfig): Promise<LocalFile[]> {
+  // Resolve documentsPath to absolute path for consistent relative path calculation
+  const baseDir = resolve(config.documentsPath);
+
   // Collect all file paths first
-  const filePaths = await collectFilePaths(config.documentsPath);
+  const filePaths = await collectFilePaths(baseDir);
 
   // Hash all files in parallel for better performance
   const files = await Promise.all(
@@ -23,7 +26,7 @@ export async function listFiles(config: ScanConfig): Promise<LocalFile[]> {
       const hash = await computeFileHash(path);
 
       return {
-        path: relative(config.documentsPath, absolutePath),
+        path: relative(baseDir, absolutePath),
         absolutePath,
         hash,
         size: stats.size,
