@@ -82,7 +82,7 @@ echo ""
 
 # 6. Check status
 echo -e "${BLUE}6. Checking processing status...${NC}"
-STATUS_RESULT=$(curl -s http://localhost:8787/status/experiments%2Ftest.md)
+STATUS_RESULT=$(curl -s "http://localhost:8787/status?r2Key=experiments/test.md")
 
 if echo $STATUS_RESULT | jq . 2>/dev/null; then
   echo -e "${GREEN}✓ Status retrieved${NC}"
