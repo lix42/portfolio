@@ -31,22 +31,32 @@ const getHealth: RouteHandler = async (_r: Request, env: Env) => {
   );
 };
 
+const getStub = (r2Key: string | null | undefined, env: Env) => {
+  // Get Durable Object
+  if (!r2Key) {
+    const res = new Response(JSON.stringify({ error: 'r2Key required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return { stub: undefined, res };
+  } else {
+    const id = env.DOCUMENT_PROCESSOR.idFromName(r2Key);
+    const stub = env.DOCUMENT_PROCESSOR.get(id);
+    return { res: undefined, stub };
+  }
+};
+
 // Manual processing trigger: POST /process with JSON body: { "r2Key": "..." }
 const postProcess: RouteHandler = async (request: Request, env: Env) => {
   const body = (await request.json()) as { r2Key: string };
   console.log(`postProcess: ${JSON.stringify(body)}`);
   const r2Key = body.r2Key;
 
-  if (!r2Key) {
-    return new Response(JSON.stringify({ error: 'r2Key required' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
   // Get Durable Object
-  const id = env.DOCUMENT_PROCESSOR.idFromName(r2Key);
-  const stub = env.DOCUMENT_PROCESSOR.get(id);
+  const { res, stub } = getStub(r2Key, env);
+  if (!stub) {
+    return res;
+  }
 
   // Forward request
   // eslint-disable-next-line sonarjs/no-clear-text-protocols
@@ -64,16 +74,11 @@ const getStatus: RouteHandler = async (request: Request, env: Env) => {
   const url = new URL(request.url);
   const r2Key = url.searchParams.get('r2Key');
 
-  if (!r2Key) {
-    return new Response(JSON.stringify({ error: 'r2Key required' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
   // Get Durable Object
-  const id = env.DOCUMENT_PROCESSOR.idFromName(r2Key);
-  const stub = env.DOCUMENT_PROCESSOR.get(id);
+  const { res, stub } = getStub(r2Key, env);
+  if (!stub) {
+    return res;
+  }
 
   // Forward request
   // eslint-disable-next-line sonarjs/no-clear-text-protocols
@@ -88,16 +93,10 @@ const getStatus: RouteHandler = async (request: Request, env: Env) => {
 const postResume: RouteHandler = async (request: Request, env: Env) => {
   const { r2Key } = (await request.json()) as { r2Key: string };
 
-  if (!r2Key) {
-    return new Response(JSON.stringify({ error: 'r2Key required' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  const { res, stub } = getStub(r2Key, env);
+  if (!stub) {
+    return res;
   }
-
-  // Get Durable Object
-  const id = env.DOCUMENT_PROCESSOR.idFromName(r2Key);
-  const stub = env.DOCUMENT_PROCESSOR.get(id);
 
   // Forward request
   // eslint-disable-next-line sonarjs/no-clear-text-protocols
@@ -113,16 +112,10 @@ const postReprocess: RouteHandler = async (request: Request, env: Env) => {
   const body = (await request.json()) as { r2Key: string };
   const r2Key = body.r2Key;
 
-  if (!r2Key) {
-    return new Response(JSON.stringify({ error: 'r2Key required' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  const { res, stub } = getStub(r2Key, env);
+  if (!stub) {
+    return res;
   }
-
-  // Get Durable Object
-  const id = env.DOCUMENT_PROCESSOR.idFromName(r2Key);
-  const stub = env.DOCUMENT_PROCESSOR.get(id);
 
   // Forward request
   // eslint-disable-next-line sonarjs/no-clear-text-protocols
@@ -218,7 +211,7 @@ export default {
 
     try {
       if (handler) {
-        return handler(request, env);
+        return await handler(request, env);
       }
 
       return new Response('Not found', { status: 404 });
