@@ -11,6 +11,7 @@
     "dev": "turbo run dev --parallel --filter=@portfolio/shared --filter=@portfolio/service --filter=@portfolio/ui2",
     "dev:service": "turbo run dev --parallel --filter=@portfolio/shared --filter=@portfolio/service",
     "dev:ui2": "turbo run dev --parallel --filter=@portfolio/shared --filter=@portfolio/ui2",
+    "build:shared": "turbo run build --filter=@portfolio/shared",
     "build:service": "turbo run build --filter=@portfolio/service",
     "build:ui2": "turbo run build --filter=@portfolio/ui2",
     "build:r2": "turbo run build --filter=@portfolio/r2-sync",

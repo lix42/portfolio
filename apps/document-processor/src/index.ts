@@ -11,6 +11,142 @@ import type { ProcessingMessage } from './types';
 
 export { DocumentProcessor };
 
+const getRouteKey = (path: string, method: string): string => {
+  return `${method.toUpperCase()} ${path}`;
+};
+
+type RouteHandler = (request: Request, env: Env) => Promise<Response>;
+
+const getHealth: RouteHandler = async (_r: Request, env: Env) => {
+  return new Response(
+    JSON.stringify({
+      ok: true,
+      service: 'document-processor',
+      version: '1.0.0',
+      environment: env.ENVIRONMENT,
+    }),
+    {
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
+};
+
+const getStub = (r2Key: string | null | undefined, env: Env) => {
+  // Get Durable Object
+  if (!r2Key) {
+    const res = new Response(JSON.stringify({ error: 'r2Key required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return { stub: undefined, res };
+  } else {
+    const id = env.DOCUMENT_PROCESSOR.idFromName(r2Key);
+    const stub = env.DOCUMENT_PROCESSOR.get(id);
+    return { res: undefined, stub };
+  }
+};
+
+// Manual processing trigger: POST /process with JSON body: { "r2Key": "..." }
+const postProcess: RouteHandler = async (request: Request, env: Env) => {
+  const body = (await request.json()) as { r2Key: string };
+  console.log(`postProcess: ${JSON.stringify(body)}`);
+  const r2Key = body.r2Key;
+
+  // Get Durable Object
+  const { res, stub } = getStub(r2Key, env);
+  if (!stub) {
+    return res;
+  }
+
+  // Forward request
+  // eslint-disable-next-line sonarjs/no-clear-text-protocols
+  const response = await stub.fetch('http://internal/process', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ r2Key }),
+  });
+
+  return response;
+};
+
+// Status check: GET /status?r2Key=...
+const getStatus: RouteHandler = async (request: Request, env: Env) => {
+  const url = new URL(request.url);
+  const r2Key = url.searchParams.get('r2Key');
+
+  // Get Durable Object
+  const { res, stub } = getStub(r2Key, env);
+  if (!stub) {
+    return res;
+  }
+
+  // Forward request
+  // eslint-disable-next-line sonarjs/no-clear-text-protocols
+  const response = await stub.fetch('http://internal/status', {
+    method: 'GET',
+  });
+
+  return response;
+};
+
+// Resume processing: POST /resume?r2Key=...
+const postResume: RouteHandler = async (request: Request, env: Env) => {
+  const { r2Key } = (await request.json()) as { r2Key: string };
+
+  const { res, stub } = getStub(r2Key, env);
+  if (!stub) {
+    return res;
+  }
+
+  // Forward request
+  // eslint-disable-next-line sonarjs/no-clear-text-protocols
+  const response = await stub.fetch('http://internal/resume', {
+    method: 'POST',
+  });
+
+  return response;
+};
+
+// Reprocess document: POST /reprocess with JSON body: { "r2Key": "..." }
+const postReprocess: RouteHandler = async (request: Request, env: Env) => {
+  const body = (await request.json()) as { r2Key: string };
+  const r2Key = body.r2Key;
+
+  const { res, stub } = getStub(r2Key, env);
+  if (!stub) {
+    return res;
+  }
+
+  // Forward request
+  // eslint-disable-next-line sonarjs/no-clear-text-protocols
+  const response = await stub.fetch('http://internal/reprocess', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ r2Key }),
+  });
+
+  return response;
+};
+
+const getListR2Keys: RouteHandler = async (_r: Request, env: Env) => {
+  const r2 = env.DOCUMENTS_BUCKET;
+  console.log('Listing R2 keys...');
+  const listed = await r2.list({ limit: 10 });
+  return new Response(JSON.stringify(listed.objects), {
+    headers: { 'Content-Type': 'application/json' },
+  });
+};
+
+const routeHandlers: Record<string, RouteHandler> = {
+  [getRouteKey('/', 'GET')]: getHealth,
+  [getRouteKey('/health', 'GET')]: getHealth,
+  [getRouteKey('/process', 'POST')]: postProcess,
+  [getRouteKey('/status', 'GET')]: getStatus,
+  [getRouteKey('/resume', 'POST')]: postResume,
+  [getRouteKey('/reprocess', 'POST')]: postReprocess,
+  [getRouteKey('/r2-keys', 'GET')]: getListR2Keys,
+};
+
 /**
  * Queue consumer handler
  * Triggered automatically by Cloudflare Queues
@@ -62,7 +198,6 @@ export default {
   /**
    * HTTP fetch handler for manual operations
    */
-  // eslint-disable-next-line sonarjs/cognitive-complexity
   async fetch(
     request: Request,
     env: Env,
@@ -71,94 +206,12 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
+    const routeKey = getRouteKey(path, request.method);
+    const handler = routeHandlers[routeKey];
+
     try {
-      // Health check
-      if (path === '/' || path === '/health') {
-        return new Response(
-          JSON.stringify({
-            ok: true,
-            service: 'document-processor',
-            version: '1.0.0',
-            environment: env.ENVIRONMENT,
-          }),
-          {
-            headers: { 'Content-Type': 'application/json' },
-          }
-        );
-      }
-
-      // Manual processing trigger: POST /process with JSON body: { "r2Key": "..." }
-      if (path === '/process' && request.method === 'POST') {
-        const { r2Key } = (await request.json()) as { r2Key: string };
-
-        if (!r2Key) {
-          return new Response(JSON.stringify({ error: 'r2Key required' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          });
-        }
-
-        // Get Durable Object
-        const id = env.DOCUMENT_PROCESSOR.idFromName(r2Key);
-        const stub = env.DOCUMENT_PROCESSOR.get(id);
-
-        // Forward request
-        // eslint-disable-next-line sonarjs/no-clear-text-protocols
-        const response = await stub.fetch('http://internal/process', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ r2Key }),
-        });
-
-        return response;
-      }
-
-      // Status check: GET /status?r2Key=...
-      if (path === '/status' && request.method === 'GET') {
-        const r2Key = url.searchParams.get('r2Key');
-
-        if (!r2Key) {
-          return new Response(JSON.stringify({ error: 'r2Key required' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          });
-        }
-
-        // Get Durable Object
-        const id = env.DOCUMENT_PROCESSOR.idFromName(r2Key);
-        const stub = env.DOCUMENT_PROCESSOR.get(id);
-
-        // Forward request
-        // eslint-disable-next-line sonarjs/no-clear-text-protocols
-        const response = await stub.fetch('http://internal/status', {
-          method: 'GET',
-        });
-
-        return response;
-      }
-
-      // Resume processing: POST /resume?r2Key=...
-      if (path === '/resume' && request.method === 'POST') {
-        const { r2Key } = (await request.json()) as { r2Key: string };
-
-        if (!r2Key) {
-          return new Response(JSON.stringify({ error: 'r2Key required' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          });
-        }
-
-        // Get Durable Object
-        const id = env.DOCUMENT_PROCESSOR.idFromName(r2Key);
-        const stub = env.DOCUMENT_PROCESSOR.get(id);
-
-        // Forward request
-        // eslint-disable-next-line sonarjs/no-clear-text-protocols
-        const response = await stub.fetch('http://internal/resume', {
-          method: 'POST',
-        });
-
-        return response;
+      if (handler) {
+        return await handler(request, env);
       }
 
       return new Response('Not found', { status: 404 });

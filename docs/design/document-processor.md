@@ -673,15 +673,14 @@ POST /process
 }
 
 Response: {
-  "status": "queued",
-  "message": "Document queued for processing"
+  "ok": true
 }
 ```
 
 ### Get Status
 
 ```typescript
-GET /status/:r2Key
+GET /status?r2Key=experiments/webforms.md
 
 Response: {
   "status": "processing",
@@ -698,16 +697,38 @@ Response: {
 }
 ```
 
-### Retry Failed Job
+### Resume Failed Processing
 
 ```typescript
-POST /retry/:r2Key
+POST /resume
+{
+  "r2Key": "experiments/webforms.md"
+}
 
 Response: {
-  "status": "processing",
-  "message": "Processing restarted"
+  "ok": true
 }
 ```
+
+### Reprocess Document
+
+```typescript
+POST /reprocess
+{
+  "r2Key": "experiments/webforms.md"
+}
+
+Response: {
+  "ok": true
+}
+
+// If document is currently being processed:
+Error Response (500): {
+  "error": "Document is currently being processed. Cannot reprocess until current processing completes."
+}
+```
+
+**Note:** The `/reprocess` endpoint deletes existing D1 records (cascades to chunks) and restarts processing from scratch. Vectorize vectors are automatically overwritten during normal processing via upsert.
 
 ---
 

@@ -12,8 +12,8 @@
     "test:watch": "vitest",
     "build": "$npm_execpath run eslint:check && $npm_execpath run type:check",
     "deploy": "$npm_execpath install && $npm_execpath run build && $npm_execpath run deploy:wrangler",
-    "deploy:staging": "$npm_execpath run deploy -- --env staging",
-    "deploy:prod": "$npm_execpath run deploy -- --env production",
+    "deploy:staging": "$npm_execpath install && $npm_execpath run build && wrangler deploy --minify --env staging",
+    "deploy:prod": "$npm_execpath install && $npm_execpath run build && wrangler deploy --minify --env production",
     "eslint": "$npm_execpath run eslint:check",
     "eslint:check": "eslint .",
     "eslint:fix": "eslint --fix .",
@@ -32,7 +32,7 @@
   "devDependencies": {
     "@types/node": "^22.0.0",
     "typescript": "^5.3.3",
-    "vitest": "^4.0.10",
-    "wrangler": "^4.45.0"
+    "wrangler": "^4.49.0",
+    "vitest": "^4.0.10"
   }
 }

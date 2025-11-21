@@ -1,5 +1,5 @@
 {
-  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "portfolio-document-processor",
   "main": "src/index.ts",
   "compatibility_date": "2025-11-16",
@@ -26,6 +26,7 @@
     {
       "binding": "VECTORIZE",
       "index_name": "portfolio-embeddings-staging",
+      "remote": true,
     },
   ],
 
@@ -33,6 +34,7 @@
     {
       "binding": "DOCUMENTS_BUCKET",
       "bucket_name": "portfolio-documents",
+      // "remote": true
     },
   ],
 
@@ -40,16 +42,16 @@
     "producers": [
       {
         "binding": "PROCESSING_QUEUE",
-        "queue": "portfolio-doc-processing-staging",
+        "queue": "portfolio-doc-processing-local",
       },
     ],
     "consumers": [
       {
-        "queue": "portfolio-doc-processing-staging",
+        "queue": "portfolio-doc-processing-local",
         "max_batch_size": 10,
         "max_batch_timeout": 30,
         "max_retries": 3,
-        "dead_letter_queue": "portfolio-doc-processing-staging-dlq",
+        "dead_letter_queue": "portfolio-doc-processing-local-dlq",
       },
     ],
   },
@@ -64,6 +66,14 @@
       },
     ],
   },
+
+  // Durable Objects migrations
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": ["DocumentProcessor"],
+    },
+  ],
 
   "vars": {
     "ENVIRONMENT": "local",
@@ -112,6 +122,15 @@
           },
         ],
       },
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "DOCUMENT_PROCESSOR",
+            "class_name": "DocumentProcessor",
+            "script_name": "portfolio-document-processor-staging",
+          },
+        ],
+      },
       "vars": {
         "ENVIRONMENT": "staging",
       },
@@ -151,6 +170,15 @@
             "max_batch_timeout": 30,
             "max_retries": 3,
             "dead_letter_queue": "portfolio-doc-processing-prod-dlq",
+          },
+        ],
+      },
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "DOCUMENT_PROCESSOR",
+            "class_name": "DocumentProcessor",
+            "script_name": "portfolio-document-processor-prod",
           },
         ],
       },
