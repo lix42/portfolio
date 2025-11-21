@@ -33,7 +33,7 @@ export function validateDocumentMetadata(data: unknown): {
     return { success: true, data: result.data };
   }
 
-  const errors = result.error.errors.map(
+  const errors = result.error.issues.map(
     (err) => `${err.path.join('.')}: ${err.message}`
   );
 
