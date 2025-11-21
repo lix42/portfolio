@@ -1,4 +1,6 @@
 import OpenAI from 'openai';
+import { zodTextFormat } from 'openai/helpers/zod';
+import { z } from 'zod';
 
 import { mapLimit } from './asyncWorker';
 import { TAG_GENERATION_MODEL } from './constants';
@@ -8,6 +10,10 @@ export interface TagGenerationOptions {
   model?: string;
   apiKey?: string;
 }
+
+const Tags = z.object({
+  tags: z.array(z.string()),
+});
 
 /**
  * Generate tags for a single chunk of content
@@ -19,20 +25,27 @@ export async function generateTags(
 ): Promise<string[]> {
   const openai = instance ?? new OpenAI({ apiKey: options.apiKey });
 
-  const response = await openai.chat.completions.create({
+  const response = await openai.responses.parse({
     model: options.model ?? TAG_GENERATION_MODEL,
-    messages: [
+    input: [
       { role: 'system', content: DEFINE_TAGS_PROMPT },
       {
         role: 'user',
-        content: `Extract 3-5 relevant tags from the following content:\n\n${content}`,
+        content: `Extract 3-5 relevant tags from the following content.
+Response in JSON format, include property "tags", which value is a string array, like this:
+{ tags: ["ownership", "problem solving", "frontend_architecture"] }
+content:
+${content}`,
       },
     ],
     temperature: 0.3, // Lower temperature for more consistent tagging
+    text: {
+      format: zodTextFormat(Tags, 'tags'),
+    },
   });
 
-  const tagsText = response.choices[0]?.message.content;
-  return parseTags(tagsText || '');
+  const tagsText = response.output_parsed?.tags;
+  return tagsText?.filter(Boolean) ?? [];
 }
 
 /**

@@ -69,6 +69,14 @@ export class DocumentProcessor implements DurableObject {
         });
       }
 
+      if (path === '/reprocess' && request.method === 'POST') {
+        const { r2Key } = (await request.json()) as { r2Key: string };
+        await this.reprocessDocument(r2Key);
+        return new Response(JSON.stringify({ ok: true }), {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
       return new Response('Not found', { status: 404 });
     } catch (error) {
       console.error('Durable Object error:', error);
@@ -128,6 +136,73 @@ export class DocumentProcessor implements DurableObject {
    */
   private async resumeProcessing(): Promise<void> {
     await this.executeCurrentStep();
+  }
+
+  /**
+   * Reprocess an existing document
+   * Cleans up existing data and starts fresh processing
+   */
+  private async reprocessDocument(r2Key: string): Promise<void> {
+    if (!r2Key) {
+      throw new Error('r2Key required');
+    }
+
+    // Get existing state
+    const existing = await this.state.storage.get<ProcessingState>('state');
+
+    // Block if currently processing
+    if (existing?.status === 'processing') {
+      throw new Error(
+        'Document is currently being processed. Cannot reprocess until current processing completes.'
+      );
+    }
+
+    // Cleanup existing data from D1 if document was previously stored
+    if (existing?.documentId) {
+      console.log(
+        `[${r2Key}] Cleaning up existing document (ID: ${existing.documentId}) before reprocessing`
+      );
+
+      try {
+        // Delete from D1 (cascades to chunks via foreign key constraint)
+        const result = await this.env.DB.prepare(
+          'DELETE FROM documents WHERE id = ?'
+        )
+          .bind(existing.documentId)
+          .run();
+
+        console.log(
+          `[${r2Key}] Deleted ${result.meta.changes} document record(s) from D1`
+        );
+      } catch (error) {
+        console.error(`[${r2Key}] Failed to cleanup D1 records:`, error);
+        throw new Error(
+          `Failed to cleanup existing data: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+    }
+
+    // Reset to fresh initial state
+    const initialState: ProcessingState = {
+      status: 'processing',
+      r2Key,
+      startedAt: new Date().toISOString(),
+      currentStep: 'download',
+      chunks: [],
+      totalChunks: 0,
+      processedChunks: 0,
+      embeddingBatchIndex: 0,
+      tagsBatchIndex: 0,
+      errors: [],
+      retryCount: 0,
+    };
+
+    await this.state.storage.put('state', initialState);
+
+    console.log(`[${r2Key}] Starting reprocessing from scratch`);
+
+    // Start processing
+    await this.resumeProcessing();
   }
 
   /**
