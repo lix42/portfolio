@@ -1,0 +1,36 @@
+{
+  "name": "@portfolio/r2-reconciliation",
+  "version": "1.0.0",
+  "description": "Self-healing reconciliation worker for R2 documents",
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "$npm_execpath install && $npm_execpath run build && $npm_execpath run deploy:wrangler",
+    "deploy:staging": "$npm_execpath install && $npm_execpath run build && wrangler deploy --minify --env staging",
+    "deploy:prod": "$npm_execpath install && $npm_execpath run build && wrangler deploy --minify --env production",
+    "deploy:wrangler": "wrangler deploy --minify",
+    "build": "$npm_execpath run eslint:check && $npm_execpath run type:check",
+    "cf-typegen": "wrangler types",
+    "type:check": "tsc --noEmit",
+    "type:check:ci": "$npm_execpath run type:check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "$npm_execpath run eslint:check",
+    "lint:check": "$npm_execpath run eslint:check",
+    "lint:fix": "$npm_execpath run eslint:fix",
+    "eslint": "$npm_execpath run eslint:check",
+    "eslint:check": "eslint .",
+    "eslint:fix": "eslint --fix .",
+    "tail": "wrangler tail",
+    "tail:staging": "wrangler tail --env staging",
+    "tail:prod": "wrangler tail --env production"
+  },
+  "devDependencies": {
+    "@portfolio/eslint-config": "workspace:*",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.10",
+    "wrangler": "^4.49.0"
+  }
+}
