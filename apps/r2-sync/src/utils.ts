@@ -49,7 +49,33 @@ export function displayResult(result: SyncResult, options: SyncOptions): void {
   console.log();
 }
 
-export function loadConfig() {
+/**
+ * Environment to R2 bucket name mapping.
+ * Each environment has its own R2 bucket for isolation:
+ * - R2 event notifications are 1:1:1 (bucket → queue → worker)
+ * - Staging and production must use separate buckets
+ */
+const BUCKET_MAP: Record<string, string> = {
+  staging: 'portfolio-documents-staging',
+  production: 'portfolio-documents-prod',
+};
+
+export type R2Environment = 'staging' | 'production';
+
+/**
+ * Get the R2 bucket name for the given environment
+ */
+export function getBucketName(env: R2Environment): string {
+  const bucket = BUCKET_MAP[env];
+  if (!bucket) {
+    throw new Error(
+      `Invalid environment: ${env}. Valid options: ${Object.keys(BUCKET_MAP).join(', ')}`
+    );
+  }
+  return bucket;
+}
+
+export function loadConfig(env?: R2Environment) {
   // Load from environment variables
   const accountId = process.env['CLOUDFLARE_ACCOUNT_ID'];
   const accessKeyId = process.env['R2_ACCESS_KEY_ID'];
@@ -65,10 +91,17 @@ export function loadConfig() {
     );
   }
 
+  // Environment is required - no default bucket
+  if (!env) {
+    throw new Error(
+      'Environment is required. Use --env staging or --env production'
+    );
+  }
+
   return {
     accountId,
     accessKeyId,
     secretAccessKey,
-    bucketName: 'portfolio-documents',
+    bucketName: getBucketName(env),
   };
 }

@@ -1,7 +1,7 @@
 # Cloudflare Resource Setup Checklist
 
 **Current Status**: ✅ Resources created with correct naming convention (2-environment architecture)
-**Last Updated**: November 18, 2025
+**Last Updated**: November 21, 2025
 
 ---
 
@@ -11,12 +11,15 @@
 - D1: `portfolio-sql-{env}` (not `portfolio-{env}`)
 - Vectorize: `portfolio-embeddings-{env}`
 - Queue: `portfolio-doc-processing-{env}`
-- R2: `portfolio-documents` (single shared bucket, no environment suffix)
+- R2: `portfolio-documents-{env}` (per-environment buckets)
 
 ### Environments
 - **staging**: Pre-production testing
 - **production**: Live production
-- **Local development**: Uses local D1 + remote staging resources
+- **Local development**: Uses wrangler's local R2/D1 storage
+
+### Why Per-Environment R2 Buckets?
+R2 event notifications have a 1:1:1 mapping: **R2 bucket → Queue → Worker**. This means each environment needs its own R2 bucket to trigger its own queue and worker.
 
 ---
 
@@ -81,7 +84,8 @@ Vectorize:
   - portfolio-embeddings-prod
 
 R2:
-  - portfolio-documents (shared across all environments)
+  - portfolio-documents-staging (staging environment)
+  - portfolio-documents-prod (production environment)
 
 Queues:
   - portfolio-doc-processing-staging
@@ -94,8 +98,7 @@ Queues:
 ```
 R2:
   - portfolio-documents-dev (not in use)
-  - portfolio-documents-staging (not in use)
-  - portfolio-documents-prod (not in use)
+  - portfolio-documents (old shared bucket, migrate data if needed)
 ```
 
 ---
@@ -104,31 +107,30 @@ R2:
 
 ### Delete Legacy R2 Buckets
 
-The following R2 buckets are no longer needed since we use a single shared bucket:
+The following R2 buckets are no longer needed:
 
 ```bash
-# First, ensure they are empty or migrate data if needed
+# Check if old shared bucket has data to migrate
+wrangler r2 object list portfolio-documents
 wrangler r2 object list portfolio-documents-dev
-wrangler r2 object list portfolio-documents-staging
-wrangler r2 object list portfolio-documents-prod
 
-# If empty or after migrating data to portfolio-documents, delete them:
+# Migrate data from old shared bucket to staging (if needed)
+# Then delete legacy buckets:
 wrangler r2 bucket delete portfolio-documents-dev
-wrangler r2 bucket delete portfolio-documents-staging
-wrangler r2 bucket delete portfolio-documents-prod
+wrangler r2 bucket delete portfolio-documents  # old shared bucket
 ```
 
 ---
 
 ## Local Development Setup
 
-### Confirm: Yes, use staging resources for local dev
+### Local-First Development
 
 When running `wrangler dev`:
 - ✅ D1: Local SQLite (ephemeral, fast)
-- ☁️ R2: Remote bucket (portfolio-documents)
+- ✅ R2: Local storage (wrangler's `.wrangler/state/` directory)
 - ☁️ Vectorize: Remote staging (portfolio-embeddings-staging)
-- ☁️ Queue: Remote staging (portfolio-doc-processing-staging)
+- ☁️ Queue: Local queue (portfolio-doc-processing-local)
 
 ### Setup Steps
 
@@ -152,7 +154,7 @@ See `plan/cloudflare-migration/phase-1-resources.json` for the most up-to-date r
 Current active resources:
 - D1: `portfolio-sql-staging`, `portfolio-sql-prod`
 - Vectorize: `portfolio-embeddings-staging`, `portfolio-embeddings-prod`
-- R2: `portfolio-documents` (shared)
+- R2: `portfolio-documents-staging`, `portfolio-documents-prod`
 - Queues: staging/prod with DLQ variants
 
 ---
@@ -184,11 +186,11 @@ OPENAI_API_KEY (staging and prod - separate keys recommended)
 **Q: Why only 2 environments instead of 3?**
 **A**: Simplified architecture. Local dev uses local D1 + remote staging resources. No need for a separate "dev" environment in the cloud.
 
-**Q: Why a single shared R2 bucket?**
-**A**: Simplifies management and reduces costs. Documents are the same across environments.
+**Q: Why per-environment R2 buckets?**
+**A**: R2 event notifications have a 1:1:1 mapping (bucket → queue → worker). Each environment needs its own bucket to trigger its own processing pipeline.
 
 **Q: Can we rename existing D1 databases?**
 **A**: No, D1 doesn't support renaming. We created new databases with correct names.
 
-**Q: Will local dev work with staging resources?**
-**A**: Yes! `wrangler dev` uses local D1 but remote R2/Vectorize/Queue by default.
+**Q: How does local development work?**
+**A**: `wrangler dev` uses local D1 and R2 storage (in `.wrangler/state/`), remote Vectorize (staging), and local queue. Use `sync-experiments.sh` to populate local R2 with test data.

@@ -379,18 +379,19 @@ Replace Supabase client with Cloudflare bindings (shown above).
 {
   "d1_databases": [{
     "binding": "DB",
-    "database_name": "portfolio-db",
+    "database_name": "portfolio-sql-staging",  // or portfolio-sql-prod
     "database_id": "xxx"
   }],
 
   "vectorize": [{
     "binding": "VECTORIZE",
-    "index_name": "portfolio-embeddings"
+    "index_name": "portfolio-embeddings-staging"  // or portfolio-embeddings-prod
   }],
 
+  // Per-environment R2 buckets (1:1:1 mapping: R2 → Queue → Worker)
   "r2_buckets": [{
     "binding": "DOCUMENTS_BUCKET",
-    "bucket_name": "portfolio-documents"
+    "bucket_name": "portfolio-documents-staging"  // or portfolio-documents-prod
   }]
 }
 ```

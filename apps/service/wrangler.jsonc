@@ -38,10 +38,12 @@
     },
   ],
 
+  // R2: Uses local storage for wrangler dev
+  // Staging and Production have their own R2 buckets configured below
   "r2_buckets": [
     {
       "binding": "DOCUMENTS",
-      "bucket_name": "portfolio-documents",
+      "bucket_name": "portfolio-documents-local",
     },
   ],
 
@@ -69,6 +71,12 @@
           "index_name": "portfolio-embeddings-staging",
         },
       ],
+      "r2_buckets": [
+        {
+          "binding": "DOCUMENTS",
+          "bucket_name": "portfolio-documents-staging",
+        },
+      ],
       "vars": {
         "ENVIRONMENT": "staging",
       },
@@ -86,6 +94,12 @@
         {
           "binding": "VECTORIZE",
           "index_name": "portfolio-embeddings-prod",
+        },
+      ],
+      "r2_buckets": [
+        {
+          "binding": "DOCUMENTS",
+          "bucket_name": "portfolio-documents-prod",
         },
       ],
       "vars": {
