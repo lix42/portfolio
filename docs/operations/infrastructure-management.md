@@ -34,7 +34,8 @@ Actual Resources:
 - portfolio-sql-prod (D1)
 - portfolio-embeddings-staging (Vectorize)
 - portfolio-embeddings-prod (Vectorize)
-- portfolio-documents (R2 - single shared bucket)
+- portfolio-documents-staging (R2)
+- portfolio-documents-prod (R2)
 - portfolio-doc-processing-staging (Queue)
 - portfolio-doc-processing-prod (Queue)
 - portfolio-doc-processing-staging-dlq (Dead Letter Queue)
@@ -293,7 +294,7 @@ pnpm dev
 
   "r2_buckets": [{
     "binding": "DOCUMENTS_BUCKET",
-    "bucket_name": "portfolio-documents"
+    "bucket_name": "portfolio-documents-local"  // Uses wrangler's local storage
   }],
 
   "vectorize": [{
@@ -418,14 +419,16 @@ wrangler vectorize list
 #### R2 Bucket
 
 ```bash
-# Create bucket (single shared bucket for all environments)
-wrangler r2 bucket create portfolio-documents
+# Create buckets (per-environment due to R2 → Queue → Worker 1:1:1 mapping)
+wrangler r2 bucket create portfolio-documents-staging
+wrangler r2 bucket create portfolio-documents-prod
 
 # Verify
 wrangler r2 bucket list
 
-# Existing bucket:
-# - portfolio-documents (shared across all environments)
+# Existing buckets:
+# - portfolio-documents-staging
+# - portfolio-documents-prod
 ```
 
 #### Queue
@@ -470,7 +473,7 @@ wrangler d1 delete portfolio-sql-{environment}
 wrangler vectorize delete portfolio-embeddings-{environment}
 
 # Delete R2 bucket (⚠️ DESTRUCTIVE - must be empty)
-wrangler r2 bucket delete portfolio-documents
+wrangler r2 bucket delete portfolio-documents-{environment}
 
 # Delete queue (⚠️ DESTRUCTIVE)
 wrangler queues delete portfolio-doc-processing-{environment}
@@ -498,7 +501,7 @@ wrangler vectorize query portfolio-embeddings-staging \
   --top-k=5
 
 # List R2 objects
-wrangler r2 object list portfolio-documents --prefix="test-"
+wrangler r2 object list portfolio-documents-staging --prefix="test-"
 
 # Inspect queue
 wrangler queues consumer add portfolio-doc-processing-staging \

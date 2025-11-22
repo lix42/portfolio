@@ -5,13 +5,22 @@ on:
     paths:
       - 'documents/**'
     branches:
-      - main
+      - main # Syncs to staging bucket
+      - prod # Syncs to production bucket
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
 
 jobs:
   sync:
     runs-on: ubuntu-latest
-    name: Sync documents to R2
+    name: Sync documents to R2 (${{ github.ref == 'refs/heads/prod' && 'production' || github.event.inputs.environment || 'staging' }})
 
     steps:
       - name: Checkout code
@@ -34,8 +43,19 @@ jobs:
       - name: Build R2 sync tool
         run: pnpm --filter @portfolio/r2-sync build
 
+      - name: Determine target environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "target=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/prod" ]; then
+            echo "target=production" >> $GITHUB_OUTPUT
+          else
+            echo "target=staging" >> $GITHUB_OUTPUT
+          fi
+
       - name: Sync documents to R2
-        run: pnpm sync:r2 --ci
+        run: pnpm sync:r2 -- --env ${{ steps.env.outputs.target }} --ci
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}

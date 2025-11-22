@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import { R2Client } from './r2-client.js';
 import { sync } from './syncer.js';
 import type { SyncOptions } from './types.js';
-import { displayResult, loadConfig } from './utils.js';
+import { displayResult, loadConfig, type R2Environment } from './utils.js';
 
 // Load environment variables from .env.local (if it exists)
 dotenv.config({ path: '.env.local' });
@@ -19,6 +19,11 @@ program
   .version('1.0.0');
 
 program
+  .option(
+    '-e, --env <environment>',
+    'Target environment (staging or production)',
+    undefined
+  )
   .option(
     '-d, --documents-path <path>',
     'Path to documents folder',
@@ -49,8 +54,16 @@ program
 
 // TODO: use zod to validate CLI options
 async function runSync(cliOptions: any): Promise<void> {
-  // Load configuration
-  const config = loadConfig();
+  // Validate environment option
+  const env = cliOptions.env as R2Environment | undefined;
+  if (env && env !== 'staging' && env !== 'production') {
+    throw new Error(
+      `Invalid environment: ${env}. Valid options: staging, production`
+    );
+  }
+
+  // Load configuration with environment
+  const config = loadConfig(env);
 
   // Resolve documents path (can be relative or absolute)
   const documentsPath = resolve(process.cwd(), cliOptions.documentsPath);

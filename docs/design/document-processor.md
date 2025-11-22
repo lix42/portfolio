@@ -298,33 +298,34 @@ When Workers AI is production-ready:
   "main": "src/index.ts",
   "compatibility_date": "2024-01-01",
 
+  // Per-environment R2 buckets (1:1:1 mapping: R2 → Queue → Worker)
   "r2_buckets": [{
     "binding": "DOCUMENTS_BUCKET",
-    "bucket_name": "portfolio-documents"
+    "bucket_name": "portfolio-documents-staging"  // or portfolio-documents-prod
   }],
 
   "d1_databases": [{
     "binding": "DB",
-    "database_name": "portfolio-db"
+    "database_name": "portfolio-sql-staging"  // or portfolio-sql-prod
   }],
 
   "vectorize": [{
     "binding": "VECTORIZE",
-    "index_name": "portfolio-embeddings"
+    "index_name": "portfolio-embeddings-staging"  // or portfolio-embeddings-prod
   }],
 
   "durable_objects": {
     "bindings": [{
       "name": "DOCUMENT_PROCESSOR",
       "class_name": "DocumentProcessor",
-      "script_name": "document-processor"
+      "script_name": "portfolio-document-processor-staging"
     }]
   },
 
   "queues": {
     "producers": [{
       "binding": "PROCESSING_QUEUE",
-      "queue": "document-processing"
+      "queue": "portfolio-doc-processing-staging"
     }]
   }
 }

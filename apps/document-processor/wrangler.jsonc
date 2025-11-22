@@ -30,11 +30,12 @@
     },
   ],
 
+  // R2: Uses local storage for wrangler dev (no remote bucket needed for local)
+  // Staging and Production have their own R2 buckets configured below
   "r2_buckets": [
     {
       "binding": "DOCUMENTS_BUCKET",
-      "bucket_name": "portfolio-documents",
-      // "remote": true
+      "bucket_name": "portfolio-documents-local",
     },
   ],
 
@@ -102,7 +103,7 @@
       "r2_buckets": [
         {
           "binding": "DOCUMENTS_BUCKET",
-          "bucket_name": "portfolio-documents",
+          "bucket_name": "portfolio-documents-staging",
         },
       ],
       "queues": {
@@ -153,7 +154,7 @@
       "r2_buckets": [
         {
           "binding": "DOCUMENTS_BUCKET",
-          "bucket_name": "portfolio-documents",
+          "bucket_name": "portfolio-documents-prod",
         },
       ],
       "queues": {
