@@ -34,7 +34,7 @@
   "r2_buckets": [
     {
       "binding": "DOCUMENTS_BUCKET",
-      "bucket_name": "portfolio-documents",
+      "bucket_name": "portfolio-documents-staging",
     },
   ],
 
@@ -72,7 +72,7 @@
       "r2_buckets": [
         {
           "binding": "DOCUMENTS_BUCKET",
-          "bucket_name": "portfolio-documents",
+          "bucket_name": "portfolio-documents-staging",
         },
       ],
       "durable_objects": {
@@ -100,7 +100,7 @@
       "r2_buckets": [
         {
           "binding": "DOCUMENTS_BUCKET",
-          "bucket_name": "portfolio-documents",
+          "bucket_name": "portfolio-documents-prod",
         },
       ],
       "durable_objects": {
