@@ -1,0 +1,5 @@
+# No secrets required for this worker
+# All bindings are configured in wrangler.jsonc
+
+# Optional: Override environment for local testing
+# ENVIRONMENT=local
