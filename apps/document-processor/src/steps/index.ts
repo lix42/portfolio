@@ -39,13 +39,17 @@ const PROCESSING_STEPS_CONFIG: Omit<StepRegistration, 'nextStep'>[] = [
  * Last step transitions to 'complete'
  */
 export const PROCESSING_STEPS: StepRegistration[] = [
-  ...PROCESSING_STEPS_CONFIG.map((step, index) => ({
-    ...step,
-    nextStep:
+  ...PROCESSING_STEPS_CONFIG.map((step, index) => {
+    const nextStep =
       index < PROCESSING_STEPS_CONFIG.length - 1
-        ? PROCESSING_STEPS_CONFIG[index + 1]!.name
-        : 'complete',
-  })),
+        ? PROCESSING_STEPS_CONFIG[index + 1]?.name
+        : undefined;
+
+    return {
+      ...step,
+      nextStep: nextStep ?? 'complete',
+    };
+  }),
   {
     name: 'complete',
     handler: stepComplete,

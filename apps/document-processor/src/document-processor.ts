@@ -77,6 +77,13 @@ export class DocumentProcessor implements DurableObject {
         });
       }
 
+      if (path === '/delete' && request.method === 'DELETE') {
+        await this.deleteState();
+        return new Response(JSON.stringify({ ok: true, deleted: true }), {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
       return new Response('Not found', { status: 404 });
     } catch (error) {
       console.error('Durable Object error:', error);
@@ -297,6 +304,13 @@ export class DocumentProcessor implements DurableObject {
     const processingState =
       await this.state.storage.get<ProcessingState>('state');
     return convertStateToStatus(processingState);
+  }
+
+  /**
+   * Delete all state from this Durable Object
+   */
+  private async deleteState(): Promise<void> {
+    await this.state.storage.deleteAll();
   }
 
   /**
