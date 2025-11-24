@@ -67,6 +67,9 @@ importers:
         specifier: ^6.9.1
         version: 6.9.1(ws@8.18.3)(zod@4.1.12)
     devDependencies:
+      '@portfolio/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
       '@types/node':
         specifier: ^22.0.0
         version: 22.18.13

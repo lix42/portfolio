@@ -66,10 +66,20 @@ curl -X POST http://localhost:8787/process \
   -d '{"r2Key": "experiments/test.md"}'
 
 # 4. Check status
-curl "http://localhost:8787/status?r2Key=experiments/test.md"
+curl http://localhost:8787/status?r2key=experiments/test.md
 
-# 5. Reprocess a document (cleans up existing data and restarts)
+# 5. Check stored data
+curl http://localhost:8787/data?r2key=experiments/test.md
+
+
+# 6. Reprocess a document (cleans up existing data and restarts)
 curl -X POST http://localhost:8787/reprocess \
+  -H "Content-Type: application/json" \
+  -d '{"r2Key": "experiments/test.md"}'
+```
+
+# 7. Clean up state
+curl -X DELETE http://localhost:8787/delete \
   -H "Content-Type: application/json" \
   -d '{"r2Key": "experiments/test.md"}'
 ```

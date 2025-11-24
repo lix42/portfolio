@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@portfolio/eslint-config": "workspace:*",
     "typescript": "^5.3.3",
     "wrangler": "^4.49.0",
     "vitest": "^4.0.10"

@@ -69,10 +69,10 @@ const postProcess: RouteHandler = async (request: Request, env: Env) => {
   return response;
 };
 
-// Status check: GET /status?r2Key=...
+// Status check: GET /status?r2key=...
 const getStatus: RouteHandler = async (request: Request, env: Env) => {
   const url = new URL(request.url);
-  const r2Key = url.searchParams.get('r2Key');
+  const r2Key = url.searchParams.get('r2key');
 
   // Get Durable Object
   const { res, stub } = getStub(r2Key, env);
@@ -87,6 +87,91 @@ const getStatus: RouteHandler = async (request: Request, env: Env) => {
   });
 
   return response;
+};
+
+// query data: GET /data?r2key=...
+const getData: RouteHandler = async (request: Request, env: Env) => {
+  const url = new URL(request.url);
+  const r2Key = url.searchParams.get('r2key');
+
+  if (!r2Key) {
+    return new Response(JSON.stringify({ error: 'r2key required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // 1. Query document by r2_key
+  const doc = await env.DB.prepare(
+    'SELECT id, r2_key, project, tags, company_id, created_at FROM documents WHERE r2_key = ?'
+  )
+    .bind(r2Key)
+    .first<{
+      id: number;
+      r2_key: string;
+      project: string;
+      tags: string;
+      company_id: number;
+      created_at: string;
+    }>();
+
+  if (!doc) {
+    return new Response(JSON.stringify({ error: 'Document not found' }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // 2. Query company
+  const company = await env.DB.prepare(
+    'SELECT id, name FROM companies WHERE id = ?'
+  )
+    .bind(doc.company_id)
+    .first<{ id: number; name: string }>();
+
+  // 3. Query chunks
+  const chunksResult = await env.DB.prepare(
+    'SELECT id, content, tags, vectorize_id, created_at FROM chunks WHERE document_id = ? ORDER BY id'
+  )
+    .bind(doc.id)
+    .all<{
+      id: number;
+      content: string;
+      tags: string;
+      vectorize_id: string;
+      created_at: string;
+    }>();
+
+  // 4. Query Vectorize for embeddings
+  const vectorizeIds = chunksResult.results.map((c) => c.vectorize_id);
+  const vectors =
+    vectorizeIds.length > 0 ? await env.VECTORIZE.getByIds(vectorizeIds) : [];
+
+  // 5. Combine and return
+  const response = {
+    document: {
+      id: doc.id,
+      r2Key: doc.r2_key,
+      project: doc.project,
+      tags: JSON.parse(doc.tags || '[]') as string[],
+      company: company ? { id: company.id, name: company.name } : null,
+      createdAt: doc.created_at,
+    },
+    chunks: chunksResult.results.map((chunk) => {
+      const vector = vectors.find((v) => v.id === chunk.vectorize_id);
+      return {
+        id: chunk.id,
+        content: chunk.content,
+        tags: JSON.parse(chunk.tags || '[]') as string[],
+        vectorizeId: chunk.vectorize_id,
+        embedding: vector?.values || null,
+      };
+    }),
+  };
+
+  return new Response(JSON.stringify(response), {
+    headers: { 'Content-Type': 'application/json' },
+  });
 };
 
 // Resume processing: POST /resume?r2Key=...
@@ -132,9 +217,32 @@ const getListR2Keys: RouteHandler = async (_r: Request, env: Env) => {
   const r2 = env.DOCUMENTS_BUCKET;
   console.log('Listing R2 keys...');
   const listed = await r2.list({ limit: 10 });
-  return new Response(JSON.stringify(listed.objects), {
+  const result = listed.objects.map(({ key, size }) => ({
+    key,
+    size,
+  }));
+
+  return new Response(JSON.stringify(result), {
     headers: { 'Content-Type': 'application/json' },
   });
+};
+
+// Delete Durable Object state: DELETE /delete with JSON body: { "r2Key": "..." }
+const deleteDocument: RouteHandler = async (request: Request, env: Env) => {
+  const { r2Key } = (await request.json()) as { r2Key: string };
+
+  const { res, stub } = getStub(r2Key, env);
+  if (!stub) {
+    return res;
+  }
+
+  // Forward request
+  // eslint-disable-next-line sonarjs/no-clear-text-protocols
+  const response = await stub.fetch('http://internal/delete', {
+    method: 'DELETE',
+  });
+
+  return response;
 };
 
 const routeHandlers: Record<string, RouteHandler> = {
@@ -142,8 +250,10 @@ const routeHandlers: Record<string, RouteHandler> = {
   [getRouteKey('/health', 'GET')]: getHealth,
   [getRouteKey('/process', 'POST')]: postProcess,
   [getRouteKey('/status', 'GET')]: getStatus,
+  [getRouteKey('/data', 'GET')]: getData,
   [getRouteKey('/resume', 'POST')]: postResume,
   [getRouteKey('/reprocess', 'POST')]: postReprocess,
+  [getRouteKey('/delete', 'DELETE')]: deleteDocument,
   [getRouteKey('/r2-keys', 'GET')]: getListR2Keys,
 };
 
