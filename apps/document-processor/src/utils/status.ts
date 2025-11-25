@@ -1,10 +1,10 @@
-import type { ProcessingState, ProcessingStatus } from '../types';
+import type { DocumentState, ProcessingStatus } from '../types';
 
 /**
- * Convert ProcessingState to ProcessingStatus (public API format)
+ * Convert DocumentState to ProcessingStatus (public API format)
  */
 export function convertStateToStatus(
-  state: ProcessingState | null | undefined
+  state: DocumentState | null | undefined
 ): ProcessingStatus {
   if (!state) {
     return {
@@ -19,11 +19,6 @@ export function convertStateToStatus(
       timing: {},
     };
   }
-
-  // Calculate processed chunks
-  const processedChunks = state.chunks.filter(
-    (c) => c.status === 'stored'
-  ).length;
 
   const timing: {
     startedAt?: string;
@@ -52,10 +47,10 @@ export function convertStateToStatus(
     currentStep: state.currentStep,
     progress: {
       totalChunks: state.totalChunks,
-      processedChunks,
+      processedChunks: state.processedChunks,
       percentage:
         state.totalChunks > 0
-          ? Math.round((processedChunks / state.totalChunks) * 100)
+          ? Math.round((state.processedChunks / state.totalChunks) * 100)
           : 0,
     },
     errors: state.errors,

@@ -1,10 +1,11 @@
 import { chunkMarkdown } from '@portfolio/shared';
 
-import type { ProcessingChunk, StepContext } from '../types';
+import type { ChunkState, StepContext } from '../types';
 import { extractMetadata, hashContent } from '../utils';
 
 /**
  * Step 1: Download from R2, extract metadata, and chunk
+ * Chunks are saved separately to avoid 128KB storage limit
  */
 export async function stepDownloadAndChunk(
   context: StepContext
@@ -31,7 +32,7 @@ export async function stepDownloadAndChunk(
 
   // Chunk the content
   const chunks = chunkMarkdown(content);
-  const processingChunks: ProcessingChunk[] = chunks.map((chunk) => ({
+  const chunkStates: ChunkState[] = chunks.map((chunk) => ({
     index: chunk.index,
     text: chunk.content,
     tokens: chunk.tokens,
@@ -40,14 +41,15 @@ export async function stepDownloadAndChunk(
     status: 'pending',
   }));
 
-  // Update state
+  // Save chunks separately (avoids 128KB limit per key)
+  await context.chunks.saveChunks(chunkStates);
+
+  // Update document state (metadata only, no content or chunks)
   context.state.metadata = {
     ...metadata,
     contentHash,
   };
-  context.state.content = content;
-  context.state.chunks = processingChunks;
-  context.state.totalChunks = processingChunks.length;
+  context.state.totalChunks = chunkStates.length;
 
   // Transition to next step (auto-advances based on registry)
   await context.next();

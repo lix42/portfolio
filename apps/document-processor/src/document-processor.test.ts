@@ -47,6 +47,18 @@ describe('DocumentProcessor', () => {
         delete: vi.fn(async (key: string) => {
           storage.delete(key);
         }),
+        deleteAll: vi.fn(async () => {
+          storage.clear();
+        }),
+        list: vi.fn(async (options?: { prefix?: string }) => {
+          const result = new Map();
+          for (const [key, value] of storage.entries()) {
+            if (!options?.prefix || key.startsWith(options.prefix)) {
+              result.set(key, value);
+            }
+          }
+          return result;
+        }),
         // biome-ignore lint/suspicious/noExplicitAny: Mock function for testing
         setAlarm: vi.fn(async (_time: number) => {}),
       },
@@ -122,97 +134,14 @@ describe('DocumentProcessor', () => {
     });
 
     it('should return current processing status', async () => {
+      // Store document state (chunks are stored separately now)
       await mockState.storage.put('state', {
         status: 'processing',
         r2Key: 'test.md',
         currentStep: 'embeddings',
         totalChunks: 10,
-        processedChunks: 5,
+        processedChunks: 5, // Now explicitly tracked in state
         errors: [],
-        chunks: [
-          {
-            index: 0,
-            text: 'chunk1',
-            tokens: 100,
-            embedding: null,
-            tags: null,
-            status: 'stored',
-          },
-          {
-            index: 1,
-            text: 'chunk2',
-            tokens: 100,
-            embedding: null,
-            tags: null,
-            status: 'stored',
-          },
-          {
-            index: 2,
-            text: 'chunk3',
-            tokens: 100,
-            embedding: null,
-            tags: null,
-            status: 'stored',
-          },
-          {
-            index: 3,
-            text: 'chunk4',
-            tokens: 100,
-            embedding: null,
-            tags: null,
-            status: 'stored',
-          },
-          {
-            index: 4,
-            text: 'chunk5',
-            tokens: 100,
-            embedding: null,
-            tags: null,
-            status: 'stored',
-          },
-          {
-            index: 5,
-            text: 'chunk6',
-            tokens: 100,
-            embedding: null,
-            tags: null,
-            status: 'pending',
-          },
-          {
-            index: 6,
-            text: 'chunk7',
-            tokens: 100,
-            embedding: null,
-            tags: null,
-            status: 'pending',
-          },
-          {
-            index: 7,
-            text: 'chunk8',
-            tokens: 100,
-            embedding: null,
-            tags: null,
-            status: 'pending',
-          },
-          {
-            index: 8,
-            text: 'chunk9',
-            tokens: 100,
-            embedding: null,
-            tags: null,
-            status: 'pending',
-          },
-          {
-            index: 9,
-            text: 'chunk10',
-            tokens: 100,
-            embedding: null,
-            tags: null,
-            status: 'pending',
-          },
-        ],
-        embeddingBatchIndex: 0,
-        tagsBatchIndex: 0,
         retryCount: 0,
         startedAt: new Date().toISOString(),
       });
