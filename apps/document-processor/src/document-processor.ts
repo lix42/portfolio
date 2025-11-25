@@ -2,12 +2,18 @@ import { MAX_RETRY_ATTEMPTS, RETRY_BACKOFF_MS } from '@portfolio/shared';
 
 import { STEP_HANDLERS, STEP_NEXT } from './steps';
 import type {
+  DocumentState,
   ProcessingError,
-  ProcessingState,
   ProcessingStatus,
   StepContext,
 } from './types';
 import { convertStateToStatus } from './utils';
+import {
+  createChunkStorage,
+  createInitialDocumentState,
+  getDocumentState,
+  saveDocumentState,
+} from './utils/storage';
 
 /**
  * DocumentProcessor Durable Object
@@ -105,7 +111,7 @@ export class DocumentProcessor implements DurableObject {
     }
 
     // Check if already processing
-    const existing = await this.state.storage.get<ProcessingState>('state');
+    const existing = await getDocumentState(this.state.storage);
     if (
       existing &&
       (existing.status === 'processing' || existing.status === 'completed')
@@ -116,22 +122,9 @@ export class DocumentProcessor implements DurableObject {
       return;
     }
 
-    // Initialize state
-    const initialState: ProcessingState = {
-      status: 'processing',
-      r2Key,
-      startedAt: new Date().toISOString(),
-      currentStep: 'download',
-      chunks: [],
-      totalChunks: 0,
-      processedChunks: 0,
-      embeddingBatchIndex: 0,
-      tagsBatchIndex: 0,
-      errors: [],
-      retryCount: 0,
-    };
-
-    await this.state.storage.put('state', initialState);
+    // Initialize document state (chunks stored separately)
+    const initialState = createInitialDocumentState(r2Key);
+    await saveDocumentState(this.state.storage, initialState);
 
     // Start processing via orchestrator
     await this.resumeProcessing();
@@ -155,7 +148,7 @@ export class DocumentProcessor implements DurableObject {
     }
 
     // Get existing state
-    const existing = await this.state.storage.get<ProcessingState>('state');
+    const existing = await getDocumentState(this.state.storage);
 
     // Block if currently processing
     if (existing?.status === 'processing') {
@@ -189,22 +182,12 @@ export class DocumentProcessor implements DurableObject {
       }
     }
 
-    // Reset to fresh initial state
-    const initialState: ProcessingState = {
-      status: 'processing',
-      r2Key,
-      startedAt: new Date().toISOString(),
-      currentStep: 'download',
-      chunks: [],
-      totalChunks: 0,
-      processedChunks: 0,
-      embeddingBatchIndex: 0,
-      tagsBatchIndex: 0,
-      errors: [],
-      retryCount: 0,
-    };
+    // Clear all existing state (document + chunks)
+    await this.state.storage.deleteAll();
 
-    await this.state.storage.put('state', initialState);
+    // Reset to fresh initial state
+    const initialState = createInitialDocumentState(r2Key);
+    await saveDocumentState(this.state.storage, initialState);
 
     console.log(`[${r2Key}] Starting reprocessing from scratch`);
 
@@ -217,26 +200,25 @@ export class DocumentProcessor implements DurableObject {
    * Core of the step-based architecture
    */
   private async executeCurrentStep(): Promise<void> {
-    const processingState =
-      await this.state.storage.get<ProcessingState>('state');
-    if (!processingState) {
+    const documentState = await getDocumentState(this.state.storage);
+    if (!documentState) {
       throw new Error('No processing state found');
     }
 
     // Look up step handler
-    const handler = STEP_HANDLERS.get(processingState.currentStep);
+    const handler = STEP_HANDLERS.get(documentState.currentStep);
     if (!handler) {
-      throw new Error(`Unknown step: ${processingState.currentStep}`);
+      throw new Error(`Unknown step: ${documentState.currentStep}`);
     }
 
     // Prepare context
-    const context = this.createStepContext(processingState);
+    const context = this.createStepContext(documentState);
 
     try {
       // Execute step
       await handler(context);
     } catch (error) {
-      await this.handleError(processingState, error);
+      await this.handleError(documentState, error);
     }
   }
 
@@ -244,17 +226,12 @@ export class DocumentProcessor implements DurableObject {
    * Create context object for step execution
    * Provides all resources and control flow to steps
    */
-  private createStepContext(state: ProcessingState): StepContext {
+  private createStepContext(state: DocumentState): StepContext {
     return {
       state,
 
-      storage: {
-        get: <T>(key: string) => this.state.storage.get<T>(key),
-        put: (key: string, value: unknown) =>
-          this.state.storage.put(key, value),
-        setAlarm: (scheduledTime: number) =>
-          this.state.storage.setAlarm(scheduledTime),
-      },
+      // Chunk storage operations (separate keys per chunk)
+      chunks: createChunkStorage(this.state.storage),
 
       env: {
         DOCUMENTS_BUCKET: this.env.DOCUMENTS_BUCKET,
@@ -284,8 +261,8 @@ export class DocumentProcessor implements DurableObject {
         }
         // If continueCurrentStep is true, keep currentStep unchanged (for batching)
 
-        // Save state
-        await this.state.storage.put('state', state);
+        // Save document state only (chunks saved separately by steps)
+        await saveDocumentState(this.state.storage, state);
 
         // Continue execution
         await this.executeCurrentStep();
@@ -301,9 +278,8 @@ export class DocumentProcessor implements DurableObject {
    * Get current processing status
    */
   private async getStatus(): Promise<ProcessingStatus> {
-    const processingState =
-      await this.state.storage.get<ProcessingState>('state');
-    return convertStateToStatus(processingState);
+    const documentState = await getDocumentState(this.state.storage);
+    return convertStateToStatus(documentState);
   }
 
   /**
@@ -317,43 +293,43 @@ export class DocumentProcessor implements DurableObject {
    * Handle error with retry logic
    */
   private async handleError(
-    processingState: ProcessingState,
+    documentState: DocumentState,
     error: unknown
   ): Promise<void> {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const isRetryable = this.isRetryableError(error);
 
     const processingError: ProcessingError = {
-      step: processingState.currentStep,
+      step: documentState.currentStep,
       error: errorMessage,
       timestamp: new Date().toISOString(),
       retryable: isRetryable,
     };
 
-    processingState.errors.push(processingError);
+    documentState.errors.push(processingError);
 
     // Retry logic
-    if (isRetryable && processingState.retryCount < MAX_RETRY_ATTEMPTS) {
-      processingState.retryCount++;
+    if (isRetryable && documentState.retryCount < MAX_RETRY_ATTEMPTS) {
+      documentState.retryCount++;
       const backoffMs =
-        RETRY_BACKOFF_MS * Math.pow(2, processingState.retryCount);
+        RETRY_BACKOFF_MS * Math.pow(2, documentState.retryCount);
 
       console.log(
-        `[${processingState.r2Key}] Retrying after ${backoffMs}ms (attempt ${processingState.retryCount}/${MAX_RETRY_ATTEMPTS})`
+        `[${documentState.r2Key}] Retrying after ${backoffMs}ms (attempt ${documentState.retryCount}/${MAX_RETRY_ATTEMPTS})`
       );
 
-      await this.state.storage.put('state', processingState);
+      await saveDocumentState(this.state.storage, documentState);
 
       // Schedule retry using alarm
       await this.state.storage.setAlarm(Date.now() + backoffMs);
     } else {
       // Mark as failed
-      processingState.status = 'failed';
-      processingState.failedAt = new Date().toISOString();
-      await this.state.storage.put('state', processingState);
+      documentState.status = 'failed';
+      documentState.failedAt = new Date().toISOString();
+      await saveDocumentState(this.state.storage, documentState);
 
       console.error(
-        `[${processingState.r2Key}] Processing failed permanently:`,
+        `[${documentState.r2Key}] Processing failed permanently:`,
         errorMessage
       );
     }

@@ -1,23 +1,24 @@
-import type { ProcessingState } from '../types';
+import type { ChunkState, DocumentState } from '../types';
 
 /**
  * Insert vectors into Vectorize (idempotent)
  */
 export async function insertIntoVectorize(
-  state: ProcessingState,
+  state: DocumentState,
+  chunks: ChunkState[],
   vectorize: VectorizeIndex
 ): Promise<void> {
-  const vectors = state.chunks
-    .map((chunk, idx) => {
+  const vectors = chunks
+    .map((chunk) => {
       if (!chunk.embedding) {
-        throw new Error(`Chunk ${idx} missing embedding`);
+        throw new Error(`Chunk ${chunk.index} missing embedding`);
       }
       return {
-        id: `${state.r2Key}:${idx}`,
+        id: `${state.r2Key}:${chunk.index}`,
         values: chunk.embedding,
         metadata: {
           r2Key: state.r2Key,
-          chunkIndex: idx,
+          chunkIndex: chunk.index,
           text: chunk.text.substring(0, 500), // Store preview
         },
       };

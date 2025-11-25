@@ -1,10 +1,11 @@
-import type { ProcessingState } from '../types';
+import type { ChunkState, DocumentState } from '../types';
 
 /**
  * Insert document and chunks into D1 (transactional)
  */
 export async function insertIntoD1(
-  state: ProcessingState,
+  state: DocumentState,
+  chunks: ChunkState[],
   db: D1Database,
   getOrCreateCompanyFn: (name: string, db: D1Database) => Promise<number>
 ): Promise<number> {
@@ -33,7 +34,7 @@ export async function insertIntoD1(
   if (state.documentTags) {
     state.documentTags.forEach((tag) => allTags.add(tag));
   }
-  state.chunks.forEach((chunk) => {
+  chunks.forEach((chunk) => {
     chunk.tags?.forEach((tag) => allTags.add(tag));
   });
   const documentTags = JSON.stringify(Array.from(allTags));
@@ -61,9 +62,9 @@ export async function insertIntoD1(
   const documentId = documentResult.id;
 
   // Insert chunks (batch insert)
-  const chunkInserts = state.chunks.map((chunk, index) => {
+  const chunkInserts = chunks.map((chunk) => {
     const tags = chunk.tags ? JSON.stringify(chunk.tags) : '[]';
-    const vectorizeId = `${state.r2Key}:${index}`;
+    const vectorizeId = `${state.r2Key}:${chunk.index}`;
     return db
       .prepare(
         `INSERT INTO chunks (document_id, content, type, tags, vectorize_id, created_at)
@@ -75,13 +76,8 @@ export async function insertIntoD1(
   // Execute all inserts in a batch
   await db.batch(chunkInserts);
 
-  // Mark chunks as stored in the state
-  state.chunks.forEach((chunk) => {
-    chunk.status = 'stored';
-  });
-
   console.log(
-    `[${state.r2Key}] Inserted document ${documentId} with ${state.chunks.length} chunks into D1`
+    `[${state.r2Key}] Inserted document ${documentId} with ${chunks.length} chunks into D1`
   );
 
   return documentId;

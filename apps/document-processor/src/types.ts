@@ -22,7 +22,62 @@ export interface ProcessingDocumentMetadata {
 }
 
 /**
- * Processing state stored in Durable Object
+ * Processing step type
+ */
+export type ProcessingStep =
+  | 'download'
+  | 'embeddings'
+  | 'tags'
+  | 'store'
+  | 'complete';
+
+/**
+ * Document state stored in Durable Object (key: 'state')
+ * Metadata and progress tracking only - chunks stored separately
+ */
+export interface DocumentState {
+  // Status
+  status: 'not_started' | 'processing' | 'completed' | 'failed';
+  r2Key: string;
+  startedAt?: string;
+  completedAt?: string;
+  failedAt?: string;
+
+  // Current execution
+  currentStep: ProcessingStep;
+
+  // Document data (no content - fetch from R2 if needed)
+  metadata?: ProcessingDocumentMetadata;
+  documentTags?: string[];
+
+  // Chunk tracking (chunks stored separately)
+  totalChunks: number;
+  processedChunks: number;
+
+  // Error handling
+  errors: ProcessingError[];
+  retryCount: number;
+
+  // Results
+  documentId?: number;
+}
+
+/**
+ * Chunk state stored in Durable Object (key: 'chunk:{index}')
+ * Each chunk is stored separately to avoid 128KB limit
+ */
+export interface ChunkState {
+  index: number;
+  text: string;
+  tokens: number;
+  embedding: number[] | null;
+  tags: string[] | null;
+  status: 'pending' | 'embedding_done' | 'tags_done' | 'stored';
+}
+
+/**
+ * @deprecated Use DocumentState + ChunkState instead
+ * Kept for backwards compatibility during migration
  */
 export interface ProcessingState {
   // Status
@@ -33,7 +88,7 @@ export interface ProcessingState {
   failedAt?: string;
 
   // Current execution
-  currentStep: 'download' | 'embeddings' | 'tags' | 'store' | 'complete';
+  currentStep: ProcessingStep;
 
   // Document data
   metadata?: ProcessingDocumentMetadata;
@@ -45,10 +100,6 @@ export interface ProcessingState {
   totalChunks: number;
   processedChunks: number;
 
-  // Batch processing indices
-  embeddingBatchIndex: number;
-  tagsBatchIndex: number;
-
   // Error handling
   errors: ProcessingError[];
   retryCount: number;
@@ -58,7 +109,8 @@ export interface ProcessingState {
 }
 
 /**
- * Individual chunk being processed
+ * @deprecated Use ChunkState instead
+ * Kept for backwards compatibility during migration
  */
 export interface ProcessingChunk {
   index: number;
@@ -83,8 +135,8 @@ export interface ProcessingError {
  * Status response for API queries
  */
 export interface ProcessingStatus {
-  status: ProcessingState['status'];
-  currentStep: ProcessingState['currentStep'];
+  status: DocumentState['status'];
+  currentStep: DocumentState['currentStep'];
   progress: {
     totalChunks: number;
     processedChunks: number;
@@ -101,19 +153,26 @@ export interface ProcessingStatus {
 }
 
 /**
+ * Chunk storage operations for step handlers
+ */
+export interface ChunkStorage {
+  getChunk: (index: number) => Promise<ChunkState | undefined>;
+  saveChunk: (chunk: ChunkState) => Promise<void>;
+  saveChunks: (chunks: ChunkState[]) => Promise<void>;
+  getChunksByStatus: (status: ChunkState['status']) => Promise<ChunkState[]>;
+  getAllChunks: () => Promise<ChunkState[]>;
+}
+
+/**
  * Context object passed to each step handler
  * Provides access to all necessary resources and operations
  */
 export interface StepContext {
-  // State management
-  state: ProcessingState;
+  // Document state management (metadata and progress only)
+  state: DocumentState;
 
-  // Storage operations
-  storage: {
-    get: <T>(key: string) => Promise<T | undefined>;
-    put: (key: string, value: unknown) => Promise<void>;
-    setAlarm: (scheduledTime: number) => Promise<void>;
-  };
+  // Chunk storage operations (chunks stored separately)
+  chunks: ChunkStorage;
 
   // Environment bindings
   env: {
@@ -138,8 +197,8 @@ export type StepHandler = (context: StepContext) => Promise<void>;
  * Step registration entry
  */
 export interface StepRegistration {
-  name: ProcessingState['currentStep'];
+  name: ProcessingStep;
   handler: StepHandler;
-  nextStep: ProcessingState['currentStep'];
+  nextStep: ProcessingStep;
   description?: string;
 }
