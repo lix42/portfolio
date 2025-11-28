@@ -8,7 +8,7 @@ export interface ChunkWithTags {
   content: string;
   document_id: number;
   vectorize_id: string;
-  tags: string; // JSON array
+  tags: string[]; // Array of tag names from junction table
   matched_tag_count?: number;
 }
 
@@ -18,7 +18,7 @@ export interface Document {
   company_id: number;
   project: string;
   r2_key: string;
-  tags: string; // JSON array
+  tags: string[]; // Array of tag names from junction table
 }
 
 /**
@@ -43,8 +43,8 @@ export async function getChunksByTags(
         c.content,
         c.document_id,
         c.vectorize_id,
-        c.tags,
-        COUNT(ct.tag_id) as matched_tag_count
+        COUNT(ct.tag_id) as matched_tag_count,
+        GROUP_CONCAT(t.name) as tags
       FROM chunks c
       JOIN chunk_tags ct ON c.id = ct.chunk_id
       JOIN tags t ON ct.tag_id = t.id
@@ -54,9 +54,13 @@ export async function getChunksByTags(
       LIMIT ?`
     )
     .bind(...tagNames, limit)
-    .all<ChunkWithTags>();
+    .all<Omit<ChunkWithTags, 'tags'> & { tags: string }>();
 
-  return result.results || [];
+  // Convert comma-separated tags to array
+  return (result.results || []).map((row) => ({
+    ...row,
+    tags: row.tags ? row.tags.split(',') : [],
+  }));
 }
 
 /**
@@ -70,18 +74,28 @@ export async function getChunkByVectorizeId(
   const result = await db
     .prepare(
       `SELECT
-        id,
-        content,
-        document_id,
-        vectorize_id,
-        tags
-      FROM chunks
-      WHERE vectorize_id = ?`
+        c.id,
+        c.content,
+        c.document_id,
+        c.vectorize_id,
+        GROUP_CONCAT(t.name) as tags
+      FROM chunks c
+      LEFT JOIN chunk_tags ct ON c.id = ct.chunk_id
+      LEFT JOIN tags t ON ct.tag_id = t.id
+      WHERE c.vectorize_id = ?
+      GROUP BY c.id`
     )
     .bind(vectorizeId)
-    .first<ChunkWithTags>();
+    .first<Omit<ChunkWithTags, 'tags'> & { tags: string | null }>();
 
-  return result || null;
+  if (!result) {
+    return null;
+  }
+
+  return {
+    ...result,
+    tags: result.tags ? result.tags.split(',') : [],
+  };
 }
 
 /**
@@ -101,20 +115,26 @@ export async function getChunksByVectorizeIds(
   const result = await db
     .prepare(
       `SELECT
-        id,
-        content,
-        document_id,
-        vectorize_id,
-        tags
-      FROM chunks
-      WHERE vectorize_id IN (${placeholders})`
+        c.id,
+        c.content,
+        c.document_id,
+        c.vectorize_id,
+        GROUP_CONCAT(t.name) as tags
+      FROM chunks c
+      LEFT JOIN chunk_tags ct ON c.id = ct.chunk_id
+      LEFT JOIN tags t ON ct.tag_id = t.id
+      WHERE c.vectorize_id IN (${placeholders})
+      GROUP BY c.id`
     )
     .bind(...vectorizeIds)
-    .all<ChunkWithTags>();
+    .all<Omit<ChunkWithTags, 'tags'> & { tags: string | null }>();
 
   const chunkMap = new Map<string, ChunkWithTags>();
-  result.results?.forEach((chunk) => {
-    chunkMap.set(chunk.vectorize_id, chunk);
+  result.results?.forEach((row) => {
+    chunkMap.set(row.vectorize_id, {
+      ...row,
+      tags: row.tags ? row.tags.split(',') : [],
+    });
   });
 
   return chunkMap;
@@ -131,19 +151,29 @@ export async function getDocumentById(
   const result = await db
     .prepare(
       `SELECT
-        id,
-        content_hash,
-        company_id,
-        project,
-        r2_key,
-        tags
-      FROM documents
-      WHERE id = ?`
+        d.id,
+        d.content_hash,
+        d.company_id,
+        d.project,
+        d.r2_key,
+        GROUP_CONCAT(t.name) as tags
+      FROM documents d
+      LEFT JOIN document_tags dt ON d.id = dt.document_id
+      LEFT JOIN tags t ON dt.tag_id = t.id
+      WHERE d.id = ?
+      GROUP BY d.id`
     )
     .bind(documentId)
-    .first<Document>();
+    .first<Omit<Document, 'tags'> & { tags: string | null }>();
 
-  return result || null;
+  if (!result) {
+    return null;
+  }
+
+  return {
+    ...result,
+    tags: result.tags ? result.tags.split(',') : [],
+  };
 }
 
 /**
