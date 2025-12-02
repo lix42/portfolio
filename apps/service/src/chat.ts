@@ -6,7 +6,6 @@
  * to provide relevant responses from a knowledge base.
  */
 
-import { createClient } from '@supabase/supabase-js';
 import { Hono } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { describeRoute, resolver, validator as zValidator } from 'hono-openapi';
@@ -36,11 +35,11 @@ const app = new Hono<{ Bindings: CloudflareBindings }>();
  *
  * This endpoint processes user chat messages through the following pipeline:
  * 1. Validates the incoming message using Zod schema
- * 2. Initializes OpenAI and Supabase clients
+ * 2. Initializes OpenAI client
  * 3. Generates preprocess and embeddings for the message concurrently
  * 4. Validates the generated tags and embeddings
- * 5. Performs semantic search against the knowledge base
- * 6. Returns the processed results including tags and search matches
+ * 5. Performs semantic search using D1, Vectorize, and R2
+ * 6. Returns the processed results including the answer
  *
  * @route POST /
  * @body { message: string } - The user's chat message
@@ -114,14 +113,6 @@ export const answerQuestion = async (
   // Initialize OpenAI client with API key from environment variables
   const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
-  // Initialize Supabase client with URL and key from environment variables
-  // Configure fetch globally to ensure compatibility with Cloudflare Workers
-  const supabaseClient = createClient(env.SUPABASE_URL, env.SUPABASE_KEY, {
-    global: {
-      fetch: (...args) => fetch(...args),
-    },
-  });
-
   // Process message concurrently: generate tags and create embeddings
   // This improves performance by running both operations in parallel
   const [preprocessResult, embedding] = await Promise.all([
@@ -141,10 +132,11 @@ export const answerQuestion = async (
     return { hasError: true, error: 'Failed to create embedding', code: 500 };
   }
 
+  // Use Cloudflare bindings for D1, Vectorize, and R2
   const { topChunks } = await getContext(
     embedding,
     preprocessResult.tags,
-    supabaseClient
+    env // Pass env instead of supabaseClient
   );
 
   const answer = extractAssistantAnswer(
