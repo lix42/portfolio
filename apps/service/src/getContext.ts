@@ -1,75 +1,139 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
-
-import { EMBEDDING_SCORE_WEIGHT } from './utils/const';
 import {
-  getChunksByEmbedding,
   getChunksByTags,
+  getChunksByVectorizeIds,
   getDocumentById,
-} from './utils/query';
+  queryByEmbedding,
+} from './adapters';
+import { getDocumentContent } from './adapters/r2';
+import { EMBEDDING_SCORE_WEIGHT } from './utils/const';
 
-type Chunk = Readonly<{
-  id: string;
+interface ScoredChunk {
   content: string;
-  document_id: string;
-}>;
+  documentId: number;
+  score: number;
+  vectorizeId: string;
+}
 
+/**
+ * Find the document with the highest total score
+ */
+function findTopDocument(chunkScores: Map<string, ScoredChunk>): number {
+  const documentScores = new Map<number, number>();
+  let topDocumentId = 0;
+  let topDocumentScore = 0;
+
+  for (const chunk of chunkScores.values()) {
+    const currentScore =
+      (documentScores.get(chunk.documentId) || 0) + chunk.score;
+    if (currentScore > topDocumentScore) {
+      topDocumentId = chunk.documentId;
+      topDocumentScore = currentScore;
+    }
+    documentScores.set(chunk.documentId, currentScore);
+  }
+
+  return topDocumentId;
+}
+
+/**
+ * Hybrid context retrieval using D1 and Vectorize
+ *
+ * Strategy:
+ * 1. Query D1 for chunks matching tags (indexed lookup)
+ * 2. Query Vectorize for semantically similar chunks
+ * 3. Combine results with weighted scoring
+ * 4. Return top chunks and optionally full document
+ */
 export const getContext = async (
   embedding: readonly number[],
   tags: readonly string[],
-  supabaseClient: SupabaseClient
-) => {
-  const [embeddingChunksResponse, tagsChunksResponse] = await Promise.all([
-    getChunksByEmbedding(embedding, supabaseClient),
-    getChunksByTags(tags, supabaseClient),
+  env: CloudflareBindings
+): Promise<{ topChunks: string[]; topDocumentContent: string | null }> => {
+  // Execute queries in parallel
+  const [vectorChunks, tagChunks] = await Promise.all([
+    queryByEmbedding(embedding, env.VECTORIZE, 10).then(
+      async (vectorMatches) => {
+        const vectorizeIds = vectorMatches.map((vm) => vm.id);
+        const vectorizeChunkMap = await getChunksByVectorizeIds(
+          vectorizeIds,
+          env.DB
+        );
+        return vectorMatches
+          .filter((vm) => vectorizeChunkMap.has(vm.id))
+          .map((vm) => {
+            return {
+              vectorizeId: vm.id,
+              content: vectorizeChunkMap.get(vm.id)?.content || '',
+              documentId: vectorizeChunkMap.get(vm.id)?.document_id || 0,
+              score: vm.score,
+            };
+          });
+      }
+    ),
+    getChunksByTags(tags, env.DB, 20),
   ]);
 
-  const chunkMap: Record<string, { content: string; document_id: string }> = {};
-  const chunksPoints: { [chunkId: string]: number } = {};
-  const documentPoints: { [documentId: string]: number } = {};
-  let topChunk = '';
-  let topChunkPoint = 0;
-  let topDocumentId = '';
-  let topDocumentPoint = 0;
+  // Score and combine results
+  const chunkScores = new Map<string, ScoredChunk>();
 
-  const calculatePoint =
-    <T extends Chunk>(getPoint: (chunk: T) => number) =>
-    (chunk: T) => {
-      chunkMap[chunk.id] ??= {
-        content: chunk.content,
-        document_id: chunk.document_id,
-      };
-      const chunkPoint = (chunksPoints[chunk.id] ?? 0) + getPoint(chunk);
-      chunksPoints[chunk.id] = chunkPoint;
-      if (chunkPoint > topChunkPoint) {
-        topChunk = chunk.content;
-        topChunkPoint = chunkPoint;
-      }
-      const documentPoint =
-        (documentPoints[chunk.document_id] ?? 0) + getPoint(chunk);
-      documentPoints[chunk.document_id] = documentPoint;
-      if (documentPoint > topDocumentPoint) {
-        topDocumentId = chunk.document_id;
-        topDocumentPoint = documentPoint;
-      }
-    };
-
-  (
-    embeddingChunksResponse.data as Array<Chunk & { similarity: number }>
-  ).forEach(
-    calculatePoint((chunk) => chunk.similarity * EMBEDDING_SCORE_WEIGHT)
-  );
-  (
-    tagsChunksResponse.data as Array<Chunk & { matched_tags: string[] }>
-  ).forEach(calculatePoint((chunk) => chunk.matched_tags.length));
-
-  let topChunks = [topChunk];
-
-  let topDocumentContent: string | null = null;
-  if (topDocumentId) {
-    topDocumentContent = await getDocumentById(topDocumentId, supabaseClient);
-    topChunks = Object.values(chunkMap)
-      .filter((c) => c?.document_id === topDocumentId)
-      .map((c) => c?.content ?? '');
+  // Add scores from vector similarity
+  for (const { vectorizeId, content, documentId, score } of vectorChunks) {
+    chunkScores.set(vectorizeId, {
+      content,
+      documentId,
+      vectorizeId,
+      score: score * EMBEDDING_SCORE_WEIGHT,
+    });
   }
-  return { topChunks, topDocumentContent };
+
+  // Add/boost scores from tag matches
+  for (const chunk of tagChunks) {
+    const existing = chunkScores.get(chunk.vectorize_id);
+    const tagScore = chunk.matched_tag_count || 0;
+
+    if (existing) {
+      existing.score += tagScore;
+    } else {
+      chunkScores.set(chunk.vectorize_id, {
+        content: chunk.content,
+        documentId: chunk.document_id,
+        vectorizeId: chunk.vectorize_id,
+        score: tagScore,
+      });
+    }
+  }
+
+  // Sort by score and get top chunks
+  const rankedChunks = Array.from(chunkScores.values())
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
+
+  // Find document with highest score
+  const topDocumentId = findTopDocument(chunkScores);
+
+  // Fetch full document content from R2 if we have a top document
+  let topDocumentContent: string | null = null;
+  if (topDocumentId > 0) {
+    const document = await getDocumentById(topDocumentId, env.DB);
+    if (document) {
+      topDocumentContent = await getDocumentContent(
+        document.r2_key,
+        env.DOCUMENTS
+      );
+    }
+  }
+
+  // Get chunks from top document
+  const topChunks =
+    topDocumentId > 0
+      ? rankedChunks
+          .filter((c) => c.documentId === topDocumentId)
+          .map((c) => c.content)
+      : rankedChunks.map((c) => c.content);
+
+  return {
+    topChunks:
+      topChunks.length > 0 ? topChunks : [rankedChunks[0]?.content || ''],
+    topDocumentContent,
+  };
 };

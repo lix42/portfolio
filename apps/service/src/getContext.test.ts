@@ -1,471 +1,369 @@
-import type { PostgrestResponse, SupabaseClient } from '@supabase/supabase-js';
-import type { MockedFunction } from 'vitest';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import * as adapters from './adapters';
+import * as r2Adapter from './adapters/r2';
 import { getContext } from './getContext';
-import * as queryModule from './utils/query';
 
-// Mock the query module
-vi.mock('./utils/query', () => ({
-  getChunksByEmbedding: vi.fn(),
+// Mock the adapter modules
+vi.mock('./adapters', () => ({
+  queryByEmbedding: vi.fn(),
   getChunksByTags: vi.fn(),
+  getChunksByVectorizeIds: vi.fn(),
   getDocumentById: vi.fn(),
 }));
 
-describe('getContext', () => {
-  let mockSupabaseClient: SupabaseClient;
-  let mockGetChunksByEmbedding: MockedFunction<
-    typeof queryModule.getChunksByEmbedding
-  >;
-  let mockGetChunksByTags: MockedFunction<typeof queryModule.getChunksByTags>;
-  let mockGetDocumentById: MockedFunction<typeof queryModule.getDocumentById>;
+vi.mock('./adapters/r2', () => ({
+  getDocumentContent: vi.fn(),
+}));
 
-  // Helper function to create proper Supabase response structure
-  const createMockResponse = <T>(data: T[]) =>
-    ({
-      data,
-      error: null,
-      count: null,
-      status: 200,
-      statusText: 'OK',
-    }) satisfies PostgrestResponse<T>;
+describe('getContext with mocked adapters', () => {
+  const mockEnv = {
+    DB: {} as D1Database,
+    VECTORIZE: {} as VectorizeIndex,
+    DOCUMENTS: {} as R2Bucket,
+  } as CloudflareBindings;
 
   beforeEach(() => {
-    // Reset all mocks before each test
     vi.clearAllMocks();
-
-    // Create mock Supabase client
-    mockSupabaseClient = {} as SupabaseClient;
-
-    // Get mocked functions
-    mockGetChunksByEmbedding = vi.mocked(queryModule.getChunksByEmbedding);
-    mockGetChunksByTags = vi.mocked(queryModule.getChunksByTags);
-    mockGetDocumentById = vi.mocked(queryModule.getDocumentById);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  test('successfully processes both embedding and tags chunks and returns context', async () => {
-    // Arrange
-    const embedding = [0.1, 0.2, 0.3];
-    const tags = ['javascript', 'react'];
-
-    const embeddingChunks = [
+  it('should combine vector and tag results with scoring', async () => {
+    // Setup mocks
+    vi.mocked(adapters.queryByEmbedding).mockResolvedValue([
       {
-        id: 'chunk1',
-        content: 'React is a JavaScript library',
-        similarity: 0.8,
-        document_id: 'doc1',
+        id: 'test.md:0',
+        score: 0.9,
+        metadata: {
+          r2Key: 'test.md',
+          chunkIndex: 0,
+          text: 'React component',
+        },
       },
-      {
-        id: 'chunk2',
-        content: 'JavaScript fundamentals',
-        similarity: 0.6,
-        document_id: 'doc1',
-      },
-    ];
-
-    const tagsChunks = [
-      {
-        id: 'chunk3',
-        content: 'Advanced React patterns',
-        matched_tags: ['javascript', 'react'],
-        document_id: 'doc2',
-      },
-      {
-        id: 'chunk1', // Same chunk ID as embedding chunk
-        content: 'React is a JavaScript library',
-        matched_tags: ['react'],
-        document_id: 'doc1',
-      },
-    ];
-
-    const documentContent = 'Full document content for doc1';
-
-    mockGetChunksByEmbedding.mockResolvedValue(
-      createMockResponse(embeddingChunks)
-    );
-    mockGetChunksByTags.mockResolvedValue(createMockResponse(tagsChunks));
-
-    mockGetDocumentById.mockResolvedValue(documentContent);
-
-    // Act
-    const result = await getContext(embedding, tags, mockSupabaseClient);
-
-    // Assert
-    expect(mockGetChunksByEmbedding).toHaveBeenCalledWith(
-      embedding,
-      mockSupabaseClient
-    );
-    expect(mockGetChunksByTags).toHaveBeenCalledWith(tags, mockSupabaseClient);
-    expect(mockGetDocumentById).toHaveBeenCalledWith(
-      'doc1',
-      mockSupabaseClient
-    );
-
-    expect(result.topChunks).toEqual([
-      'React is a JavaScript library',
-      'JavaScript fundamentals',
     ]);
-    expect(result.topDocumentContent).toBe(documentContent);
-  });
 
-  test('handles only embedding chunks (no tags)', async () => {
-    // Arrange
-    const embedding = [0.1, 0.2, 0.3];
-    const tags: string[] = [];
-
-    const embeddingChunks = [
-      {
-        id: 'chunk1',
-        content: 'React is a JavaScript library',
-        similarity: 0.9,
-        document_id: 'doc1',
-      },
-      {
-        id: 'chunk2',
-        content: 'JavaScript fundamentals',
-        similarity: 0.7,
-        document_id: 'doc2',
-      },
-    ];
-
-    const documentContent = 'Full document content for doc1';
-
-    mockGetChunksByEmbedding.mockResolvedValue(
-      createMockResponse(embeddingChunks)
+    vi.mocked(adapters.getChunksByVectorizeIds).mockResolvedValue(
+      new Map([
+        [
+          'test.md:0',
+          {
+            id: 1,
+            content: 'React component example',
+            document_id: 1,
+            vectorize_id: 'test.md:0',
+            tags: ['react'],
+          },
+        ],
+      ])
     );
-    mockGetChunksByTags.mockResolvedValue(createMockResponse([]));
 
-    mockGetDocumentById.mockResolvedValue(documentContent);
+    vi.mocked(adapters.getChunksByTags).mockResolvedValue([
+      {
+        id: 1,
+        content: 'React component example',
+        document_id: 1,
+        vectorize_id: 'test.md:0',
+        tags: ['react'],
+        matched_tag_count: 1,
+      },
+    ]);
 
-    // Act
-    const result = await getContext(embedding, tags, mockSupabaseClient);
+    vi.mocked(adapters.getDocumentById).mockResolvedValue({
+      id: 1,
+      content_hash: 'hash123',
+      company_id: 1,
+      project: 'test-project',
+      r2_key: 'test.md',
+      tags: ['react'],
+    });
+
+    vi.mocked(r2Adapter.getDocumentContent).mockResolvedValue(
+      'Full document content'
+    );
+
+    // Execute
+    const result = await getContext([0.1, 0.2, 0.3], ['react'], mockEnv);
 
     // Assert
-    expect(mockGetChunksByEmbedding).toHaveBeenCalledWith(
-      embedding,
-      mockSupabaseClient
+    expect(result.topChunks).toEqual(['React component example']);
+    expect(result.topDocumentContent).toBe('Full document content');
+    expect(adapters.queryByEmbedding).toHaveBeenCalledWith(
+      [0.1, 0.2, 0.3],
+      mockEnv.VECTORIZE,
+      10
     );
-    expect(mockGetChunksByTags).toHaveBeenCalledWith(tags, mockSupabaseClient);
-    expect(mockGetDocumentById).toHaveBeenCalledWith(
-      'doc1',
-      mockSupabaseClient
+    expect(adapters.getChunksByTags).toHaveBeenCalledWith(
+      ['react'],
+      mockEnv.DB,
+      20
     );
-
-    expect(result.topChunks).toEqual(['React is a JavaScript library']);
-    expect(result.topDocumentContent).toBe(documentContent);
   });
 
-  test('handles only tags chunks (no embedding)', async () => {
-    // Arrange
-    const embedding: number[] = [];
-    const tags = ['javascript', 'react'];
-
-    const tagsChunks = [
+  it('should handle empty tag results', async () => {
+    vi.mocked(adapters.queryByEmbedding).mockResolvedValue([
       {
-        id: 'chunk1',
-        content: 'React is a JavaScript library',
-        matched_tags: ['javascript', 'react'],
-        document_id: 'doc1',
+        id: 'test.md:0',
+        score: 0.8,
+        metadata: {
+          r2Key: 'test.md',
+          chunkIndex: 0,
+          text: 'Test content',
+        },
       },
-      {
-        id: 'chunk2',
-        content: 'JavaScript fundamentals',
-        matched_tags: ['javascript'],
-        document_id: 'doc2',
-      },
-    ];
+    ]);
 
-    const documentContent = 'Full document content for doc1';
-
-    mockGetChunksByEmbedding.mockResolvedValue(createMockResponse([]));
-    mockGetChunksByTags.mockResolvedValue(createMockResponse(tagsChunks));
-
-    mockGetDocumentById.mockResolvedValue(documentContent);
-
-    // Act
-    const result = await getContext(embedding, tags, mockSupabaseClient);
-
-    // Assert
-    expect(mockGetChunksByEmbedding).toHaveBeenCalledWith(
-      embedding,
-      mockSupabaseClient
-    );
-    expect(mockGetChunksByTags).toHaveBeenCalledWith(tags, mockSupabaseClient);
-    expect(mockGetDocumentById).toHaveBeenCalledWith(
-      'doc1',
-      mockSupabaseClient
+    vi.mocked(adapters.getChunksByVectorizeIds).mockResolvedValue(
+      new Map([
+        [
+          'test.md:0',
+          {
+            id: 1,
+            content: 'Test content',
+            document_id: 1,
+            vectorize_id: 'test.md:0',
+            tags: [],
+          },
+        ],
+      ])
     );
 
-    expect(result.topChunks).toEqual(['React is a JavaScript library']);
-    expect(result.topDocumentContent).toBe(documentContent);
+    vi.mocked(adapters.getChunksByTags).mockResolvedValue([]);
+
+    vi.mocked(adapters.getDocumentById).mockResolvedValue({
+      id: 1,
+      content_hash: 'hash123',
+      company_id: 1,
+      project: 'test-project',
+      r2_key: 'test.md',
+      tags: [],
+    });
+
+    vi.mocked(r2Adapter.getDocumentContent).mockResolvedValue(
+      'Document content'
+    );
+
+    const result = await getContext([0.1, 0.2, 0.3], [], mockEnv);
+
+    expect(result.topChunks).toEqual(['Test content']);
+    expect(result.topDocumentContent).toBe('Document content');
   });
 
-  test('handles empty responses from both queries', async () => {
-    // Arrange
-    const embedding = [0.1, 0.2, 0.3];
-    const tags = ['javascript'];
+  it('should handle empty vector results', async () => {
+    vi.mocked(adapters.queryByEmbedding).mockResolvedValue([]);
 
-    mockGetChunksByEmbedding.mockResolvedValue(createMockResponse([]));
-    mockGetChunksByTags.mockResolvedValue(createMockResponse([]));
+    vi.mocked(adapters.getChunksByVectorizeIds).mockResolvedValue(new Map());
 
-    // Act
-    const result = await getContext(embedding, tags, mockSupabaseClient);
+    vi.mocked(adapters.getChunksByTags).mockResolvedValue([
+      {
+        id: 1,
+        content: 'Tag-based result',
+        document_id: 1,
+        vectorize_id: 'test.md:0',
+        tags: ['react'],
+        matched_tag_count: 1,
+      },
+    ]);
 
-    // Assert
-    expect(mockGetChunksByEmbedding).toHaveBeenCalledWith(
-      embedding,
-      mockSupabaseClient
+    vi.mocked(adapters.getDocumentById).mockResolvedValue({
+      id: 1,
+      content_hash: 'hash123',
+      company_id: 1,
+      project: 'test-project',
+      r2_key: 'test.md',
+      tags: ['react'],
+    });
+
+    vi.mocked(r2Adapter.getDocumentContent).mockResolvedValue(
+      'Document content'
     );
-    expect(mockGetChunksByTags).toHaveBeenCalledWith(tags, mockSupabaseClient);
-    expect(mockGetDocumentById).not.toHaveBeenCalled();
+
+    const result = await getContext([0.1, 0.2, 0.3], ['react'], mockEnv);
+
+    expect(result.topChunks).toEqual(['Tag-based result']);
+    expect(result.topDocumentContent).toBe('Document content');
+  });
+
+  it('should boost scores for chunks matching both vector and tags', async () => {
+    const sharedChunkId = 'test.md:0';
+
+    vi.mocked(adapters.queryByEmbedding).mockResolvedValue([
+      {
+        id: sharedChunkId,
+        score: 0.5, // 0.5 * 10 (EMBEDDING_SCORE_WEIGHT) = 5
+        metadata: {
+          r2Key: 'test.md',
+          chunkIndex: 0,
+          text: 'React',
+        },
+      },
+    ]);
+
+    vi.mocked(adapters.getChunksByVectorizeIds).mockResolvedValue(
+      new Map([
+        [
+          sharedChunkId,
+          {
+            id: 1,
+            content: 'React hooks guide',
+            document_id: 1,
+            vectorize_id: sharedChunkId,
+            tags: ['react'],
+          },
+        ],
+      ])
+    );
+
+    vi.mocked(adapters.getChunksByTags).mockResolvedValue([
+      {
+        id: 1,
+        content: 'React hooks guide',
+        document_id: 1,
+        vectorize_id: sharedChunkId,
+        tags: ['react'],
+        matched_tag_count: 2, // Tag score: 2
+      },
+    ]);
+
+    vi.mocked(adapters.getDocumentById).mockResolvedValue({
+      id: 1,
+      content_hash: 'hash123',
+      company_id: 1,
+      project: 'test-project',
+      r2_key: 'test.md',
+      tags: ['react'],
+    });
+
+    vi.mocked(r2Adapter.getDocumentContent).mockResolvedValue('Full content');
+
+    const result = await getContext([0.1, 0.2], ['react'], mockEnv);
+
+    // Should have combined score (5 from vector + 2 from tags = 7)
+    expect(result.topChunks).toEqual(['React hooks guide']);
+    expect(result.topDocumentContent).toBe('Full content');
+  });
+
+  it('should return empty string when no results found', async () => {
+    vi.mocked(adapters.queryByEmbedding).mockResolvedValue([]);
+    vi.mocked(adapters.getChunksByVectorizeIds).mockResolvedValue(new Map());
+    vi.mocked(adapters.getChunksByTags).mockResolvedValue([]);
+
+    const result = await getContext([0.1, 0.2, 0.3], ['nonexistent'], mockEnv);
 
     expect(result.topChunks).toEqual(['']);
     expect(result.topDocumentContent).toBeNull();
   });
 
-  test('correctly calculates scoring for chunks and documents', async () => {
-    // Arrange
-    const embedding = [0.1, 0.2, 0.3];
-    const tags = ['javascript'];
-
-    const embeddingChunks = [
+  it('should filter chunks by top document', async () => {
+    vi.mocked(adapters.queryByEmbedding).mockResolvedValue([
       {
-        id: 'chunk1',
-        content: 'React is a JavaScript library',
-        similarity: 0.5, // 0.5 * 10 = 5 points
-        document_id: 'doc1',
-      },
-    ];
-
-    const tagsChunks = [
-      {
-        id: 'chunk1', // Same chunk, should add points
-        content: 'React is a JavaScript library',
-        matched_tags: ['javascript', 'react'], // 2 points
-        document_id: 'doc1',
+        id: 'doc1.md:0',
+        score: 0.9, // 9 points
+        metadata: { r2Key: 'doc1.md', chunkIndex: 0, text: 'Doc1 chunk1' },
       },
       {
-        id: 'chunk2',
-        content: 'Another chunk',
-        matched_tags: ['javascript'], // 1 point
-        document_id: 'doc2',
+        id: 'doc2.md:0',
+        score: 0.3, // 3 points
+        metadata: { r2Key: 'doc2.md', chunkIndex: 0, text: 'Doc2 chunk1' },
       },
-    ];
-
-    const documentContent = 'Full document content for doc1';
-
-    mockGetChunksByEmbedding.mockResolvedValue(
-      createMockResponse(embeddingChunks)
-    );
-    mockGetChunksByTags.mockResolvedValue(createMockResponse(tagsChunks));
-
-    mockGetDocumentById.mockResolvedValue(documentContent);
-
-    // Act
-    const result = await getContext(embedding, tags, mockSupabaseClient);
-
-    // Assert
-    // chunk1 should have 5 (embedding) + 2 (tags) = 7 points
-    // chunk2 should have 1 (tags) point
-    // doc1 should have 5 (embedding) + 2 (tags) = 7 points
-    // doc2 should have 1 (tags) point
-    // So doc1 should be the top document
-    expect(mockGetDocumentById).toHaveBeenCalledWith(
-      'doc1',
-      mockSupabaseClient
-    );
-    expect(result.topChunks).toEqual(['React is a JavaScript library']);
-    expect(result.topDocumentContent).toBe(documentContent);
-  });
-
-  test('filters chunks correctly by top document ID', async () => {
-    // Arrange
-    const embedding = [0.1, 0.2, 0.3];
-    const tags = ['javascript'];
-
-    const embeddingChunks = [
-      {
-        id: 'chunk1',
-        content: 'Document 1 chunk 1',
-        similarity: 0.9, // High similarity, should make doc1 the top document
-        document_id: 'doc1',
-      },
-      {
-        id: 'chunk2',
-        content: 'Document 2 chunk 1',
-        similarity: 0.3,
-        document_id: 'doc2',
-      },
-    ];
-
-    const tagsChunks = [
-      {
-        id: 'chunk3',
-        content: 'Document 1 chunk 2',
-        matched_tags: ['javascript'],
-        document_id: 'doc1',
-      },
-      {
-        id: 'chunk4',
-        content: 'Document 2 chunk 2',
-        matched_tags: ['javascript'],
-        document_id: 'doc2',
-      },
-    ];
-
-    const documentContent = 'Full document content for doc1';
-
-    mockGetChunksByEmbedding.mockResolvedValue(
-      createMockResponse(embeddingChunks)
-    );
-    mockGetChunksByTags.mockResolvedValue(createMockResponse(tagsChunks));
-
-    mockGetDocumentById.mockResolvedValue(documentContent);
-
-    // Act
-    const result = await getContext(embedding, tags, mockSupabaseClient);
-
-    // Assert
-    // doc1 should be the top document due to high similarity (0.9 * 10 = 9 points)
-    // Only chunks from doc1 should be returned
-    expect(mockGetDocumentById).toHaveBeenCalledWith(
-      'doc1',
-      mockSupabaseClient
-    );
-    expect(result.topChunks).toEqual([
-      'Document 1 chunk 1',
-      'Document 1 chunk 2',
     ]);
-    expect(result.topDocumentContent).toBe(documentContent);
+
+    vi.mocked(adapters.getChunksByVectorizeIds).mockResolvedValue(
+      new Map([
+        [
+          'doc1.md:0',
+          {
+            id: 1,
+            content: 'Doc1 chunk1',
+            document_id: 1,
+            vectorize_id: 'doc1.md:0',
+            tags: ['react'],
+          },
+        ],
+        [
+          'doc2.md:0',
+          {
+            id: 3,
+            content: 'Doc2 chunk1',
+            document_id: 2,
+            vectorize_id: 'doc2.md:0',
+            tags: ['typescript'],
+          },
+        ],
+      ])
+    );
+
+    vi.mocked(adapters.getChunksByTags).mockResolvedValue([
+      {
+        id: 2,
+        content: 'Doc1 chunk2',
+        document_id: 1,
+        vectorize_id: 'doc1.md:1',
+        tags: ['react'],
+        matched_tag_count: 1,
+      },
+    ]);
+
+    vi.mocked(adapters.getDocumentById).mockResolvedValue({
+      id: 1,
+      content_hash: 'hash123',
+      company_id: 1,
+      project: 'doc1',
+      r2_key: 'doc1.md',
+      tags: ['react'],
+    });
+
+    vi.mocked(r2Adapter.getDocumentContent).mockResolvedValue('Doc1 content');
+
+    const result = await getContext([0.1, 0.2], ['react'], mockEnv);
+
+    // Should only return chunks from document 1 (highest score)
+    expect(result.topChunks).toEqual(['Doc1 chunk1', 'Doc1 chunk2']);
+    expect(result.topDocumentContent).toBe('Doc1 content');
   });
 
-  test('handles document retrieval returning null', async () => {
-    // Arrange
-    const embedding = [0.1, 0.2, 0.3];
-    const tags: string[] = [];
-
-    const embeddingChunks = [
+  it('should handle null document content gracefully', async () => {
+    vi.mocked(adapters.queryByEmbedding).mockResolvedValue([
       {
-        id: 'chunk1',
-        content: 'React is a JavaScript library',
-        similarity: 0.8,
-        document_id: 'doc1',
+        id: 'test.md:0',
+        score: 0.8,
+        metadata: { r2Key: 'test.md', chunkIndex: 0, text: 'Content' },
       },
-    ];
+    ]);
 
-    mockGetChunksByEmbedding.mockResolvedValue(
-      createMockResponse(embeddingChunks)
+    vi.mocked(adapters.getChunksByVectorizeIds).mockResolvedValue(
+      new Map([
+        [
+          'test.md:0',
+          {
+            id: 1,
+            content: 'Content',
+            document_id: 1,
+            vectorize_id: 'test.md:0',
+            tags: [],
+          },
+        ],
+      ])
     );
-    mockGetChunksByTags.mockResolvedValue(createMockResponse([]));
 
-    mockGetDocumentById.mockResolvedValue(null);
+    vi.mocked(adapters.getChunksByTags).mockResolvedValue([]);
 
-    // Act
-    const result = await getContext(embedding, tags, mockSupabaseClient);
+    vi.mocked(adapters.getDocumentById).mockResolvedValue({
+      id: 1,
+      content_hash: 'hash123',
+      company_id: 1,
+      project: 'test',
+      r2_key: 'test.md',
+      tags: [],
+    });
 
-    // Assert
-    expect(mockGetDocumentById).toHaveBeenCalledWith(
-      'doc1',
-      mockSupabaseClient
-    );
-    expect(result.topChunks).toEqual(['React is a JavaScript library']);
+    vi.mocked(r2Adapter.getDocumentContent).mockResolvedValue(null);
+
+    const result = await getContext([0.1, 0.2], [], mockEnv);
+
+    expect(result.topChunks).toEqual(['Content']);
     expect(result.topDocumentContent).toBeNull();
-  });
-
-  test('handles chunks with undefined content gracefully', async () => {
-    // Arrange
-    const embedding = [0.1, 0.2, 0.3];
-    const tags: string[] = [];
-
-    const embeddingChunks = [
-      {
-        id: 'chunk1',
-        content: 'Valid content',
-        similarity: 0.8,
-        document_id: 'doc1',
-      },
-    ];
-
-    const tagsChunks = [
-      {
-        id: 'chunk2',
-        content: undefined as unknown as string, // Simulate undefined content
-        matched_tags: ['javascript'],
-        document_id: 'doc1',
-      },
-    ];
-
-    const documentContent = 'Full document content for doc1';
-
-    mockGetChunksByEmbedding.mockResolvedValue(
-      createMockResponse(embeddingChunks)
-    );
-    mockGetChunksByTags.mockResolvedValue(createMockResponse(tagsChunks));
-
-    mockGetDocumentById.mockResolvedValue(documentContent);
-
-    // Act
-    const result = await getContext(embedding, tags, mockSupabaseClient);
-
-    // Assert
-    expect(result.topChunks).toEqual([
-      'Valid content',
-      '', // undefined content should be converted to empty string
-    ]);
-    expect(result.topDocumentContent).toBe(documentContent);
-  });
-
-  test('handles multiple chunks with same document ID correctly', async () => {
-    // Arrange
-    const embedding = [0.1, 0.2, 0.3];
-    const tags = ['javascript'];
-
-    const embeddingChunks = [
-      {
-        id: 'chunk1',
-        content: 'First chunk from doc1',
-        similarity: 0.8,
-        document_id: 'doc1',
-      },
-      {
-        id: 'chunk2',
-        content: 'Second chunk from doc1',
-        similarity: 0.6,
-        document_id: 'doc1',
-      },
-    ];
-
-    const tagsChunks = [
-      {
-        id: 'chunk3',
-        content: 'Third chunk from doc1',
-        matched_tags: ['javascript'],
-        document_id: 'doc1',
-      },
-    ];
-
-    const documentContent = 'Full document content for doc1';
-
-    mockGetChunksByEmbedding.mockResolvedValue(
-      createMockResponse(embeddingChunks)
-    );
-    mockGetChunksByTags.mockResolvedValue(createMockResponse(tagsChunks));
-
-    mockGetDocumentById.mockResolvedValue(documentContent);
-
-    // Act
-    const result = await getContext(embedding, tags, mockSupabaseClient);
-
-    // Assert
-    expect(result.topChunks).toEqual([
-      'First chunk from doc1',
-      'Second chunk from doc1',
-      'Third chunk from doc1',
-    ]);
-    expect(result.topDocumentContent).toBe(documentContent);
   });
 });

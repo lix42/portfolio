@@ -58,23 +58,29 @@
   "env": {
     "staging": {
       "name": "chat-service-staging",
+      "version_metadata": {
+        "binding": "CF_VERSION_METADATA",
+      },
       "d1_databases": [
         {
           "binding": "DB",
           "database_name": "portfolio-sql-staging",
-          "database_id": "f87dc2f0-b2c3-4179-a0e9-f10beb004cdb",
+          "database_id": "b287f8a6-1760-4092-8f2f-3f3f453cfe4f",
+          "remote": true,
         },
       ],
       "vectorize": [
         {
           "binding": "VECTORIZE",
           "index_name": "portfolio-embeddings-staging",
+          "remote": true,
         },
       ],
       "r2_buckets": [
         {
           "binding": "DOCUMENTS",
           "bucket_name": "portfolio-documents-staging",
+          "remote": true,
         },
       ],
       "vars": {
@@ -83,6 +89,9 @@
     },
     "production": {
       "name": "chat-service-prod",
+      "version_metadata": {
+        "binding": "CF_VERSION_METADATA",
+      },
       "d1_databases": [
         {
           "binding": "DB",

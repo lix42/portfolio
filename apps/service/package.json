@@ -17,7 +17,7 @@
     }
   },
   "scripts": {
-    "dev": "wrangler dev --port 5173",
+    "dev": "wrangler dev -e staging --port 5000",
     "lint": "$npm_execpath run eslint:check",
     "lint:fix": "$npm_execpath run eslint:fix",
     "test": "vitest run --coverage",
@@ -37,7 +37,6 @@
     "@hono/standard-validator": "^0.1.5",
     "@portfolio/shared": "workspace:*",
     "@scalar/hono-api-reference": "^0.9.24",
-    "@supabase/supabase-js": "^2.58.0",
     "hono": "^4.9.9",
     "hono-openapi": "^1.1.1",
     "openai": "^6.1.0",

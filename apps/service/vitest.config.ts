@@ -19,10 +19,5 @@ export default defineWorkersConfig({
         wrangler: { configPath: './wrangler.jsonc' },
       },
     },
-    server: {
-      deps: {
-        inline: [/^@supabase\//],
-      },
-    },
   },
 });
