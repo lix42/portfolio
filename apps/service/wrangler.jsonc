@@ -66,18 +66,21 @@
           "binding": "DB",
           "database_name": "portfolio-sql-staging",
           "database_id": "b287f8a6-1760-4092-8f2f-3f3f453cfe4f",
+          "remote": true,
         },
       ],
       "vectorize": [
         {
           "binding": "VECTORIZE",
           "index_name": "portfolio-embeddings-staging",
+          "remote": true,
         },
       ],
       "r2_buckets": [
         {
           "binding": "DOCUMENTS",
           "bucket_name": "portfolio-documents-staging",
+          "remote": true,
         },
       ],
       "vars": {

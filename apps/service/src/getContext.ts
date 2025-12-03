@@ -1,6 +1,6 @@
 import {
-  getChunkByVectorizeId,
   getChunksByTags,
+  getChunksByVectorizeIds,
   getDocumentById,
   queryByEmbedding,
 } from './adapters';
@@ -9,9 +9,9 @@ import { EMBEDDING_SCORE_WEIGHT } from './utils/const';
 
 interface ScoredChunk {
   content: string;
-  document_id: number;
+  documentId: number;
   score: number;
-  vectorize_id: string;
+  vectorizeId: string;
 }
 
 /**
@@ -19,20 +19,17 @@ interface ScoredChunk {
  */
 function findTopDocument(chunkScores: Map<string, ScoredChunk>): number {
   const documentScores = new Map<number, number>();
-
-  for (const chunk of chunkScores.values()) {
-    const currentScore = documentScores.get(chunk.document_id) || 0;
-    documentScores.set(chunk.document_id, currentScore + chunk.score);
-  }
-
   let topDocumentId = 0;
   let topDocumentScore = 0;
 
-  for (const [docId, score] of documentScores.entries()) {
-    if (score > topDocumentScore) {
-      topDocumentId = docId;
-      topDocumentScore = score;
+  for (const chunk of chunkScores.values()) {
+    const currentScore =
+      (documentScores.get(chunk.documentId) || 0) + chunk.score;
+    if (currentScore > topDocumentScore) {
+      topDocumentId = chunk.documentId;
+      topDocumentScore = currentScore;
     }
+    documentScores.set(chunk.documentId, currentScore);
   }
 
   return topDocumentId;
@@ -53,8 +50,26 @@ export const getContext = async (
   env: CloudflareBindings
 ): Promise<{ topChunks: string[]; topDocumentContent: string | null }> => {
   // Execute queries in parallel
-  const [vectorMatches, tagChunks] = await Promise.all([
-    queryByEmbedding(embedding, env.VECTORIZE, 10),
+  const [vectorChunks, tagChunks] = await Promise.all([
+    queryByEmbedding(embedding, env.VECTORIZE, 10).then(
+      async (vectorMatches) => {
+        const vectorizeIds = vectorMatches.map((vm) => vm.id);
+        const vectorizeChunkMap = await getChunksByVectorizeIds(
+          vectorizeIds,
+          env.DB
+        );
+        return vectorMatches
+          .filter((vm) => vectorizeChunkMap.has(vm.id))
+          .map((vm) => {
+            return {
+              vectorizeId: vm.id,
+              content: vectorizeChunkMap.get(vm.id)?.content || '',
+              documentId: vectorizeChunkMap.get(vm.id)?.document_id || 0,
+              score: vm.score,
+            };
+          });
+      }
+    ),
     getChunksByTags(tags, env.DB, 20),
   ]);
 
@@ -62,16 +77,13 @@ export const getContext = async (
   const chunkScores = new Map<string, ScoredChunk>();
 
   // Add scores from vector similarity
-  for (const match of vectorMatches) {
-    const chunk = await getChunkByVectorizeId(match.id, env.DB);
-    if (chunk) {
-      chunkScores.set(match.id, {
-        content: chunk.content,
-        document_id: chunk.document_id,
-        vectorize_id: match.id,
-        score: match.score * EMBEDDING_SCORE_WEIGHT,
-      });
-    }
+  for (const { vectorizeId, content, documentId, score } of vectorChunks) {
+    chunkScores.set(vectorizeId, {
+      content,
+      documentId,
+      vectorizeId,
+      score: score * EMBEDDING_SCORE_WEIGHT,
+    });
   }
 
   // Add/boost scores from tag matches
@@ -84,8 +96,8 @@ export const getContext = async (
     } else {
       chunkScores.set(chunk.vectorize_id, {
         content: chunk.content,
-        document_id: chunk.document_id,
-        vectorize_id: chunk.vectorize_id,
+        documentId: chunk.document_id,
+        vectorizeId: chunk.vectorize_id,
         score: tagScore,
       });
     }
@@ -115,7 +127,7 @@ export const getContext = async (
   const topChunks =
     topDocumentId > 0
       ? rankedChunks
-          .filter((c) => c.document_id === topDocumentId)
+          .filter((c) => c.documentId === topDocumentId)
           .map((c) => c.content)
       : rankedChunks.map((c) => c.content);
 

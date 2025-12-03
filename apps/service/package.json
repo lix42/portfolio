@@ -17,7 +17,7 @@
     }
   },
   "scripts": {
-    "dev": "wrangler dev --port 5173",
+    "dev": "wrangler dev -e staging --port 5000",
     "lint": "$npm_execpath run eslint:check",
     "lint:fix": "$npm_execpath run eslint:fix",
     "test": "vitest run --coverage",

@@ -8,7 +8,7 @@ import { getContext } from './getContext';
 vi.mock('./adapters', () => ({
   queryByEmbedding: vi.fn(),
   getChunksByTags: vi.fn(),
-  getChunkByVectorizeId: vi.fn(),
+  getChunksByVectorizeIds: vi.fn(),
   getDocumentById: vi.fn(),
 }));
 
@@ -45,6 +45,21 @@ describe('getContext with mocked adapters', () => {
       },
     ]);
 
+    vi.mocked(adapters.getChunksByVectorizeIds).mockResolvedValue(
+      new Map([
+        [
+          'test.md:0',
+          {
+            id: 1,
+            content: 'React component example',
+            document_id: 1,
+            vectorize_id: 'test.md:0',
+            tags: ['react'],
+          },
+        ],
+      ])
+    );
+
     vi.mocked(adapters.getChunksByTags).mockResolvedValue([
       {
         id: 1,
@@ -55,14 +70,6 @@ describe('getContext with mocked adapters', () => {
         matched_tag_count: 1,
       },
     ]);
-
-    vi.mocked(adapters.getChunkByVectorizeId).mockResolvedValue({
-      id: 1,
-      content: 'React component example',
-      document_id: 1,
-      vectorize_id: 'test.md:0',
-      tags: ['react'],
-    });
 
     vi.mocked(adapters.getDocumentById).mockResolvedValue({
       id: 1,
@@ -108,15 +115,22 @@ describe('getContext with mocked adapters', () => {
       },
     ]);
 
-    vi.mocked(adapters.getChunksByTags).mockResolvedValue([]);
+    vi.mocked(adapters.getChunksByVectorizeIds).mockResolvedValue(
+      new Map([
+        [
+          'test.md:0',
+          {
+            id: 1,
+            content: 'Test content',
+            document_id: 1,
+            vectorize_id: 'test.md:0',
+            tags: [],
+          },
+        ],
+      ])
+    );
 
-    vi.mocked(adapters.getChunkByVectorizeId).mockResolvedValue({
-      id: 1,
-      content: 'Test content',
-      document_id: 1,
-      vectorize_id: 'test.md:0',
-      tags: [],
-    });
+    vi.mocked(adapters.getChunksByTags).mockResolvedValue([]);
 
     vi.mocked(adapters.getDocumentById).mockResolvedValue({
       id: 1,
@@ -139,6 +153,8 @@ describe('getContext with mocked adapters', () => {
 
   it('should handle empty vector results', async () => {
     vi.mocked(adapters.queryByEmbedding).mockResolvedValue([]);
+
+    vi.mocked(adapters.getChunksByVectorizeIds).mockResolvedValue(new Map());
 
     vi.mocked(adapters.getChunksByTags).mockResolvedValue([
       {
@@ -185,6 +201,21 @@ describe('getContext with mocked adapters', () => {
       },
     ]);
 
+    vi.mocked(adapters.getChunksByVectorizeIds).mockResolvedValue(
+      new Map([
+        [
+          sharedChunkId,
+          {
+            id: 1,
+            content: 'React hooks guide',
+            document_id: 1,
+            vectorize_id: sharedChunkId,
+            tags: ['react'],
+          },
+        ],
+      ])
+    );
+
     vi.mocked(adapters.getChunksByTags).mockResolvedValue([
       {
         id: 1,
@@ -195,14 +226,6 @@ describe('getContext with mocked adapters', () => {
         matched_tag_count: 2, // Tag score: 2
       },
     ]);
-
-    vi.mocked(adapters.getChunkByVectorizeId).mockResolvedValue({
-      id: 1,
-      content: 'React hooks guide',
-      document_id: 1,
-      vectorize_id: sharedChunkId,
-      tags: ['react'],
-    });
 
     vi.mocked(adapters.getDocumentById).mockResolvedValue({
       id: 1,
@@ -224,6 +247,7 @@ describe('getContext with mocked adapters', () => {
 
   it('should return empty string when no results found', async () => {
     vi.mocked(adapters.queryByEmbedding).mockResolvedValue([]);
+    vi.mocked(adapters.getChunksByVectorizeIds).mockResolvedValue(new Map());
     vi.mocked(adapters.getChunksByTags).mockResolvedValue([]);
 
     const result = await getContext([0.1, 0.2, 0.3], ['nonexistent'], mockEnv);
@@ -246,6 +270,31 @@ describe('getContext with mocked adapters', () => {
       },
     ]);
 
+    vi.mocked(adapters.getChunksByVectorizeIds).mockResolvedValue(
+      new Map([
+        [
+          'doc1.md:0',
+          {
+            id: 1,
+            content: 'Doc1 chunk1',
+            document_id: 1,
+            vectorize_id: 'doc1.md:0',
+            tags: ['react'],
+          },
+        ],
+        [
+          'doc2.md:0',
+          {
+            id: 3,
+            content: 'Doc2 chunk1',
+            document_id: 2,
+            vectorize_id: 'doc2.md:0',
+            tags: ['typescript'],
+          },
+        ],
+      ])
+    );
+
     vi.mocked(adapters.getChunksByTags).mockResolvedValue([
       {
         id: 2,
@@ -256,22 +305,6 @@ describe('getContext with mocked adapters', () => {
         matched_tag_count: 1,
       },
     ]);
-
-    vi.mocked(adapters.getChunkByVectorizeId)
-      .mockResolvedValueOnce({
-        id: 1,
-        content: 'Doc1 chunk1',
-        document_id: 1,
-        vectorize_id: 'doc1.md:0',
-        tags: ['react'],
-      })
-      .mockResolvedValueOnce({
-        id: 3,
-        content: 'Doc2 chunk1',
-        document_id: 2,
-        vectorize_id: 'doc2.md:0',
-        tags: ['typescript'],
-      });
 
     vi.mocked(adapters.getDocumentById).mockResolvedValue({
       id: 1,
@@ -300,15 +333,22 @@ describe('getContext with mocked adapters', () => {
       },
     ]);
 
-    vi.mocked(adapters.getChunksByTags).mockResolvedValue([]);
+    vi.mocked(adapters.getChunksByVectorizeIds).mockResolvedValue(
+      new Map([
+        [
+          'test.md:0',
+          {
+            id: 1,
+            content: 'Content',
+            document_id: 1,
+            vectorize_id: 'test.md:0',
+            tags: [],
+          },
+        ],
+      ])
+    );
 
-    vi.mocked(adapters.getChunkByVectorizeId).mockResolvedValue({
-      id: 1,
-      content: 'Content',
-      document_id: 1,
-      vectorize_id: 'test.md:0',
-      tags: [],
-    });
+    vi.mocked(adapters.getChunksByTags).mockResolvedValue([]);
 
     vi.mocked(adapters.getDocumentById).mockResolvedValue({
       id: 1,

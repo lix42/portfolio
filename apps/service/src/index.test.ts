@@ -7,6 +7,7 @@ import { describe, expect, test, vi } from 'vitest';
 
 import Entrypoint from './index';
 
+// Mock OpenAI
 vi.mock('openai', () => {
   class OpenAI {
     embeddings = {
@@ -18,13 +19,17 @@ vi.mock('openai', () => {
   return { default: OpenAI };
 });
 
-vi.mock('@supabase/supabase-js', () => {
-  return {
-    createClient: vi.fn(() => ({
-      rpc: vi.fn(async () => ({ data: [] })),
-    })),
-  };
-});
+// Mock Cloudflare adapters
+vi.mock('./adapters', () => ({
+  queryByEmbedding: vi.fn(async () => []),
+  getChunksByTags: vi.fn(async () => []),
+  getChunkByVectorizeId: vi.fn(async () => null),
+  getDocumentById: vi.fn(async () => null),
+}));
+
+vi.mock('./adapters/r2', () => ({
+  getDocumentContent: vi.fn(async () => null),
+}));
 
 describe('Service Entrypoint', () => {
   test('GET /v1 returns success', async () => {
