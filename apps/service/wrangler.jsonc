@@ -134,7 +134,6 @@
   // ---------------------------------------------------
   // Secrets are not defined in wrangler.jsonc, but accessed via c.env.SECRET_NAME
   // Set them with: wrangler secret put OPENAI_API_KEY
-  // Set them with: wrangler secret put SUPABASE_SERVICE_ROLE_KEY
 
   // KV Namespaces (Key-Value Storage)
   // ----------------------------------

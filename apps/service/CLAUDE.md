@@ -8,8 +8,19 @@ and portfolio information.
 
 - **Framework**: Hono (lightweight web framework for edge computing)
 - **Runtime**: Cloudflare Workers
-- **Database**: Supabase with pgvector for vector similarity search
+- **Storage**: Cloudflare native services
+  - **D1**: SQLite database for metadata and tag filtering
+  - **Vectorize**: Vector search for semantic similarity
+  - **R2**: Object storage for document content
 - **AI**: OpenAI API for embeddings and chat completions
+
+### Query Strategy
+
+Hybrid RAG approach combining tag-based and vector similarity search:
+1. Tag-based filtering via D1 (indexed lookups)
+2. Vector similarity search via Vectorize
+3. Hybrid scoring and ranking
+4. Document retrieval from R2
 
 ## Key Features
 
@@ -56,9 +67,12 @@ curl --request POST \
 
 Required in `.dev.vars` (local) and Cloudflare Workers secrets (production):
 
-- `OPENAI_API_KEY`: OpenAI API key for embeddings and chat
-- `SUPABASE_URL`: Supabase project URL
-- `SUPABASE_SERVICE_ROLE_KEY`: Supabase service role key
+- `OPENAI_API_KEY`: OpenAI API key for embeddings and chat completions
+
+Cloudflare bindings (configured in `wrangler.jsonc`):
+- `DB`: D1 database binding
+- `VECTORIZE`: Vectorize index binding
+- `DOCUMENTS`: R2 bucket binding
 
 ## API Endpoints
 
