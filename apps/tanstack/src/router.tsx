@@ -28,11 +28,3 @@ export function getRouter() {
     scrollRestoration: true,
   });
 }
-
-export type AppRouter = ReturnType<typeof getRouter>;
-
-declare module '@tanstack/react-router' {
-  interface Register {
-    router: AppRouter;
-  }
-}

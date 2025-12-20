@@ -8,6 +8,7 @@
     "build": "vite build && tsc --noEmit",
     "preview": "vite preview",
     "deploy": "pnpm run build && wrangler deploy",
+    "prepare": "panda codegen",
     "cf-typegen": "wrangler types",
     "type:check": "tsc --noEmit",
     "type:check:ci": "tsc --noEmit",
@@ -25,6 +26,8 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.13.7",
+    "@pandacss/dev": "^1.7.1",
+    "@pandacss/studio": "^1.7.1",
     "@portfolio/eslint-config": "workspace:*",
     "@types/node": "^22.10.1",
     "@types/react": "^19.1.13",
