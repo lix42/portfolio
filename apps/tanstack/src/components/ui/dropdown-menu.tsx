@@ -1,4 +1,4 @@
-import { Tick02Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
+import { ArrowRight01Icon, Tick02Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { DropdownMenu as DropdownMenuPrimitive } from 'radix-ui';
 import * as React from 'react';
@@ -96,7 +96,7 @@ function DropdownMenuCheckboxItem({
         "focus:bg-accent focus:text-accent-foreground focus:**:text-accent-foreground gap-1.5 rounded-md py-1 pr-8 pl-1.5 text-sm [&_svg:not([class*='size-'])]:size-4 relative flex cursor-default items-center outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
         className
       )}
-      checked={checked}
+      checked={checked ?? false}
       {...props}
     >
       <span
