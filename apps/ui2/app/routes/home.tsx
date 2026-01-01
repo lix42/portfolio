@@ -1,4 +1,4 @@
-import type { HealthResponse } from '@portfolio/service';
+import type { HealthResponse } from '@portfolio/shared';
 
 import { Welcome } from '../welcome/welcome';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment

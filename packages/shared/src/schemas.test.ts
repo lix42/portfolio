@@ -72,7 +72,15 @@ describe('schemas', () => {
 
   describe('healthResponseSchema', () => {
     it('should validate health response', () => {
-      const valid = { ok: true, version: '1.0.0' };
+      const valid = {
+        ok: true,
+        version: '1.0.0',
+        services: {
+          d1: { ok: true },
+          r2: { ok: true },
+          vectorize: { ok: true },
+        },
+      };
       const result = healthResponseSchema.safeParse(valid);
       expect(result.success).toBe(true);
     });
@@ -84,7 +92,15 @@ describe('schemas', () => {
     });
 
     it('should reject invalid types', () => {
-      const invalid = { ok: 'yes', version: 123 };
+      const invalid = {
+        ok: 'yes',
+        version: 123,
+        services: {
+          d1: { ok: true },
+          r2: { ok: true },
+          vectorize: { ok: true },
+        },
+      };
       const result = healthResponseSchema.safeParse(invalid);
       expect(result.success).toBe(false);
     });

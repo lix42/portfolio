@@ -1,10 +1,10 @@
-import type { HealthResponse } from '@service/src/health';
+import type { HealthResponse } from '@portfolio/shared';
 import { createFileRoute } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 import { env } from 'cloudflare:workers';
 
-import { HealthStatus } from '~/components/HealthStatus';
 import type { ServiceHealth } from '~/components/HealthStatus';
+import { HealthStatus } from '~/components/HealthStatus';
 
 interface LoaderData {
   message: string;

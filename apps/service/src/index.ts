@@ -1,3 +1,4 @@
+import { healthResponseSchema } from '@portfolio/shared';
 import { Scalar } from '@scalar/hono-api-reference';
 import { WorkerEntrypoint } from 'cloudflare:workers';
 import { Hono } from 'hono';
@@ -8,7 +9,6 @@ import chat, { answerQuestion } from './chat';
 import type { ChatServiceBinding } from './chatServiceBinding';
 import { health } from './health';
 import { openAPIConfig } from './openapi/config';
-import { HealthResponseSchema } from './schemas';
 
 export * from './fetchResponseTypes';
 
@@ -61,13 +61,13 @@ app.get(
         description: 'Service is healthy and operational',
         content: {
           'application/json': {
-            schema: resolver(HealthResponseSchema),
+            schema: resolver(healthResponseSchema),
           },
         },
       },
     },
   }),
-  (c) => c.json(health(JSON.stringify(c.env.CF_VERSION_METADATA)))
+  async (c) => c.json(await health(c.env))
 );
 app.route('/chat', chat);
 
@@ -106,7 +106,7 @@ export default class
   }
 
   health = async () => {
-    return health(JSON.stringify(this.env.CF_VERSION_METADATA));
+    return await health(this.env);
   };
 
   chat = async (message: string) => {
