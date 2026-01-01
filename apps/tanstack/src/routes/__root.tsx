@@ -1,13 +1,16 @@
 /// <reference types="vite/client" />
+
+import { TanStackDevtools } from '@tanstack/react-devtools';
 import {
+  createRootRoute,
   HeadContent,
   Outlet,
   Scripts,
-  createRootRoute,
 } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 
-import appCss from '~/styles/app.css?url';
+import { ModeToggle } from '~/components/ModeToggler';
+import appCss from '~/styles.css?url';
 
 export const Route = createRootRoute({
   head: () => ({
@@ -32,18 +35,41 @@ function RootDocument() {
       <head>
         <HeadContent />
       </head>
-      <body>
-        <div className="app">
-          <header className="app__header">
-            <h1>Portfolio TanStack Start Prototype</h1>
-            <p>Verifying connectivity with the worker service.</p>
-          </header>
-          <main className="app__main">
-            <Outlet />
-          </main>
-        </div>
+      <body className="min-h-screen bg-background">
+        <header className="border-b relative">
+          <div className="container mx-auto px-4 py-6 sm:px-6 lg:px-8">
+            <h1 className="text-3xl font-bold tracking-wider text-foreground">
+              Portfolio
+            </h1>
+            <p className="mt-2 text-muted-foreground">
+              Tanstack Start Prototype
+            </p>
+          </div>
+          <div className="absolute top-2 end-2">
+            <ModeToggle />
+          </div>
+        </header>
+        <main className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+          <Outlet />
+        </main>
         {import.meta.env.DEV ? (
-          <TanStackRouterDevtools position="bottom-right" />
+          <>
+            <TanStackDevtools
+              config={{
+                position: 'bottom-right',
+              }}
+              plugins={[
+                {
+                  name: 'Tanstack Router',
+                  render: <TanStackRouterDevtoolsPanel />,
+                },
+                // {
+                //   name: 'TanStack Query',
+                //   render: <ReactQueryDevtoolsPanel />,
+                // },
+              ]}
+            />
+          </>
         ) : null}
         <Scripts />
       </body>
