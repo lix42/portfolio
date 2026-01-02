@@ -5,6 +5,13 @@ interface ServiceStatus {
   message?: string;
 }
 
+const getErrorMessage = (error: unknown, fallback: string): string =>
+  error instanceof Error
+    ? error.message
+    : error
+      ? JSON.stringify(error)
+      : fallback;
+
 async function checkD1(db: D1Database): Promise<ServiceStatus> {
   try {
     await db.prepare('SELECT 1').first();
@@ -12,7 +19,7 @@ async function checkD1(db: D1Database): Promise<ServiceStatus> {
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : 'D1 check failed',
+      message: getErrorMessage(error, 'D1 check failed'),
     };
   }
 }
@@ -25,7 +32,7 @@ async function checkR2(bucket: R2Bucket): Promise<ServiceStatus> {
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : 'R2 check failed',
+      message: getErrorMessage(error, 'R2 check failed'),
     };
   }
 }
@@ -38,8 +45,7 @@ async function checkVectorize(index: VectorizeIndex): Promise<ServiceStatus> {
   } catch (error) {
     return {
       ok: false,
-      message:
-        error instanceof Error ? error.message : 'Vectorize check failed',
+      message: getErrorMessage(error, 'Vectorize check failed'),
     };
   }
 }

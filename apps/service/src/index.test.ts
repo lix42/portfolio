@@ -56,7 +56,15 @@ describe('Service Entrypoint', () => {
     expect(res.status).toBe(200);
     expect(res.headers.get('content-type')).toContain('application/json');
     const json = await res.json();
-    expect(json).toEqual({ ok: true, version: expect.any(String) });
+    expect(json).toMatchObject({
+      ok: expect.any(Boolean),
+      version: expect.any(String),
+      services: {
+        d1: { ok: expect.any(Boolean) },
+        r2: { ok: expect.any(Boolean) },
+        vectorize: { ok: expect.any(Boolean) },
+      },
+    });
   });
 
   test('POST /v1/chat endpoint exists and validates input', async () => {
@@ -86,6 +94,14 @@ describe('Service Entrypoint', () => {
     );
     const result = await entrypoint.health();
     await waitOnExecutionContext(ctx);
-    expect(result).toEqual({ ok: true, version: expect.any(String) });
+    expect(result).toMatchObject({
+      ok: expect.any(Boolean),
+      version: expect.any(String),
+      services: {
+        d1: { ok: expect.any(Boolean) },
+        r2: { ok: expect.any(Boolean) },
+        vectorize: { ok: expect.any(Boolean) },
+      },
+    });
   });
 });
