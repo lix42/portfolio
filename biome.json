@@ -18,6 +18,7 @@
       "!!.claude/**",
       "!!.cursor/**",
       "!!.gemini/**",
+      "!**/*.css",
       "!**/.vscode",
       "!**/*.config.js",
       "!**/*.config.ts",

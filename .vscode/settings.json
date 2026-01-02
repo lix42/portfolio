@@ -27,5 +27,6 @@
   },
   "[graphql]": {
     "editor.defaultFormatter": "biomejs.biome"
-  }
+  },
+  "cSpell.words": ["Hugeicons"]
 }

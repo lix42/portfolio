@@ -1,3 +1,12 @@
+import { Badge } from '~/components/ui/badge';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '~/components/ui/card';
+
 export type ServiceHealth = {
   ok: boolean;
   version: string;
@@ -11,34 +20,49 @@ export interface HealthStatusProps {
 
 export function HealthStatus({ message, health }: HealthStatusProps) {
   return (
-    <section className="health">
-      <p className="health__message">{message}</p>
-      <dl className="health__details" aria-label="Service health information">
-        <div className="health__row">
-          <dt>Status</dt>
-          <dd
-            className={
-              health.ok
-                ? 'health__value health__value--ok'
-                : 'health__value health__value--error'
-            }
-          >
-            {health.ok ? 'Healthy' : 'Unavailable'}
-          </dd>
-        </div>
-        <div className="health__row">
-          <dt>Version</dt>
-          <dd className="health__value">{health.version}</dd>
-        </div>
-        {health.error ? (
-          <div className="health__row">
-            <dt>Error</dt>
-            <dd className="health__value health__value--error">
-              {health.error}
-            </dd>
+    <Card className="w-full max-w-2xl">
+      <CardHeader>
+        <CardTitle>Service Health Check</CardTitle>
+        <CardDescription>{message}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between rounded-lg border p-4">
+          <div className="space-y-0.5">
+            <div className="text-sm font-medium">Status</div>
+            <div className="text-xs text-muted-foreground">
+              Current service availability
+            </div>
           </div>
-        ) : null}
-      </dl>
-    </section>
+          <Badge variant={health.ok ? 'default' : 'destructive'}>
+            {health.ok ? 'Healthy' : 'Unavailable'}
+          </Badge>
+        </div>
+
+        <div className="flex items-center justify-between rounded-lg border p-4">
+          <div className="space-y-0.5">
+            <div className="text-sm font-medium">Version</div>
+            <div className="text-xs text-muted-foreground">
+              Service version number
+            </div>
+          </div>
+          <Badge variant="outline">{health.version}</Badge>
+        </div>
+
+        {health.error && (
+          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-1 space-y-1">
+                <div className="text-sm font-medium text-destructive">
+                  Error Details
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {health.error}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
