@@ -228,6 +228,9 @@ importers:
       '@portfolio/service':
         specifier: workspace:*
         version: link:../service
+      '@portfolio/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@radix-ui/react-slot':
         specifier: ^1.2.4
         version: 1.2.4(@types/react@19.2.2)(react@19.2.0)
@@ -288,7 +291,7 @@ importers:
     devDependencies:
       '@cloudflare/vite-plugin':
         specifier: ^1.13.7
-        version: 1.13.18(vite@7.1.12(@types/node@22.18.13)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1))(workerd@1.20251011.0)(wrangler@4.45.3(@cloudflare/workers-types@4.20251121.0))
+        version: 1.13.18(vite@7.1.12(@types/node@22.18.13)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1))(workerd@1.20251118.0)(wrangler@4.45.3(@cloudflare/workers-types@4.20251121.0))
       '@portfolio/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
@@ -404,6 +407,9 @@ importers:
 
   apps/ui2:
     dependencies:
+      '@portfolio/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       isbot:
         specifier: ^5.1.31
         version: 5.1.31
@@ -9702,23 +9708,6 @@ snapshots:
       unenv: 2.0.0-rc.21
     optionalDependencies:
       workerd: 1.20251118.0
-
-  '@cloudflare/vite-plugin@1.13.18(vite@7.1.12(@types/node@22.18.13)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1))(workerd@1.20251011.0)(wrangler@4.45.3(@cloudflare/workers-types@4.20251121.0))':
-    dependencies:
-      '@cloudflare/unenv-preset': 2.7.8(unenv@2.0.0-rc.21)(workerd@1.20251011.0)
-      '@remix-run/node-fetch-server': 0.8.1
-      get-port: 7.1.0
-      miniflare: 4.20251011.1
-      picocolors: 1.1.1
-      tinyglobby: 0.2.15
-      unenv: 2.0.0-rc.21
-      vite: 7.1.12(@types/node@22.18.13)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1)
-      wrangler: 4.45.3(@cloudflare/workers-types@4.20251121.0)
-      ws: 8.18.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-      - workerd
 
   '@cloudflare/vite-plugin@1.13.18(vite@7.1.12(@types/node@22.18.13)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1))(workerd@1.20251118.0)(wrangler@4.45.3(@cloudflare/workers-types@4.20251121.0))':
     dependencies:

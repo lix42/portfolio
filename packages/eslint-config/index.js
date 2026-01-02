@@ -35,6 +35,7 @@ export const baseConfig = [
 
       // SonarJS customizations
       'sonarjs/todo-tag': 'warn',
+      'sonarjs/no-nested-conditional': 'off',
 
       // Type-aware rules disabled (they require parserOptions.project)
       '@typescript-eslint/prefer-nullish-coalescing': 'off',

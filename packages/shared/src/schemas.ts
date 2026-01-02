@@ -45,11 +45,29 @@ export function validateDocumentMetadata(data: unknown): {
  *
  * Used by:
  * - apps/service (producer)
- * - apps/ui2 (consumer)
+ * - apps/tanstack (consumer)
  */
 export const healthResponseSchema = z.object({
-  ok: z.boolean(),
-  version: z.string(),
+  ok: z
+    .boolean()
+    .describe(
+      'Overall service health status - true if all bindings operational'
+    ),
+  version: z.string().describe('Deployed version metadata from Cloudflare'),
+  services: z.object({
+    d1: z.object({
+      ok: z.boolean().describe('D1 database connectivity status'),
+      message: z.string().optional().describe('Error message if unhealthy'),
+    }),
+    r2: z.object({
+      ok: z.boolean().describe('R2 object storage connectivity status'),
+      message: z.string().optional().describe('Error message if unhealthy'),
+    }),
+    vectorize: z.object({
+      ok: z.boolean().describe('Vectorize index connectivity status'),
+      message: z.string().optional().describe('Error message if unhealthy'),
+    }),
+  }),
 });
 
 export type HealthResponse = z.infer<typeof healthResponseSchema>;
