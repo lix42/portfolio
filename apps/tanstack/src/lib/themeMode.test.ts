@@ -155,7 +155,7 @@ describe('themeMode', () => {
       window.matchMedia = vi.fn().mockReturnValue({
         matches: true,
         media: '(prefers-color-scheme: dark)',
-        addEventListener: vi.fn((event, handler) => {
+        addEventListener: vi.fn((_event, handler) => {
           changeHandler = handler as () => void;
         }),
         removeEventListener: vi.fn(),
@@ -165,9 +165,8 @@ describe('themeMode', () => {
       installSystemThemeListener();
 
       // Trigger the change event
-      if (changeHandler) {
-        changeHandler();
-      }
+      expect(changeHandler).not.toBeNull();
+      changeHandler!();
 
       expect(document.documentElement.classList.contains('dark')).toBe(true);
     });
