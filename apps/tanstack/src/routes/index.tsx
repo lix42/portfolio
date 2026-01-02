@@ -3,12 +3,12 @@ import { createFileRoute } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 import { env } from 'cloudflare:workers';
 
-import type { ServiceHealth } from '~/components/HealthStatus';
 import { HealthStatus } from '~/components/HealthStatus';
 
 interface LoaderData {
   message: string;
-  health: ServiceHealth;
+  errorMessage?: string;
+  health: HealthResponse;
 }
 
 const fetchHealth = createServerFn({ method: 'GET' }).handler(async () => {
@@ -21,26 +21,24 @@ const fetchHealth = createServerFn({ method: 'GET' }).handler(async () => {
       throw new Error(`Request failed with status ${response.status}`);
     }
 
-    const payload = (await response.json()) as HealthResponse;
-
-    const health: ServiceHealth = {
-      ok: payload.ok,
-      version: payload.version,
-      error: null,
-    };
+    const health = (await response.json()) as HealthResponse;
 
     return { message, health } satisfies LoaderData;
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error';
 
-    const health: ServiceHealth = {
+    const health: HealthResponse = {
       ok: false,
       version: 'unknown',
-      error: errorMessage,
+      services: {
+        d1: { ok: false },
+        r2: { ok: false },
+        vectorize: { ok: false },
+      },
     };
 
-    return { message, health } satisfies LoaderData;
+    return { message, health, errorMessage } satisfies LoaderData;
   }
 });
 
@@ -52,5 +50,11 @@ export const Route = createFileRoute('/')({
 function Home() {
   const data = Route.useLoaderData();
 
-  return <HealthStatus message={data.message} health={data.health} />;
+  return (
+    <HealthStatus
+      message={data.message}
+      health={data.health}
+      errorMessage={data.errorMessage}
+    />
+  );
 }
