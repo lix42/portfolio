@@ -1,3 +1,14 @@
+import type { HealthResponse } from '@portfolio/shared';
+
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemSeparator,
+  ItemTitle,
+} from './ui/item';
+
 import { Badge } from '~/components/ui/badge';
 import {
   Card,
@@ -6,19 +17,19 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card';
-
-export type ServiceHealth = {
-  ok: boolean;
-  version: string;
-  error: string | null;
-};
+import { cn } from '~/lib/utils';
 
 export interface HealthStatusProps {
   message: string;
-  health: ServiceHealth;
+  errorMessage?: string;
+  health: HealthResponse;
 }
 
-export function HealthStatus({ message, health }: HealthStatusProps) {
+export function HealthStatus({
+  message,
+  health,
+  errorMessage,
+}: HealthStatusProps) {
   return (
     <Card className="w-full max-w-2xl">
       <CardHeader>
@@ -26,42 +37,120 @@ export function HealthStatus({ message, health }: HealthStatusProps) {
         <CardDescription>{message}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex items-center justify-between rounded-lg border p-4">
-          <div className="space-y-0.5">
-            <div className="text-sm font-medium">Status</div>
-            <div className="text-xs text-muted-foreground">
-              Current service availability
-            </div>
-          </div>
-          <Badge variant={health.ok ? 'default' : 'destructive'}>
-            {health.ok ? 'Healthy' : 'Unavailable'}
-          </Badge>
-        </div>
+        <ItemGroup>
+          <Item variant="outline">
+            <ItemContent>
+              <ItemTitle>Status</ItemTitle>
+              <ItemDescription>Current service availability</ItemDescription>
+            </ItemContent>
+            <ItemContent>
+              <Badge variant={health.ok ? 'default' : 'destructive'}>
+                {health.ok ? 'Healthy' : 'Unavailable'}
+              </Badge>
+            </ItemContent>
+          </Item>
+          <Item variant="outline">
+            <ItemContent>
+              <ItemTitle>Version</ItemTitle>
+              <ItemDescription>Service version number</ItemDescription>
+            </ItemContent>
+            <ItemContent>
+              <Badge variant="outline">{health.version}</Badge>
+            </ItemContent>
+          </Item>
+          {errorMessage && (
+            <Item
+              variant="outline"
+              className="border-destructive/50 bg-destructive/10"
+            >
+              <ItemContent>
+                <ItemTitle>Error</ItemTitle>
+                <ItemDescription className="text-destructive">
+                  {errorMessage}
+                </ItemDescription>
+              </ItemContent>
+            </Item>
+          )}
+          <ItemSeparator />
+          <ItemGroup>
+            <Item
+              variant="outline"
+              size="sm"
+              className={cn(
+                !health.services.d1.ok &&
+                  'border-destructive/50 bg-destructive/10'
+              )}
+            >
+              <ItemContent>
+                <ItemTitle>D1</ItemTitle>
+                {!health.services.d1.ok && (
+                  <ItemDescription className={'text-destructive'}>
+                    {health.services.d1.message}
+                  </ItemDescription>
+                )}
+              </ItemContent>
+              <ItemContent>
+                <Badge
+                  variant={health.services.d1.ok ? 'default' : 'destructive'}
+                >
+                  {health.services.d1.ok ? 'Healthy' : 'Unavailable'}
+                </Badge>
+              </ItemContent>
+            </Item>
 
-        <div className="flex items-center justify-between rounded-lg border p-4">
-          <div className="space-y-0.5">
-            <div className="text-sm font-medium">Version</div>
-            <div className="text-xs text-muted-foreground">
-              Service version number
-            </div>
-          </div>
-          <Badge variant="outline">{health.version}</Badge>
-        </div>
+            <Item
+              variant="outline"
+              size="sm"
+              className={cn(
+                !health.services.r2.ok &&
+                  'border-destructive/50 bg-destructive/10'
+              )}
+            >
+              <ItemContent>
+                <ItemTitle>R2</ItemTitle>
+                {!health.services.r2.ok && (
+                  <ItemDescription className={'text-destructive'}>
+                    {health.services.r2.message}
+                  </ItemDescription>
+                )}
+              </ItemContent>
+              <ItemContent>
+                <Badge
+                  variant={health.services.r2.ok ? 'default' : 'destructive'}
+                >
+                  {health.services.r2.ok ? 'Healthy' : 'Unavailable'}
+                </Badge>
+              </ItemContent>
+            </Item>
 
-        {health.error && (
-          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-            <div className="flex items-start gap-3">
-              <div className="flex-1 space-y-1">
-                <div className="text-sm font-medium text-destructive">
-                  Error Details
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {health.error}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+            <Item
+              variant="outline"
+              size="sm"
+              className={cn(
+                !health.services.vectorize.ok &&
+                  'border-destructive/50 bg-destructive/10'
+              )}
+            >
+              <ItemContent>
+                <ItemTitle>Vectorize</ItemTitle>
+                {!health.services.vectorize.ok && (
+                  <ItemDescription className={'text-destructive'}>
+                    {health.services.vectorize.message}
+                  </ItemDescription>
+                )}
+              </ItemContent>
+              <ItemContent>
+                <Badge
+                  variant={
+                    health.services.vectorize.ok ? 'default' : 'destructive'
+                  }
+                >
+                  {health.services.vectorize.ok ? 'Healthy' : 'Unavailable'}
+                </Badge>
+              </ItemContent>
+            </Item>
+          </ItemGroup>
+        </ItemGroup>
       </CardContent>
     </Card>
   );
