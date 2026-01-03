@@ -1,14 +1,14 @@
 # Repository Guidelines
 ## Project Structure & Module Organization
 - `apps/service`: Cloudflare Worker API built with Hono; business logic lives under `src` and shared bindings in `worker-configuration.d.ts`.
-- `apps/ui`: Waku + React client; UI flows live in `src/app`, assets in `public`, and Tailwind config sits in `postcss.config.js`.
+- `apps/tanstack`: TanStack Start + React client; UI flows live in `src/app`, assets in `public`.
 - `packages/common-ui`: Shared presentation components and hooks; keep exports tree-shakeable and versioned via the workspace.
 - `packages/eslint-config`: Shared ESLint presets (`index.js`, `react.js`, `vitest.js`) consumed by every app.
 - Supporting directories: `documents` (RAG source JSON), `scripts` (Python ingestion), `supabase` (SQL schema), and `research` for experiments.
 
 ## Build, Test & Development Commands
 - `pnpm install` to bootstrap (Node 22.x required).
-- `pnpm dev` (now powered by `turbo run dev`) launches service (Wrangler on :5173) and UI (Waku dev server) together; use `pnpm dev:service`, `pnpm dev:ui`, or `turbo run dev --filter @portfolio/<pkg>` for focused work.
+- `pnpm dev` (now powered by `turbo run dev`) launches service (Wrangler on :5173) and UI (TanStack Start dev server) together; use `pnpm dev:service`, `pnpm dev:ui`, or `turbo run dev --filter @portfolio/<pkg>` for focused work.
 - `pnpm build` calls `turbo run build` so dependency graphs (e.g., `apps/service` → `packages/shared`) are respected; scope with `pnpm build:service`/`turbo run build --filter @portfolio/service` when debugging.
 - `pnpm test`, `pnpm test:service`, `pnpm test:ui` execute Vitest suites; add `--runInBand` if worker resources are limited.
 - `pnpm lint:check`, `pnpm format:check`, and `pnpm biome:check` gate PRs; use the `:fix` variants before committing.
