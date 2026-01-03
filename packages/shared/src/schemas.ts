@@ -45,7 +45,7 @@ export function validateDocumentMetadata(data: unknown): {
  *
  * Used by:
  * - apps/service (producer)
- * - apps/tanstack (consumer)
+ * - apps/ui (consumer)
  */
 export const healthResponseSchema = z.object({
   ok: z

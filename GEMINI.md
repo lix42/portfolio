@@ -6,7 +6,7 @@ This is a full-stack portfolio assistant that uses Retrieval-Augmented Generatio
 
 The project is a monorepo managed with pnpm workspaces. It consists of the following main components:
 
-*   **Frontend (`apps/tanstack`):** A React and TanStack Start-based user interface for the chat assistant.
+*   **Frontend (`apps/ui`):** A React and TanStack Start-based user interface for the chat assistant.
 *   **Backend (`apps/service`):** A Hono-based API that handles requests from the frontend, interacts with the vector database, and communicates with the OpenAI API.
 *   **Data Ingestion (`scripts`):** A set of Python scripts for ingesting data into the Supabase vector database.
 

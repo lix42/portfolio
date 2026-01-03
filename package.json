@@ -8,9 +8,9 @@
     "node": ">=22 <23"
   },
   "scripts": {
-    "dev": "turbo run dev --parallel --filter=@portfolio/shared --filter=@portfolio/service --filter=@portfolio/tanstack-ui",
+    "dev": "turbo run dev --parallel --filter=@portfolio/shared --filter=@portfolio/service --filter=@portfolio/ui",
     "dev:service": "turbo run dev --parallel --filter=@portfolio/shared --filter=@portfolio/service",
-    "dev:ui": "turbo run dev --parallel --filter=@portfolio/shared --filter=@portfolio/tanstack-ui",
+    "dev:ui": "turbo run dev --parallel --filter=@portfolio/shared --filter=@portfolio/ui",
     "build:shared": "turbo run build --filter=@portfolio/shared",
     "build:service": "turbo run build --filter=@portfolio/service",
     "build:r2": "turbo run build --filter=@portfolio/r2-sync",

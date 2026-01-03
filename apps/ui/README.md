@@ -1,12 +1,12 @@
-# @portfolio/tanstack-ui
+# @portfolio/ui
 
 A TanStack Start prototype that exercises the `@portfolio/service` health endpoint via a Cloudflare service binding.
 
 ## Scripts
 
-- `pnpm dev --filter @portfolio/tanstack-ui` – start the Vite dev server.
-- `pnpm build --filter @portfolio/tanstack-ui` – produce a production build and run TypeScript checks.
-- `pnpm deploy --filter @portfolio/tanstack-ui` – build and deploy with Wrangler.
+- `pnpm dev --filter @portfolio/ui` – start the Vite dev server.
+- `pnpm build --filter @portfolio/ui` – produce a production build and run TypeScript checks.
+- `pnpm deploy --filter @portfolio/ui` – build and deploy with Wrangler.
 
 ## Environment
 
