@@ -1,7 +1,7 @@
 # Repository Guidelines
 ## Project Structure & Module Organization
 - `apps/service`: Cloudflare Worker API built with Hono; business logic lives under `src` and shared bindings in `worker-configuration.d.ts`.
-- `apps/tanstack`: TanStack Start + React client; UI flows live in `src/app`, assets in `public`.
+- `apps/ui`: TanStack Start + React client; UI flows live in `src/app`, assets in `public`.
 - `packages/common-ui`: Shared presentation components and hooks; keep exports tree-shakeable and versioned via the workspace.
 - `packages/eslint-config`: Shared ESLint presets (`index.js`, `react.js`, `vitest.js`) consumed by every app.
 - Supporting directories: `documents` (RAG source JSON), `scripts` (Python ingestion), `supabase` (SQL schema), and `research` for experiments.

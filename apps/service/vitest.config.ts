@@ -1,10 +1,14 @@
 import path from 'node:path';
-import { defineWorkersConfig } from '@cloudflare/vitest-pool-workers/config';
+import { defineConfig } from 'vitest/config';
 
-export default defineWorkersConfig({
+export default defineConfig({
   resolve: {
     alias: {
       '@documents': path.resolve(__dirname, '../../documents'),
+      'cloudflare:workers': path.resolve(
+        __dirname,
+        './test/cloudflare-workers-shim.ts'
+      ),
     },
   },
   test: {
@@ -12,12 +16,6 @@ export default defineWorkersConfig({
       provider: 'istanbul',
       reporter: ['text', 'json', 'html'],
       reportsDirectory: './coverage',
-    },
-    poolOptions: {
-      workers: {
-        isolatedStorage: false,
-        wrangler: { configPath: './wrangler.jsonc' },
-      },
     },
   },
 });

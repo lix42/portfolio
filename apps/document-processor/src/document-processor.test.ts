@@ -1,6 +1,5 @@
 /* eslint-disable sonarjs/no-clear-text-protocols */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { DurableObjectState } from '@cloudflare/workers-types';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { DocumentProcessor } from './document-processor';
@@ -27,7 +26,7 @@ vi.mock('@portfolio/shared', () => ({
 
 describe('DocumentProcessor', () => {
   let processor: DocumentProcessor;
-  let mockState: DurableObjectState;
+  let mockState: any;
   let mockEnv: any;
 
   beforeEach(() => {

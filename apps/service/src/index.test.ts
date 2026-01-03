@@ -1,11 +1,33 @@
-import {
-  createExecutionContext,
-  env,
-  waitOnExecutionContext,
-} from 'cloudflare:test';
 import { describe, expect, test, vi } from 'vitest';
 
 import Entrypoint from './index';
+
+const createExecutionContext = (): ExecutionContext =>
+  ({
+    props: {},
+    waitUntil: vi.fn(),
+    passThroughOnException: vi.fn(),
+  }) as ExecutionContext;
+
+const createEnv = (): CloudflareBindings =>
+  ({
+    ENVIRONMENT: 'development',
+    SUPABASE_URL: 'https://example.supabase.co',
+    SUPABASE_KEY: 'test-key',
+    OPENAI_API_KEY: 'test-openai-key',
+    DB: {
+      prepare: vi.fn(() => ({
+        first: vi.fn(async () => ({})),
+      })),
+    },
+    DOCUMENTS: {
+      list: vi.fn(async () => ({ objects: [] })),
+    },
+    VECTORIZE: {
+      describe: vi.fn(async () => ({})),
+    },
+    CF_VERSION_METADATA: { id: 'test' },
+  }) as unknown as CloudflareBindings;
 
 // Mock OpenAI
 vi.mock('openai', () => {
@@ -34,17 +56,18 @@ vi.mock('./adapters/r2', () => ({
 describe('Service Entrypoint', () => {
   test('GET /v1 returns success', async () => {
     const ctx = createExecutionContext();
+    const env = createEnv();
     const entrypoint = new Entrypoint(
       ctx,
       env as unknown as CloudflareBindings
     );
     const res = await entrypoint.fetch(new Request('http://localhost/v1'));
-    await waitOnExecutionContext(ctx);
     expect(res.status).toBe(200);
   });
 
   test('GET /v1/health returns ok status', async () => {
     const ctx = createExecutionContext();
+    const env = createEnv();
     const entrypoint = new Entrypoint(
       ctx,
       env as unknown as CloudflareBindings
@@ -52,7 +75,6 @@ describe('Service Entrypoint', () => {
     const res = await entrypoint.fetch(
       new Request('http://localhost/v1/health')
     );
-    await waitOnExecutionContext(ctx);
     expect(res.status).toBe(200);
     expect(res.headers.get('content-type')).toContain('application/json');
     const json = await res.json();
@@ -69,6 +91,7 @@ describe('Service Entrypoint', () => {
 
   test('POST /v1/chat endpoint exists and validates input', async () => {
     const ctx = createExecutionContext();
+    const env = createEnv();
     const entrypoint = new Entrypoint(
       ctx,
       env as unknown as CloudflareBindings
@@ -81,19 +104,18 @@ describe('Service Entrypoint', () => {
         body: JSON.stringify({}),
       })
     );
-    await waitOnExecutionContext(ctx);
     // Zod validator should return 400 for missing message
     expect(res.status).toBe(400);
   });
 
   test('RPC health method returns ok status', async () => {
     const ctx = createExecutionContext();
+    const env = createEnv();
     const entrypoint = new Entrypoint(
       ctx,
       env as unknown as CloudflareBindings
     );
     const result = await entrypoint.health();
-    await waitOnExecutionContext(ctx);
     expect(result).toMatchObject({
       ok: expect.any(Boolean),
       version: expect.any(String),

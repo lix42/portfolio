@@ -32,10 +32,10 @@
   "devDependencies": {
     "@portfolio/eslint-config": "workspace:*",
     "@types/node": "^22.0.0",
-    "@vitest/coverage-v8": "^4.0.10",
+    "@vitest/coverage-v8": "^4.0.16",
     "dotenv": "^17.2.3",
     "tsup": "^8.5.1",
     "typescript": "^5.3.3",
-    "vitest": "^4.0.10"
+    "vitest": "^4.0.16"
   }
 }
