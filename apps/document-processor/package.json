@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@portfolio/shared": "workspace:*",
-    "openai": "^6.9.1"
+    "openai": "^6.15.0"
   },
   "devDependencies": {
     "@portfolio/eslint-config": "workspace:*",

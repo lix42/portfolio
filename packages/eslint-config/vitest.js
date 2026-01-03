@@ -1,6 +1,6 @@
 // @ts-check
 
-import vitestPlugin from 'eslint-plugin-vitest';
+import vitestPlugin from '@vitest/eslint-plugin';
 
 /**
  * Vitest-specific configuration

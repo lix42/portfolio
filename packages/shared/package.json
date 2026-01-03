@@ -23,8 +23,8 @@
     "eslint:fix": "eslint --fix ."
   },
   "dependencies": {
-    "openai": "^6.1.0",
-    "zod": "^4.1.12"
+    "openai": "^6.15.0",
+    "zod": "^4.3.4"
   },
   "devDependencies": {
     "@portfolio/eslint-config": "workspace:*",
