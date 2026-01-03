@@ -7,8 +7,7 @@
     "lib": ["ESNext"],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
-    "resolveJsonModule": true,
-    "types": ["@cloudflare/vitest-pool-workers"]
+    "resolveJsonModule": true
   },
   "include": ["src/**/*.ts", "worker-configuration.d.ts"]
 }

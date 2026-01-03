@@ -22,11 +22,11 @@
     "@hugeicons/core-free-icons": "^3.1.1",
     "@hugeicons/react": "^1.1.4",
     "@portfolio/service": "workspace:*",
+    "@portfolio/shared": "workspace:*",
     "@radix-ui/react-slot": "^1.2.4",
     "@tailwindcss/vite": "^4.0.6",
     "@tanstack/react-devtools": "^0.7.0",
     "@tanstack/react-query-devtools": "^5.91.2",
-    "@portfolio/shared": "workspace:*",
     "@tanstack/react-router": "^1.136.1",
     "@tanstack/react-router-devtools": "^1.136.1",
     "@tanstack/react-router-ssr-query": "^1.136.1",
@@ -46,6 +46,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.13.7",
     "@portfolio/eslint-config": "workspace:*",
+    "@portfolio/service": "workspace:*",
     "@tanstack/devtools-vite": "^0.3.11",
     "@tanstack/eslint-config": "^0.3.0",
     "@testing-library/dom": "^10.4.0",
@@ -55,7 +56,6 @@
     "@types/node": "^22.10.2",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "@portfolio/service": "workspace:*",
     "@vitejs/plugin-react": "^5.1.1",
     "baseline-browser-mapping": "^2.9.11",
     "jsdom": "^27.0.0",
@@ -63,7 +63,7 @@
     "typescript": "^5.9.2",
     "vite": "^7.3.0",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^4.0.12",
+    "vitest": "^4.0.16",
     "web-vitals": "^5.1.0",
     "wrangler": "^4.54.0"
   }

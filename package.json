@@ -59,10 +59,5 @@
     "**/*.{json,jsonc}": [
       "prettier --write"
     ]
-  },
-  "pnpm": {
-    "overrides": {
-      "vite": "^7.3.0"
-    }
   }
 }
