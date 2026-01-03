@@ -1,7 +1,7 @@
 // @ts-check
 
+import vitest from '@vitest/eslint-plugin';
 import testingLibrary from 'eslint-plugin-testing-library';
-import vitest from 'eslint-plugin-vitest';
 
 /**
  * Configuration for test files (Vitest + Testing Library)
