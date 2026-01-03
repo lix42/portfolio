@@ -2,7 +2,7 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "portfolio-r2-reconciliation",
   "main": "src/index.ts",
-  "compatibility_date": "2025-11-21",
+  "compatibility_date": "2026-01-01",
   "compatibility_flags": ["nodejs_compat_v2"],
 
   // ============================================================================

@@ -21,6 +21,6 @@
     "@portfolio/eslint-config": "workspace:*",
     "eslint": "^9.37.0",
     "typescript": "^5.9.3",
-    "wrangler": "^4.42.0"
+    "wrangler": "^4.54.0"
   }
 }
