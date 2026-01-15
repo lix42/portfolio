@@ -50,7 +50,7 @@ describe('ModeToggle', () => {
     const button = screen.getByRole('button');
     await user.click(button);
 
-    const lightOption = screen.getByText('Light');
+    const lightOption = await screen.findByText('Light');
     await user.click(lightOption);
 
     await waitFor(() => {
@@ -66,7 +66,7 @@ describe('ModeToggle', () => {
     const button = screen.getByRole('button');
     await user.click(button);
 
-    const darkOption = screen.getByText('Dark');
+    const darkOption = await screen.findByText('Dark');
     await user.click(darkOption);
 
     await waitFor(() => {
@@ -84,7 +84,7 @@ describe('ModeToggle', () => {
     const button = screen.getByRole('button');
     await user.click(button);
 
-    const systemOption = screen.getByText('System');
+    const systemOption = await screen.findByText('System');
     await user.click(systemOption);
 
     await waitFor(() => {

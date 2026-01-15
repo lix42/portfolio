@@ -7,7 +7,7 @@ const createExecutionContext = (): ExecutionContext =>
     props: {},
     waitUntil: vi.fn(),
     passThroughOnException: vi.fn(),
-  }) as ExecutionContext;
+  }) as unknown as ExecutionContext;
 
 const createEnv = (): CloudflareBindings =>
   ({
