@@ -16,6 +16,7 @@
     "build:r2": "turbo run build --filter=@portfolio/r2-sync",
     "build": "turbo run build",
     "test:service": "turbo run test --filter=@portfolio/service",
+    "test:ui": "turbo run test --filter=@portfolio/ui",
     "test:r2": "turbo run test --filter=@portfolio/r2-sync",
     "test": "turbo run test",
     "type:check:ci": "turbo run type:check:ci",
