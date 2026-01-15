@@ -56,11 +56,9 @@ export function ModeToggle() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          {preferMode ? preferModeToIconMap[preferMode] : ssrIcon}
-          <span className="sr-only">Toggle theme</span>
-        </Button>
+      <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
+        {preferMode ? preferModeToIconMap[preferMode] : ssrIcon}
+        <span className="sr-only">Toggle theme</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => updatePreferMode('light')}>

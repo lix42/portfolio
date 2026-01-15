@@ -1,5 +1,6 @@
 import type { HealthResponse } from '@portfolio/shared';
 
+import { Button } from './ui/button';
 import {
   Item,
   ItemContent,
@@ -8,12 +9,14 @@ import {
   ItemSeparator,
   ItemTitle,
 } from './ui/item';
+import { LoadingEllipsis } from './ui/loading-ellipsis';
 
 import { Badge } from '~/components/ui/badge';
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '~/components/ui/card';
@@ -23,15 +26,20 @@ export interface HealthStatusProps {
   message: string;
   errorMessage?: string;
   health: HealthResponse;
+  refetch: () => void;
+  isLoading?: boolean;
 }
 
 export function HealthStatus({
   message,
   health,
   errorMessage,
+  refetch,
+  isLoading = false,
 }: HealthStatusProps) {
   return (
     <Card className="w-full max-w-2xl">
+      {isLoading && <LoadingEllipsis className="self-center" />}
       <CardHeader>
         <CardTitle>Service Health Check</CardTitle>
         <CardDescription>{message}</CardDescription>
@@ -152,6 +160,11 @@ export function HealthStatus({
           </ItemGroup>
         </ItemGroup>
       </CardContent>
+      <CardFooter>
+        <Button variant="default" onClick={() => refetch()}>
+          Refresh
+        </Button>
+      </CardFooter>
     </Card>
   );
 }

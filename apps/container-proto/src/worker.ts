@@ -55,16 +55,17 @@ const handler: FetchHandler = {
       env.MY_FASTAPI_CONTAINER,
       'fastapi-prototype-v1'
     );
+    const pathname = url.pathname;
 
-    if (url.pathname === '/schema/joke-response') {
+    if (pathname === '/schema/joke-response') {
       return Response.json(jokeResponseSchema);
     }
 
-    if (url.pathname === '/schema/joke-request') {
+    if (pathname === '/schema/joke-request') {
       return Response.json(jokeRequestSchema);
     }
 
-    if (url.pathname === '/debug/worker-env') {
+    if (pathname === '/debug/worker-env') {
       return Response.json({
         module_env_keys: Object.keys(env),
         module_env_has_OPENAI_API_KEY: 'OPENAI_API_KEY' in env,
@@ -78,15 +79,15 @@ const handler: FetchHandler = {
     }
 
     try {
-      if (url.pathname === '/api/health') {
+      if (pathname === '/api/health') {
         return forwardJson(containerStub, '/health');
       }
 
-      if (url.pathname === '/api/debug/env') {
+      if (pathname === '/api/debug/env') {
         return forwardJson(containerStub, '/debug/env');
       }
 
-      if (url.pathname === '/api/joke') {
+      if (pathname === '/api/joke') {
         const jokeRequest = buildJokeRequest(url);
         const containerResponse = await forwardJson(containerStub, '/joke', {
           method: 'POST',
@@ -135,7 +136,7 @@ const handler: FetchHandler = {
       );
     }
 
-    if (url.pathname === '/' || url.pathname === '') {
+    if (pathname === '/' || pathname === '') {
       return Response.json({
         message: 'Cloudflare Worker proxy for FastAPI container',
         routes: [

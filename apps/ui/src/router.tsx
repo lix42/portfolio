@@ -1,32 +1,36 @@
+import { QueryClient } from '@tanstack/react-query';
 import { createRouter } from '@tanstack/react-router';
+import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query';
 
+import { DefaultCatchBoundary } from './components/DefaultCatchBoundary';
 import { routeTree } from './routeTree.gen';
-
-function DefaultError({ error }: { error: Error }) {
-  return (
-    <div style={{ padding: '1rem' }}>
-      <h2>Something went wrong</h2>
-      <pre>{error.message}</pre>
-    </div>
-  );
-}
 
 function NotFound() {
   return (
-    <div style={{ padding: '1rem' }}>
+    <div className="p-4">
       <h2>Page not found</h2>
     </div>
   );
 }
 
 export function getRouter() {
-  return createRouter({
+  const queryClient = new QueryClient();
+
+  const router = createRouter({
     routeTree,
+    context: { queryClient },
     defaultPreload: 'intent',
-    defaultErrorComponent: DefaultError,
+    defaultErrorComponent: DefaultCatchBoundary,
     defaultNotFoundComponent: NotFound,
     scrollRestoration: true,
   });
+
+  setupRouterSsrQueryIntegration({
+    router,
+    queryClient,
+  });
+
+  return router;
 }
 
 export type AppRouter = ReturnType<typeof getRouter>;

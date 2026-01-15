@@ -1,60 +1,28 @@
-import type { HealthResponse } from '@portfolio/shared';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { createServerFn } from '@tanstack/react-start';
-import { env } from 'cloudflare:workers';
 
 import { HealthStatus } from '~/components/HealthStatus';
-
-interface LoaderData {
-  message: string;
-  errorMessage?: string;
-  health: HealthResponse;
-}
-
-const fetchHealth = createServerFn({ method: 'GET' }).handler(async () => {
-  const message = env.VALUE_FROM_CLOUDFLARE ?? 'Hello from Cloudflare';
-  const endpoint = new URL('/v1/health', 'https://chat-service');
-
-  try {
-    const response = await env.CHAT_SERVICE.fetch(endpoint);
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
-    }
-
-    const health = (await response.json()) as HealthResponse;
-
-    return { message, health } satisfies LoaderData;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : 'Unknown error';
-
-    const health: HealthResponse = {
-      ok: false,
-      version: 'unknown',
-      services: {
-        d1: { ok: false },
-        r2: { ok: false },
-        vectorize: { ok: false },
-      },
-    };
-
-    return { message, health, errorMessage } satisfies LoaderData;
-  }
-});
+import { healthQueryOptions } from '~/lib/health';
 
 export const Route = createFileRoute('/')({
-  loader: () => fetchHealth(),
+  loader: async ({ context }) => {
+    const data = await context.queryClient.ensureQueryData(healthQueryOptions);
+
+    return data;
+  },
   component: Home,
 });
 
 function Home() {
-  const data = Route.useLoaderData();
+  const { data, isFetching, refetch } = useSuspenseQuery(healthQueryOptions);
 
   return (
     <HealthStatus
       message={data.message}
       health={data.health}
       errorMessage={data.errorMessage}
+      isLoading={isFetching}
+      refetch={refetch}
     />
   );
 }

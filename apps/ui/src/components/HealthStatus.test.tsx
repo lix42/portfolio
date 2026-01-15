@@ -2,12 +2,14 @@ import type { HealthResponse } from '@portfolio/shared';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { HealthStatus } from './HealthStatus';
+import { HealthStatus, type HealthStatusProps } from './HealthStatus';
 
 describe('HealthStatus', () => {
   const defaultProps = {
     message: 'Service is running',
-  };
+    isLoading: false,
+    refetch: () => {},
+  } satisfies Partial<HealthStatusProps>;
 
   describe('when all services are healthy', () => {
     const healthyResponse: HealthResponse = {
@@ -165,7 +167,11 @@ describe('HealthStatus', () => {
 
     it('should display custom messages', () => {
       render(
-        <HealthStatus message="Custom health check message" health={response} />
+        <HealthStatus
+          message="Custom health check message"
+          health={response}
+          refetch={() => {}}
+        />
       );
       expect(
         screen.getByText('Custom health check message')

@@ -1,8 +1,9 @@
 /// <reference types="vite/client" />
 
 import { TanStackDevtools } from '@tanstack/react-devtools';
+import type { QueryClient } from '@tanstack/react-query';
 import {
-  createRootRoute,
+  createRootRouteWithContext,
   HeadContent,
   Outlet,
   Scripts,
@@ -12,7 +13,9 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { ModeToggle } from '~/components/ModeToggler';
 import appCss from '~/styles.css?url';
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient;
+}>()({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
