@@ -3,7 +3,7 @@ import * as React from 'react';
 
 import { cn } from '~/lib/utils';
 
-const loadingEllipsisVariants = cva('relative inline-block', {
+const loadingEllipsisVariants = cva('relative inline-block h-2 -mb-2', {
   variants: {
     size: {
       sm: 'w-8',
@@ -33,34 +33,42 @@ export function LoadingEllipsis({
   ...props
 }: LoadingEllipsisProps) {
   const counts = size === 'sm' ? 3 : size === 'lg' ? 5 : 4;
+  const positionClasses = ['left-2', 'left-6', 'left-10', 'left-14'];
+  const spotClasses =
+    'absolute top-1/2 size-2 -translate-y-1/2 rounded-full bg-current';
   return (
     <div
       role="status"
       aria-label="Loading"
-      className={cn(
-        loadingEllipsisVariants({ size, variant }),
-        'h-2',
-        className
-      )}
+      className={cn(loadingEllipsisVariants({ size, variant }), className)}
       {...props}
     >
-      {Array.from({ length: counts }, (_, i) => (
-        <span
-          key={i}
-          className={cn(
-            'absolute top-1/2 rounded-full bg-current',
-            'size-2',
-            '-translate-y-1/2',
-            i === 0 && 'left-2 animate-ellipsis-scale-in',
-            i === 1 && 'left-2 animate-ellipsis-move',
-            i === 2 && 'left-6',
-            i === 3 && 'left-10',
-            i === 4 && 'left-14',
-            i > 0 && i < counts - 1 && 'animate-ellipsis-move',
-            i === counts - 1 && 'animate-ellipsis-scale-out'
-          )}
-        />
-      ))}
+      {/* first dot scaling in */}
+      <span
+        className={cn(
+          spotClasses,
+          positionClasses[0],
+          'animate-ellipsis-scale-in'
+        )}
+      />
+      {/* moving dots */}
+      {Array.from({ length: counts - 2 }, (_, i) => {
+        const positionClass = positionClasses[i];
+        return (
+          <span
+            key={i}
+            className={cn(spotClasses, positionClass, 'animate-ellipsis-move')}
+          />
+        );
+      })}
+      {/* last dot scaling out */}
+      <span
+        className={cn(
+          spotClasses,
+          positionClasses[counts - 1 - 1],
+          'animate-ellipsis-scale-out'
+        )}
+      />
     </div>
   );
 }

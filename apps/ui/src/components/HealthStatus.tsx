@@ -39,7 +39,7 @@ export function HealthStatus({
 }: HealthStatusProps) {
   return (
     <Card className="w-full max-w-2xl">
-      {isLoading && <LoadingEllipsis className="self-center" />}
+      {isLoading && <LoadingEllipsis className="self-center -mb-6" />}
       <CardHeader>
         <CardTitle>Service Health Check</CardTitle>
         <CardDescription>{message}</CardDescription>
