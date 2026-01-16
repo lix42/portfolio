@@ -1,10 +1,10 @@
-import './style.css';
-import viteLogo from '/vite.svg';
-import { setupCounter } from './counter.ts';
-import typescriptLogo from './typescript.svg';
+import "./style.css";
+import viteLogo from "/vite.svg";
+import { setupCounter } from "./counter.ts";
+import typescriptLogo from "./typescript.svg";
 
-const appElement = document.querySelector<HTMLDivElement>('#app');
-const counterElement = document.querySelector<HTMLButtonElement>('#counter');
+const appElement = document.querySelector<HTMLDivElement>("#app");
+const counterElement = document.querySelector<HTMLButtonElement>("#counter");
 
 if (appElement && counterElement) {
   appElement.innerHTML = `

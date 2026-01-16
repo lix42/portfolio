@@ -1,7 +1,11 @@
-import { MAX_CHUNK_TOKENS, CHUNK_OVERLAP_TOKENS } from './constants';
-import { Chunk, ChunkBuilder, ChunkOptions } from './utils/chunkBuilder';
+import { CHUNK_OVERLAP_TOKENS, MAX_CHUNK_TOKENS } from "./constants";
+import {
+  type Chunk,
+  ChunkBuilder,
+  type ChunkOptions,
+} from "./utils/chunkBuilder";
 
-export type { Chunk, ChunkOptions } from './utils/chunkBuilder';
+export type { Chunk, ChunkOptions } from "./utils/chunkBuilder";
 
 /**
  * Chunk markdown content into context-aware segments
@@ -15,7 +19,7 @@ export type { Chunk, ChunkOptions } from './utils/chunkBuilder';
 
 export function chunkMarkdown(
   content: string,
-  options: ChunkOptions = {}
+  options: ChunkOptions = {},
 ): Chunk[] {
   const maxTokens = options.maxTokens ?? MAX_CHUNK_TOKENS;
   const overlapTokens = options.overlapTokens ?? CHUNK_OVERLAP_TOKENS;
@@ -26,10 +30,10 @@ export function chunkMarkdown(
   const sections = splitByHeaders(content);
 
   for (const section of sections) {
-    if (!chunks.addText(section, '\n\n')) {
+    if (!chunks.addText(section, "\n\n")) {
       // If section too large, split further by paragraphs/sentences
       chunks.appendContent(
-        splitLargeSection(section, maxTokens, overlapTokens)
+        splitLargeSection(section, maxTokens, overlapTokens),
       );
     }
   }
@@ -42,7 +46,7 @@ export function chunkMarkdown(
  */
 function splitByHeaders(content: string): string[] {
   // Split by headers (## or ###) but keep the header with content
-  const lines = content.split('\n');
+  const lines = content.split("\n");
   const sections: string[] = [];
   let currentSection: string[] = [];
 
@@ -50,7 +54,7 @@ function splitByHeaders(content: string): string[] {
     if (line.match(/^##\s+/)) {
       // New section starts
       if (currentSection.length > 0) {
-        sections.push(currentSection.join('\n'));
+        sections.push(currentSection.join("\n"));
       }
       currentSection = [line];
     } else {
@@ -60,7 +64,7 @@ function splitByHeaders(content: string): string[] {
 
   // Add last section
   if (currentSection.length > 0) {
-    sections.push(currentSection.join('\n'));
+    sections.push(currentSection.join("\n"));
   }
 
   return sections.filter((s) => s.trim().length > 0);
@@ -87,19 +91,19 @@ function splitSentences(text: string): string[] {
 function splitLargeSection(
   section: string,
   maxTokens: number,
-  overlapTokens: number
+  overlapTokens: number,
 ): string[] {
   const paragraphs = section.split(/\n\n+/);
   const chunks = new ChunkBuilder({ maxTokens, overlapTokens });
 
   for (const para of paragraphs) {
-    if (!chunks.addText(para, '\n\n')) {
+    if (!chunks.addText(para, "\n\n")) {
       const sentences = splitSentences(para);
       for (const sentence of sentences) {
-        if (!chunks.addText(sentence, ' ')) {
+        if (!chunks.addText(sentence, " ")) {
           const words = sentence.split(/\s+/);
           for (const word of words) {
-            chunks.addText(word, ' ');
+            chunks.addText(word, " ");
           }
         }
       }

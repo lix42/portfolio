@@ -9,7 +9,7 @@
  */
 export async function getDocumentContent(
   r2Key: string,
-  bucket: R2Bucket
+  bucket: R2Bucket,
 ): Promise<string | null> {
   const object = await bucket.get(r2Key);
 
@@ -25,7 +25,7 @@ export async function getDocumentContent(
  */
 export async function documentExists(
   r2Key: string,
-  bucket: R2Bucket
+  bucket: R2Bucket,
 ): Promise<boolean> {
   const object = await bucket.head(r2Key);
   return object !== null;
@@ -36,7 +36,7 @@ export async function documentExists(
  */
 export async function getDocumentMetadata(
   r2Key: string,
-  bucket: R2Bucket
+  bucket: R2Bucket,
 ): Promise<R2Object | null> {
   return await bucket.head(r2Key);
 }

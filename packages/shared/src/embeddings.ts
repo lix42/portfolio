@@ -1,6 +1,6 @@
-import OpenAI from 'openai';
+import OpenAI from "openai";
 
-import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from './constants';
+import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "./constants";
 
 export interface EmbeddingOptions {
   model?: string;
@@ -13,7 +13,7 @@ export interface EmbeddingOptions {
 export async function generateEmbedding(
   text: string,
   options: EmbeddingOptions,
-  instance?: OpenAI
+  instance?: OpenAI,
 ): Promise<number[]> {
   const openai = instance ?? new OpenAI({ apiKey: options.apiKey });
 
@@ -27,7 +27,7 @@ export async function generateEmbedding(
   // Validate dimensions
   if (embedding.length !== EMBEDDING_DIMENSIONS) {
     throw new Error(
-      `Expected ${EMBEDDING_DIMENSIONS} dimensions, got ${embedding.length}`
+      `Expected ${EMBEDDING_DIMENSIONS} dimensions, got ${embedding.length}`,
     );
   }
 
@@ -41,7 +41,7 @@ export async function generateEmbedding(
 export async function generateEmbeddingsBatch(
   texts: string[],
   options: EmbeddingOptions,
-  instance?: OpenAI
+  instance?: OpenAI,
 ): Promise<number[][]> {
   if (texts.length === 0) {
     return [];
@@ -59,7 +59,7 @@ export async function generateEmbeddingsBatch(
   embeddings.forEach((emb, idx) => {
     if (emb.length !== EMBEDDING_DIMENSIONS) {
       throw new Error(
-        `Embedding ${idx} has ${emb.length} dimensions, expected ${EMBEDDING_DIMENSIONS}`
+        `Embedding ${idx} has ${emb.length} dimensions, expected ${EMBEDDING_DIMENSIONS}`,
       );
     }
   });
@@ -73,7 +73,7 @@ export async function generateEmbeddingsBatch(
  */
 export function cosineSimilarity(a: number[], b: number[]): number {
   if (a.length !== b.length) {
-    throw new Error('Embeddings must have same dimensions');
+    throw new Error("Embeddings must have same dimensions");
   }
 
   let dotProduct = 0;

@@ -1,4 +1,4 @@
-import type { HealthResponse } from '@portfolio/shared';
+import type { HealthResponse } from "@portfolio/shared";
 
 interface ServiceStatus {
   ok: boolean;
@@ -14,12 +14,12 @@ const getErrorMessage = (error: unknown, fallback: string): string =>
 
 async function checkD1(db: D1Database): Promise<ServiceStatus> {
   try {
-    await db.prepare('SELECT 1').first();
+    await db.prepare("SELECT 1").first();
     return { ok: true };
   } catch (error) {
     return {
       ok: false,
-      message: getErrorMessage(error, 'D1 check failed'),
+      message: getErrorMessage(error, "D1 check failed"),
     };
   }
 }
@@ -32,7 +32,7 @@ async function checkR2(bucket: R2Bucket): Promise<ServiceStatus> {
   } catch (error) {
     return {
       ok: false,
-      message: getErrorMessage(error, 'R2 check failed'),
+      message: getErrorMessage(error, "R2 check failed"),
     };
   }
 }
@@ -45,7 +45,7 @@ async function checkVectorize(index: VectorizeIndex): Promise<ServiceStatus> {
   } catch (error) {
     return {
       ok: false,
-      message: getErrorMessage(error, 'Vectorize check failed'),
+      message: getErrorMessage(error, "Vectorize check failed"),
     };
   }
 }

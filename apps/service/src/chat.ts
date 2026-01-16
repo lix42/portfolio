@@ -6,23 +6,23 @@
  * to provide relevant responses from a knowledge base.
  */
 
-import { Hono } from 'hono';
-import type { ContentfulStatusCode } from 'hono/utils/http-status';
-import { describeRoute, resolver, validator as zValidator } from 'hono-openapi';
-import OpenAI from 'openai';
+import { Hono } from "hono";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
+import { describeRoute, resolver, validator as zValidator } from "hono-openapi";
+import OpenAI from "openai";
 
 import {
   answerQuestionWithChunks,
   extractAssistantAnswer,
-} from './answerQuestion';
-import { getContext } from './getContext';
-import { preprocessQuestion } from './preprocessQuestion';
+} from "./answerQuestion";
+import { getContext } from "./getContext";
+import { preprocessQuestion } from "./preprocessQuestion";
 import {
   ChatErrorResponseSchema,
   ChatRequestSchema,
   ChatSuccessResponseSchema,
-} from './schemas';
-import { embed } from './utils/embed';
+} from "./schemas";
+import { embed } from "./utils/embed";
 
 /**
  * Hono app instance configured for Cloudflare Workers
@@ -53,43 +53,43 @@ const app = new Hono<{ Bindings: CloudflareBindings }>();
  * ```
  */
 app.post(
-  '/',
+  "/",
   describeRoute({
-    summary: 'Chat with AI about portfolio',
+    summary: "Chat with AI about portfolio",
     description:
-      'Ask questions about portfolio, work experience, skills, and projects. Uses RAG (Retrieval-Augmented Generation) to provide accurate, context-aware answers.',
-    tags: ['Chat'],
+      "Ask questions about portfolio, work experience, skills, and projects. Uses RAG (Retrieval-Augmented Generation) to provide accurate, context-aware answers.",
+    tags: ["Chat"],
     responses: {
       200: {
-        description: 'Successfully generated answer',
+        description: "Successfully generated answer",
         content: {
-          'application/json': {
+          "application/json": {
             schema: resolver(ChatSuccessResponseSchema),
           },
         },
       },
       400: {
-        description: 'Invalid or missing message',
+        description: "Invalid or missing message",
         content: {
-          'application/json': {
+          "application/json": {
             schema: resolver(ChatErrorResponseSchema),
           },
         },
       },
       500: {
-        description: 'Internal server error during processing',
+        description: "Internal server error during processing",
         content: {
-          'application/json': {
+          "application/json": {
             schema: resolver(ChatErrorResponseSchema),
           },
         },
       },
     },
   }),
-  zValidator('json', ChatRequestSchema),
+  zValidator("json", ChatRequestSchema),
   async (c) => {
     // Extract and validate the message from the request body
-    const { message } = c.req.valid('json');
+    const { message } = c.req.valid("json");
     const result = await answerQuestion(message, c.env);
 
     if (result.hasError) {
@@ -98,14 +98,14 @@ app.post(
     // Return successful response with the original message, generated tags, and search results
     // Provide empty array as fallback if no search results are found
     return c.json({ answer: result.answer });
-  }
+  },
 );
 
 export type ChatResponse = { error: string } | { answer: string };
 
 export const answerQuestion = async (
   message: string,
-  env: CloudflareBindings
+  env: CloudflareBindings,
 ): Promise<
   | { hasError: false; answer: string }
   | { hasError: true; error: string; code: ContentfulStatusCode }
@@ -123,24 +123,24 @@ export const answerQuestion = async (
   // Validate that the generated preprocess are valid
   // If tags are invalid, return an error response
   if (!preprocessResult?.is_valid) {
-    return { hasError: true, error: 'Invalid question', code: 400 };
+    return { hasError: true, error: "Invalid question", code: 400 };
   }
 
   // Validate that the embedding was created successfully
   // If embedding fails, return an internal server error
   if (!embedding) {
-    return { hasError: true, error: 'Failed to create embedding', code: 500 };
+    return { hasError: true, error: "Failed to create embedding", code: 500 };
   }
 
   // Use Cloudflare bindings for D1, Vectorize, and R2
   const { topChunks } = await getContext(
     embedding,
     preprocessResult.tags,
-    env // Pass env instead of supabaseClient
+    env, // Pass env instead of supabaseClient
   );
 
   const answer = extractAssistantAnswer(
-    await answerQuestionWithChunks(topChunks, message, openai)
+    await answerQuestionWithChunks(topChunks, message, openai),
   );
 
   return { hasError: false, answer };

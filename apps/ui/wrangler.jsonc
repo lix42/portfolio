@@ -8,13 +8,13 @@
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/react-start/server-entry",
   "vars": {
-    "VALUE_FROM_CLOUDFLARE": "Hello from TanStack Start",
+    "VALUE_FROM_CLOUDFLARE": "Hello from TanStack Start"
   },
   "services": [
     {
       "binding": "CHAT_SERVICE",
-      "service": "chat-service-staging", // ✅ Changed to staging for dev
-    },
+      "service": "chat-service-staging" // ✅ Changed to staging for dev
+    }
   ],
 
   // Add env section for production deployments
@@ -23,9 +23,9 @@
       "services": [
         {
           "binding": "CHAT_SERVICE",
-          "service": "chat-service-prod", // Production uses prod service
-        },
-      ],
-    },
-  },
+          "service": "chat-service-prod" // Production uses prod service
+        }
+      ]
+    }
+  }
 }

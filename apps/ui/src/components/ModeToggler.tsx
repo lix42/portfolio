@@ -2,24 +2,24 @@ import {
   LaptopPhoneSyncIcon,
   Moon01Icon,
   Sun02Icon,
-} from '@hugeicons/core-free-icons';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { useCallback, useEffect, useState } from 'react';
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { useCallback, useEffect, useState } from "react";
 
-import { Button } from '~/components/ui/button';
+import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu';
+} from "~/components/ui/dropdown-menu";
 import {
   applyTheme,
   getThemePreference,
   installSystemThemeListener,
   setTheme,
-  ThemePreference,
-} from '~/lib/themeMode';
+  type ThemePreference,
+} from "~/lib/themeMode";
 
 const ssrIcon = (
   <>
@@ -61,13 +61,13 @@ export function ModeToggle() {
         <span className="sr-only">Toggle theme</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => updatePreferMode('light')}>
+        <DropdownMenuItem onClick={() => updatePreferMode("light")}>
           Light
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => updatePreferMode('dark')}>
+        <DropdownMenuItem onClick={() => updatePreferMode("dark")}>
           Dark
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => updatePreferMode('system')}>
+        <DropdownMenuItem onClick={() => updatePreferMode("system")}>
           System
         </DropdownMenuItem>
       </DropdownMenuContent>

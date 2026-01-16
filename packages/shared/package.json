@@ -15,19 +15,13 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "test": "vitest run --coverage",
-    "test:watch": "vitest --watch",
-    "lint": "$npm_execpath run eslint:check",
-    "lint:fix": "$npm_execpath run eslint:fix",
-    "eslint": "$npm_execpath run eslint:check",
-    "eslint:check": "eslint .",
-    "eslint:fix": "eslint --fix ."
+    "test:watch": "vitest --watch"
   },
   "dependencies": {
     "openai": "^6.15.0",
     "zod": "^4.3.4"
   },
   "devDependencies": {
-    "@portfolio/eslint-config": "workspace:*",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^4.0.16",
     "typescript": "^5.3.3",

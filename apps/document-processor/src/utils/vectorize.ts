@@ -1,4 +1,4 @@
-import type { ChunkState, DocumentState } from '../types';
+import type { ChunkState, DocumentState } from "../types";
 
 /**
  * Insert vectors into Vectorize (idempotent)
@@ -6,7 +6,7 @@ import type { ChunkState, DocumentState } from '../types';
 export async function insertIntoVectorize(
   state: DocumentState,
   chunks: ChunkState[],
-  vectorize: VectorizeIndex
+  vectorize: VectorizeIndex,
 ): Promise<void> {
   const vectors = chunks
     .map((chunk) => {
@@ -33,6 +33,6 @@ export async function insertIntoVectorize(
   }
 
   console.log(
-    `[${state.r2Key}] Inserted ${vectors.length} vectors into Vectorize`
+    `[${state.r2Key}] Inserted ${vectors.length} vectors into Vectorize`,
   );
 }

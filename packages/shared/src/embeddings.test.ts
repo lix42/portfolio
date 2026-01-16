@@ -1,14 +1,14 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from "vitest";
 
-import { EMBEDDING_DIMENSIONS } from './constants';
+import { EMBEDDING_DIMENSIONS } from "./constants";
 import {
   cosineSimilarity,
   generateEmbedding,
   generateEmbeddingsBatch,
-} from './embeddings';
+} from "./embeddings";
 
 // Mock OpenAI
-vi.mock('openai', () => {
+vi.mock("openai", () => {
   return {
     default: class MockOpenAI {
       embeddings = {
@@ -25,23 +25,23 @@ vi.mock('openai', () => {
   };
 });
 
-describe('embeddings', () => {
-  const apiKey = 'test-api-key';
+describe("embeddings", () => {
+  const apiKey = "test-api-key";
 
-  describe('generateEmbedding', () => {
-    it('should generate embedding for single text', async () => {
-      const embedding = await generateEmbedding('test text', { apiKey });
+  describe("generateEmbedding", () => {
+    it("should generate embedding for single text", async () => {
+      const embedding = await generateEmbedding("test text", { apiKey });
 
       expect(embedding).toHaveLength(EMBEDDING_DIMENSIONS);
       expect(embedding[0]).toBe(0.1);
     });
   });
 
-  describe('generateEmbeddingsBatch', () => {
-    it('should generate embeddings for multiple texts', async () => {
+  describe("generateEmbeddingsBatch", () => {
+    it("should generate embeddings for multiple texts", async () => {
       const embeddings = await generateEmbeddingsBatch(
-        ['text1', 'text2', 'text3'],
-        { apiKey }
+        ["text1", "text2", "text3"],
+        { apiKey },
       );
 
       expect(embeddings).toHaveLength(3);
@@ -50,14 +50,14 @@ describe('embeddings', () => {
       });
     });
 
-    it('should return empty array for empty input', async () => {
+    it("should return empty array for empty input", async () => {
       const embeddings = await generateEmbeddingsBatch([], { apiKey });
       expect(embeddings).toEqual([]);
     });
   });
 
-  describe('cosineSimilarity', () => {
-    it('should calculate similarity between embeddings', () => {
+  describe("cosineSimilarity", () => {
+    it("should calculate similarity between embeddings", () => {
       const a = [1, 0, 0];
       const b = [1, 0, 0];
       const similarity = cosineSimilarity(a, b);
@@ -65,7 +65,7 @@ describe('embeddings', () => {
       expect(similarity).toBeCloseTo(1.0);
     });
 
-    it('should return 0 for orthogonal vectors', () => {
+    it("should return 0 for orthogonal vectors", () => {
       const a = [1, 0];
       const b = [0, 1];
       const similarity = cosineSimilarity(a, b);
@@ -73,14 +73,14 @@ describe('embeddings', () => {
       expect(similarity).toBeCloseTo(0);
     });
 
-    it('should throw error for different dimensions', () => {
+    it("should throw error for different dimensions", () => {
       const a = [1, 0];
       const b = [1, 0, 0];
 
-      expect(() => cosineSimilarity(a, b)).toThrow('same dimensions');
+      expect(() => cosineSimilarity(a, b)).toThrow("same dimensions");
     });
 
-    it('should return 0 for zero vectors', () => {
+    it("should return 0 for zero vectors", () => {
       const a = [1, 2, 3];
       const b = [0, 0, 0];
       const c = [0, 0, 0];

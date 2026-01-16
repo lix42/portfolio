@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Chat request schema - validates incoming chat messages
@@ -6,10 +6,10 @@ import { z } from 'zod';
 export const ChatRequestSchema = z.object({
   message: z
     .string()
-    .min(1, 'Message cannot be empty')
-    .max(1000, 'Message too long (max 1000 characters)')
+    .min(1, "Message cannot be empty")
+    .max(1000, "Message too long (max 1000 characters)")
     .describe(
-      'User question about portfolio, work experience, skills, or projects'
+      "User question about portfolio, work experience, skills, or projects",
     ),
 });
 
@@ -20,7 +20,7 @@ export const ChatSuccessResponseSchema = z.object({
   answer: z
     .string()
     .describe(
-      'AI-generated answer based on portfolio documents and context retrieved via RAG'
+      "AI-generated answer based on portfolio documents and context retrieved via RAG",
     ),
 });
 
@@ -31,7 +31,7 @@ export const ChatErrorResponseSchema = z.object({
   error: z
     .string()
     .describe(
-      'Error message - either validation error, processing failure, or server error'
+      "Error message - either validation error, processing failure, or server error",
     ),
 });
 

@@ -1,15 +1,15 @@
-import type { DocumentState, ProcessingStatus } from '../types';
+import type { DocumentState, ProcessingStatus } from "../types";
 
 /**
  * Convert DocumentState to ProcessingStatus (public API format)
  */
 export function convertStateToStatus(
-  state: DocumentState | null | undefined
+  state: DocumentState | null | undefined,
 ): ProcessingStatus {
   if (!state) {
     return {
-      status: 'not_started',
-      currentStep: 'download',
+      status: "not_started",
+      currentStep: "download",
       progress: {
         totalChunks: 0,
         processedChunks: 0,

@@ -17,8 +17,8 @@ export interface ReconciliationResult {
  * Matches the response from document-processor's /status endpoint
  */
 export interface ProcessingStatus {
-  status: 'not_started' | 'processing' | 'completed' | 'failed';
-  currentStep: 'download' | 'embeddings' | 'tags' | 'store' | 'complete';
+  status: "not_started" | "processing" | "completed" | "failed";
+  currentStep: "download" | "embeddings" | "tags" | "store" | "complete";
   progress: {
     totalChunks: number;
     processedChunks: number;

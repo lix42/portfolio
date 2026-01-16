@@ -9,7 +9,7 @@
   // Cron Trigger - Daily reconciliation at 2 AM UTC
   // ============================================================================
   "triggers": {
-    "crons": ["0 2 * * *"],
+    "crons": ["0 2 * * *"]
   },
 
   // ============================================================================
@@ -27,15 +27,15 @@
     {
       "binding": "DB",
       "database_name": "portfolio-sql-staging",
-      "database_id": "b287f8a6-1760-4092-8f2f-3f3f453cfe4f",
-    },
+      "database_id": "b287f8a6-1760-4092-8f2f-3f3f453cfe4f"
+    }
   ],
 
   "r2_buckets": [
     {
       "binding": "DOCUMENTS_BUCKET",
-      "bucket_name": "portfolio-documents-staging",
-    },
+      "bucket_name": "portfolio-documents-staging"
+    }
   ],
 
   // Durable Objects binding - external reference to document-processor
@@ -46,13 +46,13 @@
       {
         "name": "DOCUMENT_PROCESSOR",
         "class_name": "DocumentProcessor",
-        "script_name": "portfolio-document-processor-staging",
-      },
-    ],
+        "script_name": "portfolio-document-processor-staging"
+      }
+    ]
   },
 
   "vars": {
-    "ENVIRONMENT": "local",
+    "ENVIRONMENT": "local"
   },
 
   // ============================================================================
@@ -66,27 +66,27 @@
         {
           "binding": "DB",
           "database_name": "portfolio-sql-staging",
-          "database_id": "b287f8a6-1760-4092-8f2f-3f3f453cfe4f",
-        },
+          "database_id": "b287f8a6-1760-4092-8f2f-3f3f453cfe4f"
+        }
       ],
       "r2_buckets": [
         {
           "binding": "DOCUMENTS_BUCKET",
-          "bucket_name": "portfolio-documents-staging",
-        },
+          "bucket_name": "portfolio-documents-staging"
+        }
       ],
       "durable_objects": {
         "bindings": [
           {
             "name": "DOCUMENT_PROCESSOR",
             "class_name": "DocumentProcessor",
-            "script_name": "portfolio-document-processor-staging",
-          },
-        ],
+            "script_name": "portfolio-document-processor-staging"
+          }
+        ]
       },
       "vars": {
-        "ENVIRONMENT": "staging",
-      },
+        "ENVIRONMENT": "staging"
+      }
     },
     "production": {
       "name": "portfolio-r2-reconciliation-prod",
@@ -94,27 +94,27 @@
         {
           "binding": "DB",
           "database_name": "portfolio-sql-prod",
-          "database_id": "e8ae40da-e089-47f8-8845-7586f7a555ec",
-        },
+          "database_id": "e8ae40da-e089-47f8-8845-7586f7a555ec"
+        }
       ],
       "r2_buckets": [
         {
           "binding": "DOCUMENTS_BUCKET",
-          "bucket_name": "portfolio-documents-prod",
-        },
+          "bucket_name": "portfolio-documents-prod"
+        }
       ],
       "durable_objects": {
         "bindings": [
           {
             "name": "DOCUMENT_PROCESSOR",
             "class_name": "DocumentProcessor",
-            "script_name": "portfolio-document-processor-prod",
-          },
-        ],
+            "script_name": "portfolio-document-processor-prod"
+          }
+        ]
       },
       "vars": {
-        "ENVIRONMENT": "production",
-      },
-    },
-  },
+        "ENVIRONMENT": "production"
+      }
+    }
+  }
 }

@@ -1,13 +1,13 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ModeToggle } from './ModeToggler';
+import { ModeToggle } from "./ModeToggler";
 
-describe('ModeToggle', () => {
+describe("ModeToggle", () => {
   beforeEach(() => {
     localStorage.clear();
-    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.remove("dark");
 
     // Setup matchMedia mock
     window.matchMedia = vi.fn().mockImplementation((query) => ({
@@ -19,94 +19,94 @@ describe('ModeToggle', () => {
     }));
   });
 
-  it('should render the theme toggle button', () => {
+  it("should render the theme toggle button", () => {
     render(<ModeToggle />);
-    expect(screen.getByRole('button')).toBeInTheDocument();
+    expect(screen.getByRole("button")).toBeInTheDocument();
   });
 
-  it('should have accessible label', () => {
+  it("should have accessible label", () => {
     render(<ModeToggle />);
-    expect(screen.getByText('Toggle theme')).toBeInTheDocument();
+    expect(screen.getByText("Toggle theme")).toBeInTheDocument();
   });
 
-  it('should open dropdown menu on click', async () => {
+  it("should open dropdown menu on click", async () => {
     const user = userEvent.setup();
     render(<ModeToggle />);
 
-    const button = screen.getByRole('button');
+    const button = screen.getByRole("button");
     await user.click(button);
 
     await waitFor(() => {
-      expect(screen.getByText('Light')).toBeInTheDocument();
-      expect(screen.getByText('Dark')).toBeInTheDocument();
-      expect(screen.getByText('System')).toBeInTheDocument();
+      expect(screen.getByText("Light")).toBeInTheDocument();
+      expect(screen.getByText("Dark")).toBeInTheDocument();
+      expect(screen.getByText("System")).toBeInTheDocument();
     });
   });
 
-  it('should switch to light mode when Light is clicked', async () => {
+  it("should switch to light mode when Light is clicked", async () => {
     const user = userEvent.setup();
     render(<ModeToggle />);
 
-    const button = screen.getByRole('button');
+    const button = screen.getByRole("button");
     await user.click(button);
 
-    const lightOption = await screen.findByText('Light');
+    const lightOption = await screen.findByText("Light");
     await user.click(lightOption);
 
     await waitFor(() => {
-      expect(localStorage.getItem('theme-preference')).toBe('light');
-      expect(document.documentElement.classList.contains('dark')).toBe(false);
+      expect(localStorage.getItem("theme-preference")).toBe("light");
+      expect(document.documentElement.classList.contains("dark")).toBe(false);
     });
   });
 
-  it('should switch to dark mode when Dark is clicked', async () => {
+  it("should switch to dark mode when Dark is clicked", async () => {
     const user = userEvent.setup();
     render(<ModeToggle />);
 
-    const button = screen.getByRole('button');
+    const button = screen.getByRole("button");
     await user.click(button);
 
-    const darkOption = await screen.findByText('Dark');
+    const darkOption = await screen.findByText("Dark");
     await user.click(darkOption);
 
     await waitFor(() => {
-      expect(localStorage.getItem('theme-preference')).toBe('dark');
-      expect(document.documentElement.classList.contains('dark')).toBe(true);
+      expect(localStorage.getItem("theme-preference")).toBe("dark");
+      expect(document.documentElement.classList.contains("dark")).toBe(true);
     });
   });
 
-  it('should switch to system mode when System is clicked', async () => {
+  it("should switch to system mode when System is clicked", async () => {
     const user = userEvent.setup();
-    localStorage.setItem('theme-preference', 'light');
+    localStorage.setItem("theme-preference", "light");
 
     render(<ModeToggle />);
 
-    const button = screen.getByRole('button');
+    const button = screen.getByRole("button");
     await user.click(button);
 
-    const systemOption = await screen.findByText('System');
+    const systemOption = await screen.findByText("System");
     await user.click(systemOption);
 
     await waitFor(() => {
-      expect(localStorage.getItem('theme-preference')).toBeNull();
+      expect(localStorage.getItem("theme-preference")).toBeNull();
     });
   });
 
-  it('should initialize with stored theme preference', async () => {
-    localStorage.setItem('theme-preference', 'dark');
+  it("should initialize with stored theme preference", async () => {
+    localStorage.setItem("theme-preference", "dark");
 
     render(<ModeToggle />);
 
     await waitFor(() => {
-      expect(document.documentElement.classList.contains('dark')).toBe(true);
+      expect(document.documentElement.classList.contains("dark")).toBe(true);
     });
   });
 
-  it('should install system theme listener on mount', () => {
+  it("should install system theme listener on mount", () => {
     const addEventListenerSpy = vi.fn();
     window.matchMedia = vi.fn().mockReturnValue({
       matches: false,
-      media: '(prefers-color-scheme: dark)',
+      media: "(prefers-color-scheme: dark)",
       addEventListener: addEventListenerSpy,
       removeEventListener: vi.fn(),
     });
@@ -114,16 +114,16 @@ describe('ModeToggle', () => {
     render(<ModeToggle />);
 
     expect(addEventListenerSpy).toHaveBeenCalledWith(
-      'change',
-      expect.any(Function)
+      "change",
+      expect.any(Function),
     );
   });
 
-  it('should cleanup listener on unmount', () => {
+  it("should cleanup listener on unmount", () => {
     const removeEventListenerSpy = vi.fn();
     window.matchMedia = vi.fn().mockReturnValue({
       matches: false,
-      media: '(prefers-color-scheme: dark)',
+      media: "(prefers-color-scheme: dark)",
       addEventListener: vi.fn(),
       removeEventListener: removeEventListenerSpy,
     });
@@ -132,8 +132,8 @@ describe('ModeToggle', () => {
     unmount();
 
     expect(removeEventListenerSpy).toHaveBeenCalledWith(
-      'change',
-      expect.any(Function)
+      "change",
+      expect.any(Function),
     );
   });
 });

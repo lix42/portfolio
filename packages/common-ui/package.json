@@ -6,15 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview",
-    "lint": "$npm_execpath run eslint:check",
-    "lint:fix": "$npm_execpath run eslint:fix",
-    "eslint": "$npm_execpath run eslint:check",
-    "eslint:check": "eslint .",
-    "eslint:fix": "eslint --fix ."
+    "preview": "vite preview"
   },
   "devDependencies": {
-    "@portfolio/eslint-config": "workspace:*",
     "typescript": "~5.9.3",
     "vite": "^7.3.0"
   }

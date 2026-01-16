@@ -1,9 +1,9 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from "vitest";
 
-import { chunkMarkdown } from './chunking';
+import { chunkMarkdown } from "./chunking";
 
-describe('chunkMarkdown', () => {
-  it('should split content by headers', () => {
+describe("chunkMarkdown", () => {
+  it("should split content by headers", () => {
     const content = `## Section 1
 Content 1
 
@@ -12,11 +12,11 @@ Content 2`;
 
     const chunks = chunkMarkdown(content, { maxTokens: 200 });
     expect(chunks.length).toBeGreaterThanOrEqual(1);
-    expect(chunks[0].content).toContain('Section 1');
+    expect(chunks[0].content).toContain("Section 1");
   });
 
-  it('should respect max token limit', () => {
-    const content = 'a '.repeat(1000); // Large content
+  it("should respect max token limit", () => {
+    const content = "a ".repeat(1000); // Large content
     const chunks = chunkMarkdown(content, { maxTokens: 200 });
 
     chunks.forEach((chunk) => {
@@ -24,12 +24,12 @@ Content 2`;
     });
   });
 
-  it('should add overlap between chunks', () => {
+  it("should add overlap between chunks", () => {
     const content = `## Section 1
-${'Content 1 '.repeat(200)}
+${"Content 1 ".repeat(200)}
 
 ## Section 2
-${'Content 2 '.repeat(200)}`;
+${"Content 2 ".repeat(200)}`;
 
     const chunks = chunkMarkdown(content, {
       maxTokens: 200,
@@ -43,7 +43,7 @@ ${'Content 2 '.repeat(200)}`;
     }
   });
 
-  it('should handle code blocks', () => {
+  it("should handle code blocks", () => {
     const content = `## Example
 \`\`\`typescript
 function test() {
@@ -52,17 +52,17 @@ function test() {
 \`\`\``;
 
     const chunks = chunkMarkdown(content);
-    expect(chunks[0].content).toContain('```typescript');
-    expect(chunks[0].content).toContain('```');
+    expect(chunks[0].content).toContain("```typescript");
+    expect(chunks[0].content).toContain("```");
   });
 
-  it('should return chunk metadata', () => {
-    const content = '## Test\nContent';
+  it("should return chunk metadata", () => {
+    const content = "## Test\nContent";
     const chunks = chunkMarkdown(content);
 
-    expect(chunks[0]).toHaveProperty('content');
-    expect(chunks[0]).toHaveProperty('index');
-    expect(chunks[0]).toHaveProperty('tokens');
+    expect(chunks[0]).toHaveProperty("content");
+    expect(chunks[0]).toHaveProperty("index");
+    expect(chunks[0]).toHaveProperty("tokens");
     expect(chunks[0].index).toBe(0);
   });
 });

@@ -20,17 +20,17 @@ export interface VectorMatch {
 export async function queryByEmbedding(
   embedding: readonly number[],
   vectorize: VectorizeIndex,
-  topK = 10
+  topK = 10,
 ): Promise<VectorMatch[]> {
   const result = await vectorize.query(Array.from(embedding), {
     topK,
-    returnMetadata: 'indexed', // Faster than 'all'
+    returnMetadata: "indexed", // Faster than 'all'
   });
 
   return (result.matches || []).map((match) => ({
     id: match.id,
     score: match.score,
-    metadata: match.metadata as VectorMatch['metadata'],
+    metadata: match.metadata as VectorMatch["metadata"],
   }));
 }
 
@@ -42,7 +42,7 @@ export function parseVectorizeId(vectorizeId: string): {
   r2Key: string;
   chunkIndex: number;
 } | null {
-  const parts = vectorizeId.split(':');
+  const parts = vectorizeId.split(":");
   if (parts.length < 2) {
     return null;
   }
@@ -53,7 +53,7 @@ export function parseVectorizeId(vectorizeId: string): {
   }
 
   const chunkIndex = Number.parseInt(lastPart, 10);
-  const r2Key = parts.slice(0, -1).join(':');
+  const r2Key = parts.slice(0, -1).join(":");
 
   if (Number.isNaN(chunkIndex)) {
     return null;

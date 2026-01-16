@@ -1,29 +1,28 @@
-import { cva, type VariantProps } from 'class-variance-authority';
-import * as React from 'react';
+import { cva, type VariantProps } from "class-variance-authority";
+import type * as React from "react";
 
-import { cn } from '~/lib/utils';
+import { cn } from "~/lib/utils";
 
-const loadingEllipsisVariants = cva('relative inline-block h-2 -mb-2', {
+const loadingEllipsisVariants = cva("relative inline-block h-2 -mb-2", {
   variants: {
     size: {
-      sm: 'w-8',
-      default: 'w-12',
-      lg: 'w-16',
+      sm: "w-8",
+      default: "w-12",
+      lg: "w-16",
     },
     variant: {
-      primary: 'text-(--primary)',
-      secondary: 'text-(--secondary-foreground)',
+      primary: "text-(--primary)",
+      secondary: "text-(--secondary-foreground)",
     },
   },
   defaultVariants: {
-    size: 'default',
-    variant: 'primary',
+    size: "default",
+    variant: "primary",
   },
 });
 
 export interface LoadingEllipsisProps
-  extends
-    React.HTMLAttributes<HTMLDivElement>,
+  extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof loadingEllipsisVariants> {}
 
 export function LoadingEllipsis({
@@ -32,11 +31,12 @@ export function LoadingEllipsis({
   variant,
   ...props
 }: LoadingEllipsisProps) {
-  const counts = size === 'sm' ? 3 : size === 'lg' ? 5 : 4;
-  const positionClasses = ['left-2', 'left-6', 'left-10', 'left-14'];
+  const counts = size === "sm" ? 3 : size === "lg" ? 5 : 4;
+  const positionClasses = ["left-2", "left-6", "left-10", "left-14"];
   const spotClasses =
-    'absolute top-1/2 size-2 -translate-y-1/2 rounded-full bg-current';
+    "absolute top-1/2 size-2 -translate-y-1/2 rounded-full bg-current";
   return (
+    // biome-ignore lint/a11y/useSemanticElements: Using div with role for styling flexibility
     <div
       role="status"
       aria-label="Loading"
@@ -48,7 +48,7 @@ export function LoadingEllipsis({
         className={cn(
           spotClasses,
           positionClasses[0],
-          'animate-ellipsis-scale-in'
+          "animate-ellipsis-scale-in",
         )}
       />
       {/* moving dots */}
@@ -56,8 +56,9 @@ export function LoadingEllipsis({
         const positionClass = positionClasses[i];
         return (
           <span
+            // biome-ignore lint/suspicious/noArrayIndexKey: Static array with fixed order
             key={i}
-            className={cn(spotClasses, positionClass, 'animate-ellipsis-move')}
+            className={cn(spotClasses, positionClass, "animate-ellipsis-move")}
           />
         );
       })}
@@ -66,7 +67,7 @@ export function LoadingEllipsis({
         className={cn(
           spotClasses,
           positionClasses[counts - 1 - 1],
-          'animate-ellipsis-scale-out'
+          "animate-ellipsis-scale-out",
         )}
       />
     </div>

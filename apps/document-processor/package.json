@@ -6,17 +6,12 @@
   "main": "./src/index.ts",
   "scripts": {
     "dev": "wrangler dev",
-    "lint": "$npm_execpath run eslint:check",
-    "lint:fix": "$npm_execpath run eslint:fix",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build": "$npm_execpath run eslint:check && $npm_execpath run type:check",
+    "build": "$npm_execpath run type:check",
     "deploy": "$npm_execpath install && $npm_execpath run build && $npm_execpath run deploy:wrangler",
     "deploy:staging": "$npm_execpath install && $npm_execpath run build && wrangler deploy --minify --env staging",
     "deploy:prod": "$npm_execpath install && $npm_execpath run build && wrangler deploy --minify --env production",
-    "eslint": "$npm_execpath run eslint:check",
-    "eslint:check": "eslint .",
-    "eslint:fix": "eslint --fix .",
     "cf-typegen": "wrangler types",
     "type:check": "tsc --noEmit",
     "type:check:ci": "$npm_execpath run type:check",
@@ -30,7 +25,6 @@
     "openai": "^6.15.0"
   },
   "devDependencies": {
-    "@portfolio/eslint-config": "workspace:*",
     "@types/node": "^22.0.0",
     "typescript": "^5.3.3",
     "vitest": "^4.0.16",

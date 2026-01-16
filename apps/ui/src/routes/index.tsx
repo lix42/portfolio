@@ -1,10 +1,10 @@
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 
-import { HealthStatus } from '~/components/HealthStatus';
-import { healthQueryOptions } from '~/lib/health';
+import { HealthStatus } from "~/components/HealthStatus";
+import { healthQueryOptions } from "~/lib/health";
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute("/")({
   loader: async ({ context }) => {
     const data = await context.queryClient.ensureQueryData(healthQueryOptions);
 

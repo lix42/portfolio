@@ -1,5 +1,5 @@
-import { EMBEDDING_MODEL } from '@portfolio/shared';
-import type OpenAI from 'openai';
+import { EMBEDDING_MODEL } from "@portfolio/shared";
+import type OpenAI from "openai";
 
 /**
  * Generates an embedding vector for the given message using the provided OpenAI client.
@@ -10,12 +10,12 @@ import type OpenAI from 'openai';
  */
 export const embed = async (
   message: string,
-  openai: OpenAI
+  openai: OpenAI,
 ): Promise<number[] | null> => {
   const response = await openai.embeddings.create({
     model: EMBEDDING_MODEL,
     input: message,
-    encoding_format: 'float',
+    encoding_format: "float",
   });
 
   return response.data[0]?.embedding ?? null;

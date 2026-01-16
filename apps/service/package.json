@@ -18,15 +18,10 @@
   },
   "scripts": {
     "dev": "wrangler dev -e staging --port 5000",
-    "lint": "$npm_execpath run eslint:check",
-    "lint:fix": "$npm_execpath run eslint:fix",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
-    "build": "$npm_execpath run eslint:check && $npm_execpath run type:build",
+    "build": "$npm_execpath run type:build",
     "deploy": "$npm_execpath install && $npm_execpath run build && $npm_execpath run deploy:wrangler",
-    "eslint": "$npm_execpath run eslint:check",
-    "eslint:check": "eslint .",
-    "eslint:fix": "eslint --fix .",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "type:check": "tsc --noEmit",
     "type:check:ci": "$npm_execpath run type:check",
@@ -46,12 +41,9 @@
     "zod-openapi": "^5.4.3"
   },
   "devDependencies": {
-    "@portfolio/eslint-config": "workspace:*",
     "@types/node": "^24.7.2",
     "@vitest/coverage-istanbul": "^4.0.16",
     "@vitest/coverage-v8": "^4.0.16",
-    "eslint": "^9.39.2",
-    "prettier": "^3.7.4",
     "typescript": "^5.9.3",
     "vitest": "^4.0.16",
     "wrangler": "^4.59.1"

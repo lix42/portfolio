@@ -1,22 +1,21 @@
 /* eslint-disable sonarjs/no-clear-text-protocols */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { DocumentProcessor } from './document-processor';
-import { createMockEnv } from './test-utils';
+import { DocumentProcessor } from "./document-processor";
+import { createMockEnv } from "./test-utils";
 
 // Mock the shared package
-vi.mock('@portfolio/shared', () => ({
-  // biome-ignore lint/suspicious/noExplicitAny: Mock function for testing
+vi.mock("@portfolio/shared", () => ({
   chunkMarkdown: vi.fn((_content: string) => [
-    { index: 0, content: 'Chunk 1', tokens: 100 },
-    { index: 1, content: 'Chunk 2', tokens: 100 },
+    { index: 0, content: "Chunk 1", tokens: 100 },
+    { index: 1, content: "Chunk 2", tokens: 100 },
   ]),
   generateEmbeddingsBatch: vi.fn((texts: string[]) =>
-    texts.map(() => new Array(1536).fill(0.1))
+    texts.map(() => new Array(1536).fill(0.1)),
   ),
   generateTagsBatch: vi.fn((texts: string[]) =>
-    texts.map(() => ['test', 'tag'])
+    texts.map(() => ["test", "tag"]),
   ),
   EMBEDDING_BATCH_SIZE: 10,
   TAG_BATCH_SIZE: 5,
@@ -24,18 +23,19 @@ vi.mock('@portfolio/shared', () => ({
   RETRY_BACKOFF_MS: 1000,
 }));
 
-describe('DocumentProcessor', () => {
+describe("DocumentProcessor", () => {
   let processor: DocumentProcessor;
+  // biome-ignore lint/suspicious/noExplicitAny: Complex mock state for Durable Object testing
   let mockState: any;
+  // biome-ignore lint/suspicious/noExplicitAny: Complex mock environment for testing
   let mockEnv: any;
 
   beforeEach(() => {
     const storage = new Map();
 
-    // biome-ignore lint/suspicious/noExplicitAny: Mock state for testing
     mockState = {
       id: {
-        toString: () => 'test-id',
+        toString: () => "test-id",
       },
       storage: {
         get: vi.fn(async (key: string) => storage.get(key)),
@@ -58,9 +58,9 @@ describe('DocumentProcessor', () => {
           }
           return result;
         }),
-        // biome-ignore lint/suspicious/noExplicitAny: Mock function for testing
         setAlarm: vi.fn(async (_time: number) => {}),
       },
+      // biome-ignore lint/suspicious/noExplicitAny: Mock doesn't implement full DurableObjectState interface
     } as any;
 
     mockEnv = createMockEnv();
@@ -68,12 +68,12 @@ describe('DocumentProcessor', () => {
     processor = new DocumentProcessor(mockState, mockEnv);
   });
 
-  describe('/process endpoint', () => {
-    it('should initialize processing state', async () => {
-      const request = new Request('http://internal/process', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ r2Key: 'test.md' }),
+  describe("/process endpoint", () => {
+    it("should initialize processing state", async () => {
+      const request = new Request("http://internal/process", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ r2Key: "test.md" }),
       });
 
       const response = await processor.fetch(request);
@@ -84,17 +84,17 @@ describe('DocumentProcessor', () => {
       expect(mockState.storage.put).toHaveBeenCalled();
     });
 
-    it('should skip if already processing', async () => {
+    it("should skip if already processing", async () => {
       // Set up existing state
-      await mockState.storage.put('state', {
-        status: 'processing',
-        r2Key: 'test.md',
+      await mockState.storage.put("state", {
+        status: "processing",
+        r2Key: "test.md",
       });
 
-      const request = new Request('http://internal/process', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ r2Key: 'test.md' }),
+      const request = new Request("http://internal/process", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ r2Key: "test.md" }),
       });
 
       const response = await processor.fetch(request);
@@ -103,17 +103,17 @@ describe('DocumentProcessor', () => {
       // Should skip restart
     });
 
-    it('should skip if already completed', async () => {
+    it("should skip if already completed", async () => {
       // Set up existing state
-      await mockState.storage.put('state', {
-        status: 'completed',
-        r2Key: 'test.md',
+      await mockState.storage.put("state", {
+        status: "completed",
+        r2Key: "test.md",
       });
 
-      const request = new Request('http://internal/process', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ r2Key: 'test.md' }),
+      const request = new Request("http://internal/process", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ r2Key: "test.md" }),
       });
 
       const response = await processor.fetch(request);
@@ -123,21 +123,21 @@ describe('DocumentProcessor', () => {
     });
   });
 
-  describe('/status endpoint', () => {
-    it('should return status for non-existent document', async () => {
-      const request = new Request('http://internal/status');
+  describe("/status endpoint", () => {
+    it("should return status for non-existent document", async () => {
+      const request = new Request("http://internal/status");
       const response = await processor.fetch(request);
       const result = await response.json();
 
       expect(result.status).toBeDefined();
     });
 
-    it('should return current processing status', async () => {
+    it("should return current processing status", async () => {
       // Store document state (chunks are stored separately now)
-      await mockState.storage.put('state', {
-        status: 'processing',
-        r2Key: 'test.md',
-        currentStep: 'embeddings',
+      await mockState.storage.put("state", {
+        status: "processing",
+        r2Key: "test.md",
+        currentStep: "embeddings",
         totalChunks: 10,
         processedChunks: 5, // Now explicitly tracked in state
         errors: [],
@@ -145,27 +145,27 @@ describe('DocumentProcessor', () => {
         startedAt: new Date().toISOString(),
       });
 
-      const request = new Request('http://internal/status');
+      const request = new Request("http://internal/status");
       const response = await processor.fetch(request);
       const result = await response.json();
 
-      expect(result.status).toBe('processing');
-      expect(result.currentStep).toBe('embeddings');
+      expect(result.status).toBe("processing");
+      expect(result.currentStep).toBe("embeddings");
       expect(result.progress.percentage).toBe(50);
     });
   });
 
-  describe('/reprocess endpoint', () => {
-    it('should reject if currently processing', async () => {
-      await mockState.storage.put('state', {
-        status: 'processing',
-        r2Key: 'test.md',
+  describe("/reprocess endpoint", () => {
+    it("should reject if currently processing", async () => {
+      await mockState.storage.put("state", {
+        status: "processing",
+        r2Key: "test.md",
       });
 
-      const request = new Request('http://internal/reprocess', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ r2Key: 'test.md' }),
+      const request = new Request("http://internal/reprocess", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ r2Key: "test.md" }),
       });
 
       const response = await processor.fetch(request);
@@ -174,17 +174,17 @@ describe('DocumentProcessor', () => {
       expect(response.status).toBe(500);
     });
 
-    it('should clean up and restart if completed', async () => {
-      await mockState.storage.put('state', {
-        status: 'completed',
-        r2Key: 'test.md',
+    it("should clean up and restart if completed", async () => {
+      await mockState.storage.put("state", {
+        status: "completed",
+        r2Key: "test.md",
         documentId: 123,
       });
 
-      const request = new Request('http://internal/reprocess', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ r2Key: 'test.md' }),
+      const request = new Request("http://internal/reprocess", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ r2Key: "test.md" }),
       });
 
       const response = await processor.fetch(request);
@@ -194,13 +194,13 @@ describe('DocumentProcessor', () => {
     });
   });
 
-  describe('/resume endpoint', () => {
-    it('should resume processing', async () => {
+  describe("/resume endpoint", () => {
+    it("should resume processing", async () => {
       // Don't trigger actual processing - just verify the endpoint works
       // The endpoint will immediately call executeCurrentStep which needs valid state
       // For this test, we just want to verify the endpoint exists and responds
-      const request = new Request('http://internal/resume', {
-        method: 'POST',
+      const request = new Request("http://internal/resume", {
+        method: "POST",
       });
 
       const response = await processor.fetch(request);
@@ -210,9 +210,9 @@ describe('DocumentProcessor', () => {
     });
   });
 
-  describe('404 handling', () => {
-    it('should return 404 for unknown routes', async () => {
-      const request = new Request('http://internal/unknown');
+  describe("404 handling", () => {
+    it("should return 404 for unknown routes", async () => {
+      const request = new Request("http://internal/unknown");
       const response = await processor.fetch(request);
 
       expect(response.status).toBe(404);
