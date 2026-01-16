@@ -6,27 +6,27 @@
   // Store secrets with `wrangler secret put OPENAI_API_KEY`.
   // Do not add secrets to vars section - it prevents the actual secret from being used.
   "observability": {
-    "enabled": true,
+    "enabled": true
   },
   "containers": [
     {
       "class_name": "FastAPIContainer",
       "image": "./Dockerfile",
-      "max_instances": 5,
-    },
+      "max_instances": 5
+    }
   ],
   "durable_objects": {
     "bindings": [
       {
         "name": "MY_FASTAPI_CONTAINER",
-        "class_name": "FastAPIContainer",
-      },
-    ],
+        "class_name": "FastAPIContainer"
+      }
+    ]
   },
   "migrations": [
     {
       "tag": "v1",
-      "new_sqlite_classes": ["FastAPIContainer"],
-    },
-  ],
+      "new_sqlite_classes": ["FastAPIContainer"]
+    }
+  ]
 }

@@ -14,7 +14,7 @@ export interface LocalFile {
   absolutePath: string; // Full path on disk
   hash: string; // SHA-256 hash
   size: number; // File size in bytes
-  type: 'markdown' | 'json';
+  type: "markdown" | "json";
 }
 
 export interface R2Object {
@@ -32,8 +32,8 @@ export interface SyncDiff {
 
 export interface FileOperation {
   path: string;
-  operation: 'upload' | 'delete';
-  status: 'success' | 'failed';
+  operation: "upload" | "delete";
+  status: "success" | "failed";
   error?: string;
   size?: number;
   duration?: number; // milliseconds

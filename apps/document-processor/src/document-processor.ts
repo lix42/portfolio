@@ -1,19 +1,19 @@
-import { MAX_RETRY_ATTEMPTS, RETRY_BACKOFF_MS } from '@portfolio/shared';
+import { MAX_RETRY_ATTEMPTS, RETRY_BACKOFF_MS } from "@portfolio/shared";
 
-import { STEP_HANDLERS, STEP_NEXT } from './steps';
+import { STEP_HANDLERS, STEP_NEXT } from "./steps";
 import type {
   DocumentState,
   ProcessingError,
   ProcessingStatus,
   StepContext,
-} from './types';
-import { convertStateToStatus } from './utils';
+} from "./types";
+import { convertStateToStatus } from "./utils";
 import {
   createChunkStorage,
   createInitialDocumentState,
   getDocumentState,
   saveDocumentState,
-} from './utils/storage';
+} from "./utils/storage";
 
 /**
  * DocumentProcessor Durable Object
@@ -49,55 +49,55 @@ export class DocumentProcessor implements DurableObject {
 
     try {
       if (!this.env.OPENAI_API_KEY) {
-        throw new Error('OPENAI_API_KEY not configured');
+        throw new Error("OPENAI_API_KEY not configured");
       }
 
       // Route handlers
-      if (path === '/process' && request.method === 'POST') {
+      if (path === "/process" && request.method === "POST") {
         const { r2Key } = (await request.json()) as { r2Key: string };
         await this.startProcessing(r2Key);
         return new Response(JSON.stringify({ ok: true }), {
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         });
       }
 
-      if (path === '/status' && request.method === 'GET') {
+      if (path === "/status" && request.method === "GET") {
         const status = await this.getStatus();
         return new Response(JSON.stringify(status), {
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         });
       }
 
-      if (path === '/resume' && request.method === 'POST') {
+      if (path === "/resume" && request.method === "POST") {
         await this.resumeProcessing();
         return new Response(JSON.stringify({ ok: true }), {
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         });
       }
 
-      if (path === '/reprocess' && request.method === 'POST') {
+      if (path === "/reprocess" && request.method === "POST") {
         const { r2Key } = (await request.json()) as { r2Key: string };
         await this.reprocessDocument(r2Key);
         return new Response(JSON.stringify({ ok: true }), {
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         });
       }
 
-      if (path === '/delete' && request.method === 'DELETE') {
+      if (path === "/delete" && request.method === "DELETE") {
         await this.deleteState();
         return new Response(JSON.stringify({ ok: true, deleted: true }), {
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         });
       }
 
-      return new Response('Not found', { status: 404 });
+      return new Response("Not found", { status: 404 });
     } catch (error) {
-      console.error('Durable Object error:', error);
+      console.error("Durable Object error:", error);
       return new Response(
         JSON.stringify({
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: error instanceof Error ? error.message : "Unknown error",
         }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
   }
@@ -107,17 +107,17 @@ export class DocumentProcessor implements DurableObject {
    */
   private async startProcessing(r2Key: string): Promise<void> {
     if (!r2Key) {
-      throw new Error('r2Key required');
+      throw new Error("r2Key required");
     }
 
     // Check if already processing
     const existing = await getDocumentState(this.state.storage);
     if (
       existing &&
-      (existing.status === 'processing' || existing.status === 'completed')
+      (existing.status === "processing" || existing.status === "completed")
     ) {
       console.log(
-        `Document ${r2Key} already ${existing.status}, skipping restart`
+        `Document ${r2Key} already ${existing.status}, skipping restart`,
       );
       return;
     }
@@ -144,40 +144,40 @@ export class DocumentProcessor implements DurableObject {
    */
   private async reprocessDocument(r2Key: string): Promise<void> {
     if (!r2Key) {
-      throw new Error('r2Key required');
+      throw new Error("r2Key required");
     }
 
     // Get existing state
     const existing = await getDocumentState(this.state.storage);
 
     // Block if currently processing
-    if (existing?.status === 'processing') {
+    if (existing?.status === "processing") {
       throw new Error(
-        'Document is currently being processed. Cannot reprocess until current processing completes.'
+        "Document is currently being processed. Cannot reprocess until current processing completes.",
       );
     }
 
     // Cleanup existing data from D1 if document was previously stored
     if (existing?.documentId) {
       console.log(
-        `[${r2Key}] Cleaning up existing document (ID: ${existing.documentId}) before reprocessing`
+        `[${r2Key}] Cleaning up existing document (ID: ${existing.documentId}) before reprocessing`,
       );
 
       try {
         // Delete from D1 (cascades to chunks via foreign key constraint)
         const result = await this.env.DB.prepare(
-          'DELETE FROM documents WHERE id = ?'
+          "DELETE FROM documents WHERE id = ?",
         )
           .bind(existing.documentId)
           .run();
 
         console.log(
-          `[${r2Key}] Deleted ${result.meta.changes} document record(s) from D1`
+          `[${r2Key}] Deleted ${result.meta.changes} document record(s) from D1`,
         );
       } catch (error) {
         console.error(`[${r2Key}] Failed to cleanup D1 records:`, error);
         throw new Error(
-          `Failed to cleanup existing data: ${error instanceof Error ? error.message : String(error)}`
+          `Failed to cleanup existing data: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }
@@ -202,7 +202,7 @@ export class DocumentProcessor implements DurableObject {
   private async executeCurrentStep(): Promise<void> {
     const documentState = await getDocumentState(this.state.storage);
     if (!documentState) {
-      throw new Error('No processing state found');
+      throw new Error("No processing state found");
     }
 
     // Look up step handler
@@ -251,11 +251,11 @@ export class DocumentProcessor implements DurableObject {
           state.currentStep = nextStep;
 
           // Mark as completed when reaching terminal state
-          if (nextStep === 'complete' && state.status !== 'completed') {
-            state.status = 'completed';
+          if (nextStep === "complete" && state.status !== "completed") {
+            state.status = "completed";
             state.completedAt = new Date().toISOString();
             console.log(
-              `[${state.r2Key}] Processing complete! Document ID: ${state.documentId}`
+              `[${state.r2Key}] Processing complete! Document ID: ${state.documentId}`,
             );
           }
         }
@@ -294,7 +294,7 @@ export class DocumentProcessor implements DurableObject {
    */
   private async handleError(
     documentState: DocumentState,
-    error: unknown
+    error: unknown,
   ): Promise<void> {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const isRetryable = this.isRetryableError(error);
@@ -311,11 +311,10 @@ export class DocumentProcessor implements DurableObject {
     // Retry logic
     if (isRetryable && documentState.retryCount < MAX_RETRY_ATTEMPTS) {
       documentState.retryCount++;
-      const backoffMs =
-        RETRY_BACKOFF_MS * Math.pow(2, documentState.retryCount);
+      const backoffMs = RETRY_BACKOFF_MS * 2 ** documentState.retryCount;
 
       console.log(
-        `[${documentState.r2Key}] Retrying after ${backoffMs}ms (attempt ${documentState.retryCount}/${MAX_RETRY_ATTEMPTS})`
+        `[${documentState.r2Key}] Retrying after ${backoffMs}ms (attempt ${documentState.retryCount}/${MAX_RETRY_ATTEMPTS})`,
       );
 
       await saveDocumentState(this.state.storage, documentState);
@@ -324,13 +323,13 @@ export class DocumentProcessor implements DurableObject {
       await this.state.storage.setAlarm(Date.now() + backoffMs);
     } else {
       // Mark as failed
-      documentState.status = 'failed';
+      documentState.status = "failed";
       documentState.failedAt = new Date().toISOString();
       await saveDocumentState(this.state.storage, documentState);
 
       console.error(
         `[${documentState.r2Key}] Processing failed permanently:`,
-        errorMessage
+        errorMessage,
       );
     }
   }
@@ -342,16 +341,16 @@ export class DocumentProcessor implements DurableObject {
     if (error instanceof Error) {
       // Network errors, rate limits, temporary failures
       const retryableMessages = [
-        'rate limit',
-        'timeout',
-        'network',
-        'temporary',
-        'service unavailable',
-        '503',
-        '429',
+        "rate limit",
+        "timeout",
+        "network",
+        "temporary",
+        "service unavailable",
+        "503",
+        "429",
       ];
       return retryableMessages.some((msg) =>
-        error.message.toLowerCase().includes(msg)
+        error.message.toLowerCase().includes(msg),
       );
     }
     return false;
@@ -361,7 +360,7 @@ export class DocumentProcessor implements DurableObject {
    * Handle alarm for retry
    */
   async alarm(): Promise<void> {
-    console.log('Alarm triggered, resuming processing');
+    console.log("Alarm triggered, resuming processing");
     await this.resumeProcessing();
   }
 }

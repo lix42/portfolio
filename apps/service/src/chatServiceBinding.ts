@@ -1,6 +1,6 @@
-import type { HealthResponse } from '@portfolio/shared';
+import type { HealthResponse } from "@portfolio/shared";
 
-import type { answerQuestion } from './chat';
+import type { answerQuestion } from "./chat";
 
 export interface ChatServiceBinding {
   fetch(request: Request | string | URL): Response | Promise<Response>;

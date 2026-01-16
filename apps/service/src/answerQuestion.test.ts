@@ -1,16 +1,16 @@
-import { ANSWER_GENERATION_MODEL } from '@portfolio/shared';
-import type OpenAI from 'openai';
+import { ANSWER_GENERATION_MODEL } from "@portfolio/shared";
+import type OpenAI from "openai";
 import type {
   ResponseOutputItem,
   ResponseOutputMessage,
-} from 'openai/resources/responses/responses.mjs';
-import { beforeEach, describe, expect, test, vi } from 'vitest';
+} from "openai/resources/responses/responses.mjs";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
   answerQuestionWithChunks,
   answerQuestionWithWholeDocument,
   extractAssistantAnswer,
-} from './answerQuestion';
+} from "./answerQuestion";
 
 // Mock OpenAI
 const mockOpenAI = {
@@ -19,22 +19,22 @@ const mockOpenAI = {
   },
 } as unknown as OpenAI;
 
-describe('answerQuestion', () => {
+describe("answerQuestion", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe('answerQuestionWithChunks', () => {
-    test('calls OpenAI with correct parameters for chunk-based questions', async () => {
+  describe("answerQuestionWithChunks", () => {
+    test("calls OpenAI with correct parameters for chunk-based questions", async () => {
       const mockOutput: ResponseOutputItem[] = [
         {
-          type: 'message',
-          role: 'assistant',
-          status: 'completed',
+          type: "message",
+          role: "assistant",
+          status: "completed",
           content: [
             {
-              type: 'output_text',
-              text: 'Based on the provided context, Li Xu worked on React applications.',
+              type: "output_text",
+              text: "Based on the provided context, Li Xu worked on React applications.",
             },
           ],
         } as ResponseOutputMessage,
@@ -45,24 +45,24 @@ describe('answerQuestion', () => {
       } as OpenAI.Responses.Response);
 
       const context = [
-        'Li Xu is a senior frontend engineer',
-        'He worked on React applications at multiple companies',
+        "Li Xu is a senior frontend engineer",
+        "He worked on React applications at multiple companies",
       ];
-      const question = 'What did Li work on?';
+      const question = "What did Li work on?";
 
       const result = await answerQuestionWithChunks(
         context,
         question,
-        mockOpenAI
+        mockOpenAI,
       );
 
       expect(mockOpenAI.responses.create).toHaveBeenCalledWith({
         model: ANSWER_GENERATION_MODEL,
         input: [
-          { role: 'system', content: expect.stringContaining('You are Li Xu') },
+          { role: "system", content: expect.stringContaining("You are Li Xu") },
           {
-            role: 'user',
-            content: expect.stringContaining('What did Li work on?'),
+            role: "user",
+            content: expect.stringContaining("What did Li work on?"),
           },
         ],
       });
@@ -70,28 +70,28 @@ describe('answerQuestion', () => {
       expect(result).toEqual(mockOutput);
     });
 
-    test('handles empty context array', async () => {
+    test("handles empty context array", async () => {
       const mockOutput: ResponseOutputItem[] = [];
       vi.mocked(mockOpenAI.responses.create).mockResolvedValue({
         output: mockOutput,
       } as OpenAI.Responses.Response);
 
       const context: string[] = [];
-      const question = 'What did Li work on?';
+      const question = "What did Li work on?";
 
       const result = await answerQuestionWithChunks(
         context,
         question,
-        mockOpenAI
+        mockOpenAI,
       );
 
       expect(mockOpenAI.responses.create).toHaveBeenCalledWith({
         model: ANSWER_GENERATION_MODEL,
         input: [
-          { role: 'system', content: expect.any(String) },
+          { role: "system", content: expect.any(String) },
           {
-            role: 'user',
-            content: expect.stringContaining('What did Li work on?'),
+            role: "user",
+            content: expect.stringContaining("What did Li work on?"),
           },
         ],
       });
@@ -99,53 +99,53 @@ describe('answerQuestion', () => {
       expect(result).toEqual(mockOutput);
     });
 
-    test('handles single context item', async () => {
+    test("handles single context item", async () => {
       const mockOutput: ResponseOutputItem[] = [];
       vi.mocked(mockOpenAI.responses.create).mockResolvedValue({
         output: mockOutput,
       } as OpenAI.Responses.Response);
 
-      const context = ['Single context item'];
-      const question = 'Test question';
+      const context = ["Single context item"];
+      const question = "Test question";
 
       await answerQuestionWithChunks(context, question, mockOpenAI);
 
       expect(mockOpenAI.responses.create).toHaveBeenCalledWith({
         model: ANSWER_GENERATION_MODEL,
         input: [
-          { role: 'system', content: expect.any(String) },
+          { role: "system", content: expect.any(String) },
           {
-            role: 'user',
-            content: expect.stringContaining('Single context item'),
+            role: "user",
+            content: expect.stringContaining("Single context item"),
           },
         ],
       });
     });
 
-    test('propagates OpenAI API errors', async () => {
-      const error = new Error('API Error');
+    test("propagates OpenAI API errors", async () => {
+      const error = new Error("API Error");
       vi.mocked(mockOpenAI.responses.create).mockRejectedValue(error);
 
-      const context = ['Test context'];
-      const question = 'Test question';
+      const context = ["Test context"];
+      const question = "Test question";
 
       await expect(
-        answerQuestionWithChunks(context, question, mockOpenAI)
-      ).rejects.toThrow('API Error');
+        answerQuestionWithChunks(context, question, mockOpenAI),
+      ).rejects.toThrow("API Error");
     });
   });
 
-  describe('answerQuestionWithWholeDocument', () => {
-    test('calls OpenAI with correct parameters for document-based questions', async () => {
+  describe("answerQuestionWithWholeDocument", () => {
+    test("calls OpenAI with correct parameters for document-based questions", async () => {
       const mockOutput: ResponseOutputItem[] = [
         {
-          type: 'message',
-          role: 'assistant',
-          status: 'completed',
+          type: "message",
+          role: "assistant",
+          status: "completed",
           content: [
             {
-              type: 'output_text',
-              text: 'Based on the document, Li has extensive React experience.',
+              type: "output_text",
+              text: "Based on the document, Li has extensive React experience.",
             },
           ],
         } as ResponseOutputMessage,
@@ -162,17 +162,17 @@ describe('answerQuestion', () => {
       const result = await answerQuestionWithWholeDocument(
         document,
         question,
-        mockOpenAI
+        mockOpenAI,
       );
 
       expect(mockOpenAI.responses.create).toHaveBeenCalledWith({
         model: ANSWER_GENERATION_MODEL,
         input: [
-          { role: 'system', content: expect.stringContaining('You are Li Xu') },
+          { role: "system", content: expect.stringContaining("You are Li Xu") },
           {
-            role: 'user',
+            role: "user",
             content: expect.stringContaining(
-              "Complete document about Li Xu's work experience"
+              "Complete document about Li Xu's work experience",
             ),
           },
         ],
@@ -181,74 +181,74 @@ describe('answerQuestion', () => {
       expect(result).toEqual(mockOutput);
     });
 
-    test('handles empty document', async () => {
+    test("handles empty document", async () => {
       const mockOutput: ResponseOutputItem[] = [];
       vi.mocked(mockOpenAI.responses.create).mockResolvedValue({
         output: mockOutput,
       } as OpenAI.Responses.Response);
 
-      const document = '';
-      const question = 'What did Li work on?';
+      const document = "";
+      const question = "What did Li work on?";
 
       await answerQuestionWithWholeDocument(document, question, mockOpenAI);
 
       expect(mockOpenAI.responses.create).toHaveBeenCalledWith({
         model: ANSWER_GENERATION_MODEL,
         input: [
-          { role: 'system', content: expect.any(String) },
-          { role: 'user', content: expect.any(String) },
+          { role: "system", content: expect.any(String) },
+          { role: "user", content: expect.any(String) },
         ],
       });
     });
 
-    test('handles long documents', async () => {
+    test("handles long documents", async () => {
       const mockOutput: ResponseOutputItem[] = [];
       vi.mocked(mockOpenAI.responses.create).mockResolvedValue({
         output: mockOutput,
       } as OpenAI.Responses.Response);
 
-      const document = 'A'.repeat(10000);
-      const question = 'Summarize this document';
+      const document = "A".repeat(10000);
+      const question = "Summarize this document";
 
       await answerQuestionWithWholeDocument(document, question, mockOpenAI);
 
       expect(mockOpenAI.responses.create).toHaveBeenCalledWith({
         model: ANSWER_GENERATION_MODEL,
         input: [
-          { role: 'system', content: expect.any(String) },
-          { role: 'user', content: expect.stringContaining('A'.repeat(100)) },
+          { role: "system", content: expect.any(String) },
+          { role: "user", content: expect.stringContaining("A".repeat(100)) },
         ],
       });
     });
 
-    test('propagates OpenAI API errors', async () => {
-      const error = new Error('Network Error');
+    test("propagates OpenAI API errors", async () => {
+      const error = new Error("Network Error");
       vi.mocked(mockOpenAI.responses.create).mockRejectedValue(error);
 
-      const document = 'Test document';
-      const question = 'Test question';
+      const document = "Test document";
+      const question = "Test question";
 
       await expect(
-        answerQuestionWithWholeDocument(document, question, mockOpenAI)
-      ).rejects.toThrow('Network Error');
+        answerQuestionWithWholeDocument(document, question, mockOpenAI),
+      ).rejects.toThrow("Network Error");
     });
   });
 
-  describe('extractAssistantAnswer', () => {
-    test('extracts text from completed assistant messages', () => {
+  describe("extractAssistantAnswer", () => {
+    test("extracts text from completed assistant messages", () => {
       const output: ResponseOutputItem[] = [
         {
-          type: 'message',
-          role: 'assistant',
-          status: 'completed',
+          type: "message",
+          role: "assistant",
+          status: "completed",
           content: [
             {
-              type: 'output_text',
-              text: 'First response part.',
+              type: "output_text",
+              text: "First response part.",
             },
             {
-              type: 'output_text',
-              text: 'Second response part.',
+              type: "output_text",
+              text: "Second response part.",
             },
           ],
         } as ResponseOutputMessage,
@@ -256,23 +256,23 @@ describe('answerQuestion', () => {
 
       const result = extractAssistantAnswer(output);
 
-      expect(result).toBe('First response part.\n\nSecond response part.');
+      expect(result).toBe("First response part.\n\nSecond response part.");
     });
 
-    test('filters out non-message items', () => {
+    test("filters out non-message items", () => {
       const output: ResponseOutputItem[] = [
         {
-          type: 'function_call',
-          id: 'call_123',
+          type: "function_call",
+          id: "call_123",
         } as ResponseOutputItem,
         {
-          type: 'message',
-          role: 'assistant',
-          status: 'completed',
+          type: "message",
+          role: "assistant",
+          status: "completed",
           content: [
             {
-              type: 'output_text',
-              text: 'Assistant response.',
+              type: "output_text",
+              text: "Assistant response.",
             },
           ],
         } as ResponseOutputMessage,
@@ -280,30 +280,30 @@ describe('answerQuestion', () => {
 
       const result = extractAssistantAnswer(output);
 
-      expect(result).toBe('Assistant response.');
+      expect(result).toBe("Assistant response.");
     });
 
-    test('filters out non-assistant messages', () => {
+    test("filters out non-assistant messages", () => {
       const output: ResponseOutputItem[] = [
         {
-          type: 'message',
-          role: 'user',
-          status: 'completed',
+          type: "message",
+          role: "user",
+          status: "completed",
           content: [
             {
-              type: 'output_text',
-              text: 'User message.',
+              type: "output_text",
+              text: "User message.",
             },
           ],
         } as unknown as ResponseOutputMessage,
         {
-          type: 'message',
-          role: 'assistant',
-          status: 'completed',
+          type: "message",
+          role: "assistant",
+          status: "completed",
           content: [
             {
-              type: 'output_text',
-              text: 'Assistant response.',
+              type: "output_text",
+              text: "Assistant response.",
             },
           ],
         } as ResponseOutputMessage,
@@ -311,30 +311,30 @@ describe('answerQuestion', () => {
 
       const result = extractAssistantAnswer(output);
 
-      expect(result).toBe('Assistant response.');
+      expect(result).toBe("Assistant response.");
     });
 
-    test('filters out non-completed messages', () => {
+    test("filters out non-completed messages", () => {
       const output: ResponseOutputItem[] = [
         {
-          type: 'message',
-          role: 'assistant',
-          status: 'in_progress',
+          type: "message",
+          role: "assistant",
+          status: "in_progress",
           content: [
             {
-              type: 'output_text',
-              text: 'Incomplete response.',
+              type: "output_text",
+              text: "Incomplete response.",
             },
           ],
         } as ResponseOutputMessage,
         {
-          type: 'message',
-          role: 'assistant',
-          status: 'completed',
+          type: "message",
+          role: "assistant",
+          status: "completed",
           content: [
             {
-              type: 'output_text',
-              text: 'Complete response.',
+              type: "output_text",
+              text: "Complete response.",
             },
           ],
         } as ResponseOutputMessage,
@@ -342,23 +342,23 @@ describe('answerQuestion', () => {
 
       const result = extractAssistantAnswer(output);
 
-      expect(result).toBe('Complete response.');
+      expect(result).toBe("Complete response.");
     });
 
-    test('filters out non-text content', () => {
+    test("filters out non-text content", () => {
       const output: ResponseOutputItem[] = [
         {
-          type: 'message',
-          role: 'assistant',
-          status: 'completed',
+          type: "message",
+          role: "assistant",
+          status: "completed",
           content: [
             {
-              type: 'image',
-              url: 'https://example.com/image.jpg',
+              type: "image",
+              url: "https://example.com/image.jpg",
             } as unknown as ResponseOutputItem,
             {
-              type: 'output_text',
-              text: 'Text content.',
+              type: "output_text",
+              text: "Text content.",
             },
           ],
         } as ResponseOutputMessage,
@@ -366,38 +366,38 @@ describe('answerQuestion', () => {
 
       const result = extractAssistantAnswer(output);
 
-      expect(result).toBe('Text content.');
+      expect(result).toBe("Text content.");
     });
 
-    test('handles empty output array', () => {
+    test("handles empty output array", () => {
       const output: ResponseOutputItem[] = [];
 
       const result = extractAssistantAnswer(output);
 
-      expect(result).toBe('');
+      expect(result).toBe("");
     });
 
-    test('handles multiple assistant messages', () => {
+    test("handles multiple assistant messages", () => {
       const output: ResponseOutputItem[] = [
         {
-          type: 'message',
-          role: 'assistant',
-          status: 'completed',
+          type: "message",
+          role: "assistant",
+          status: "completed",
           content: [
             {
-              type: 'output_text',
-              text: 'First message.',
+              type: "output_text",
+              text: "First message.",
             },
           ],
         } as ResponseOutputMessage,
         {
-          type: 'message',
-          role: 'assistant',
-          status: 'completed',
+          type: "message",
+          role: "assistant",
+          status: "completed",
           content: [
             {
-              type: 'output_text',
-              text: 'Second message.',
+              type: "output_text",
+              text: "Second message.",
             },
           ],
         } as ResponseOutputMessage,
@@ -405,47 +405,47 @@ describe('answerQuestion', () => {
 
       const result = extractAssistantAnswer(output);
 
-      expect(result).toBe('First message.\n\nSecond message.');
+      expect(result).toBe("First message.\n\nSecond message.");
     });
 
-    test('handles messages with no text content', () => {
+    test("handles messages with no text content", () => {
       const output: ResponseOutputItem[] = [
         {
-          type: 'message',
-          role: 'assistant',
-          status: 'completed',
+          type: "message",
+          role: "assistant",
+          status: "completed",
           content: [],
-          id: 'mock-id',
+          id: "mock-id",
         } as ResponseOutputMessage,
       ];
 
       const result = extractAssistantAnswer(output);
 
-      expect(result).toBe('');
+      expect(result).toBe("");
     });
 
-    test('handles messages with mixed content types', () => {
+    test("handles messages with mixed content types", () => {
       const output: ResponseOutputItem[] = [
         {
-          type: 'message',
-          role: 'assistant',
-          status: 'completed',
+          type: "message",
+          role: "assistant",
+          status: "completed",
           content: [
             {
-              type: 'tool_call',
-              id: 'call_123',
+              type: "tool_call",
+              id: "call_123",
             } as unknown as ResponseOutputItem,
             {
-              type: 'output_text',
-              text: 'Text after tool call.',
+              type: "output_text",
+              text: "Text after tool call.",
             },
             {
-              type: 'image',
-              url: 'https://example.com/image.jpg',
+              type: "image",
+              url: "https://example.com/image.jpg",
             } as unknown as ResponseOutputItem,
             {
-              type: 'output_text',
-              text: 'Text after image.',
+              type: "output_text",
+              text: "Text after image.",
             },
           ],
         } as ResponseOutputMessage,
@@ -453,7 +453,7 @@ describe('answerQuestion', () => {
 
       const result = extractAssistantAnswer(output);
 
-      expect(result).toBe('Text after tool call.\n\nText after image.');
+      expect(result).toBe("Text after tool call.\n\nText after image.");
     });
   });
 });

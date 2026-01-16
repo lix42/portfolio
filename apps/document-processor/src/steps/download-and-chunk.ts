@@ -1,14 +1,14 @@
-import { chunkMarkdown } from '@portfolio/shared';
+import { chunkMarkdown } from "@portfolio/shared";
 
-import type { ChunkState, StepContext } from '../types';
-import { extractMetadata, hashContent } from '../utils';
+import type { ChunkState, StepContext } from "../types";
+import { extractMetadata, hashContent } from "../utils";
 
 /**
  * Step 1: Download from R2, extract metadata, and chunk
  * Chunks are saved separately to avoid 128KB storage limit
  */
 export async function stepDownloadAndChunk(
-  context: StepContext
+  context: StepContext,
 ): Promise<void> {
   console.log(`[${context.state.r2Key}] Step 1: Download and chunk`);
 
@@ -24,7 +24,7 @@ export async function stepDownloadAndChunk(
   // Extract metadata from R2 custom metadata or companion .json file
   const metadata = await extractMetadata(
     context.state.r2Key,
-    context.env.DOCUMENTS_BUCKET
+    context.env.DOCUMENTS_BUCKET,
   );
 
   // Calculate content hash
@@ -38,7 +38,7 @@ export async function stepDownloadAndChunk(
     tokens: chunk.tokens,
     embedding: null,
     tags: null,
-    status: 'pending',
+    status: "pending",
   }));
 
   // Save chunks separately (avoids 128KB limit per key)

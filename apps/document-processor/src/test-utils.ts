@@ -10,12 +10,12 @@ export function createMockEnv(): Env {
     // biome-ignore lint/suspicious/noExplicitAny: Mock object for testing
     DOCUMENT_PROCESSOR: {} as any, // Not used in unit tests
     PROCESSING_QUEUE: createMockQueue(),
-    OPENAI_API_KEY: 'test-api-key',
-    ENVIRONMENT: 'test',
-    CLOUDFLARE_ACCOUNT_ID: 'test-account-id',
-    CLOUDFLARE_API_TOKEN: 'test-api-token',
-    R2_ACCESS_KEY_ID: 'test-access-id',
-    R2_SECRET_ACCESS_KEY: 'test-access-key',
+    OPENAI_API_KEY: "test-api-key",
+    ENVIRONMENT: "test",
+    CLOUDFLARE_ACCOUNT_ID: "test-account-id",
+    CLOUDFLARE_API_TOKEN: "test-api-token",
+    R2_ACCESS_KEY_ID: "test-access-id",
+    R2_SECRET_ACCESS_KEY: "test-access-key",
   };
 }
 
@@ -32,13 +32,13 @@ function createMockR2Bucket() {
       return {
         text: async () => content,
         customMetadata: {
-          project: 'Test Project',
-          company: 'Test Company',
+          project: "Test Project",
+          company: "Test Company",
         },
         checksums: {
-          sha256: 'test-hash',
+          sha256: "test-hash",
         },
-        etag: 'test-etag',
+        etag: "test-etag",
       };
     },
     put: async (key: string, value: string) => {
@@ -49,9 +49,7 @@ function createMockR2Bucket() {
 }
 
 function createMockD1Database() {
-  // biome-ignore lint/suspicious/noExplicitAny: Mock object for testing
   return {
-    // biome-ignore lint/suspicious/noExplicitAny: Mock object for testing
     prepare: (_sql: string) => ({
       // biome-ignore lint/suspicious/noExplicitAny: Mock object for testing
       bind: (..._args: any[]) => ({
@@ -59,6 +57,7 @@ function createMockD1Database() {
         run: async () => ({ meta: { changes: 1 } }),
       }),
     }),
+    // biome-ignore lint/suspicious/noExplicitAny: Mock doesn't implement full D1Database interface
   } as any;
 }
 

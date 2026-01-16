@@ -2,7 +2,7 @@ import {
   CHUNK_OVERLAP_TOKENS,
   estimateTokens,
   MAX_CHUNK_TOKENS,
-} from '../constants';
+} from "../constants";
 export interface ChunkOptions {
   maxTokens?: number;
   overlapTokens?: number;
@@ -24,12 +24,12 @@ export class ChunkBuilder {
   constructor({ maxTokens, overlapTokens }: ChunkOptions = {}) {
     this.maxTokens = maxTokens ?? MAX_CHUNK_TOKENS;
     this.overlapTokens = overlapTokens ?? CHUNK_OVERLAP_TOKENS;
-    this.currentChunk = '';
+    this.currentChunk = "";
     this.chunkIndex = 0;
     this.chunks = [];
   }
 
-  addText(text: string, connector = ' ') {
+  addText(text: string, connector = " ") {
     if (
       estimateTokens(text + connector) >
       this.maxTokens - this.overlapTokens
@@ -39,7 +39,7 @@ export class ChunkBuilder {
     if (estimateTokens(this.currentChunk + connector + text) > this.maxTokens) {
       this.flush();
     }
-    this.currentChunk += (this.currentChunk ? connector : '') + text;
+    this.currentChunk += (this.currentChunk ? connector : "") + text;
     return true;
   }
 
@@ -74,7 +74,7 @@ export class ChunkBuilder {
     const result = this.chunks;
     if (clean) {
       this.chunks = [];
-      this.currentChunk = '';
+      this.currentChunk = "";
       this.chunkIndex = 0;
     }
     return result;
@@ -87,5 +87,5 @@ export class ChunkBuilder {
 export function getOverlap(text: string, overlapTokens: number): string {
   const words = text.split(/\s+/);
   const overlapWords = Math.ceil(overlapTokens / 0.75); // rough: 1 word ≈ 0.75 tokens
-  return words.slice(-overlapWords).join(' ');
+  return words.slice(-overlapWords).join(" ");
 }

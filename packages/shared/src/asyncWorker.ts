@@ -4,7 +4,7 @@
 export async function mapLimit<T, R>(
   items: T[],
   limit: number,
-  fn: (x: T) => Promise<R>
+  fn: (x: T) => Promise<R>,
 ): Promise<R[]> {
   const out: Array<R | undefined> = new Array(items.length);
   let i = 0;

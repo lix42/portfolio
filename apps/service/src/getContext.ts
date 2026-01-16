@@ -3,9 +3,9 @@ import {
   getChunksByVectorizeIds,
   getDocumentById,
   queryByEmbedding,
-} from './adapters';
-import { getDocumentContent } from './adapters/r2';
-import { EMBEDDING_SCORE_WEIGHT } from './utils/const';
+} from "./adapters";
+import { getDocumentContent } from "./adapters/r2";
+import { EMBEDDING_SCORE_WEIGHT } from "./utils/const";
 
 interface ScoredChunk {
   content: string;
@@ -47,7 +47,7 @@ function findTopDocument(chunkScores: Map<string, ScoredChunk>): number {
 export const getContext = async (
   embedding: readonly number[],
   tags: readonly string[],
-  env: CloudflareBindings
+  env: CloudflareBindings,
 ): Promise<{ topChunks: string[]; topDocumentContent: string | null }> => {
   // Execute queries in parallel
   const [vectorChunks, tagChunks] = await Promise.all([
@@ -56,19 +56,19 @@ export const getContext = async (
         const vectorizeIds = vectorMatches.map((vm) => vm.id);
         const vectorizeChunkMap = await getChunksByVectorizeIds(
           vectorizeIds,
-          env.DB
+          env.DB,
         );
         return vectorMatches
           .filter((vm) => vectorizeChunkMap.has(vm.id))
           .map((vm) => {
             return {
               vectorizeId: vm.id,
-              content: vectorizeChunkMap.get(vm.id)?.content || '',
+              content: vectorizeChunkMap.get(vm.id)?.content || "",
               documentId: vectorizeChunkMap.get(vm.id)?.document_id || 0,
               score: vm.score,
             };
           });
-      }
+      },
     ),
     getChunksByTags(tags, env.DB, 20),
   ]);
@@ -118,7 +118,7 @@ export const getContext = async (
     if (document) {
       topDocumentContent = await getDocumentContent(
         document.r2_key,
-        env.DOCUMENTS
+        env.DOCUMENTS,
       );
     }
   }
@@ -133,7 +133,7 @@ export const getContext = async (
 
   return {
     topChunks:
-      topChunks.length > 0 ? topChunks : [rankedChunks[0]?.content || ''],
+      topChunks.length > 0 ? topChunks : [rankedChunks[0]?.content || ""],
     topDocumentContent,
   };
 };

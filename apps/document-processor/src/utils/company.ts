@@ -3,11 +3,11 @@
  */
 export async function getOrCreateCompany(
   companyName: string,
-  db: D1Database
+  db: D1Database,
 ): Promise<number> {
   // Try to find existing company
   const existing = await db
-    .prepare('SELECT id FROM companies WHERE name = ?')
+    .prepare("SELECT id FROM companies WHERE name = ?")
     .bind(companyName)
     .first<{ id: number }>();
 
@@ -20,13 +20,13 @@ export async function getOrCreateCompany(
     .prepare(
       `INSERT INTO companies (name, start_time, title, description, created_at)
        VALUES (?, ?, ?, ?, datetime('now'))
-       RETURNING id`
+       RETURNING id`,
     )
     .bind(
       companyName,
-      '2020-01-01', // Placeholder start time
-      'Unknown', // Placeholder title
-      `Company entry auto-created for ${companyName}` // Placeholder description
+      "2020-01-01", // Placeholder start time
+      "Unknown", // Placeholder title
+      `Company entry auto-created for ${companyName}`, // Placeholder description
     )
     .first<{ id: number }>();
 
@@ -35,7 +35,7 @@ export async function getOrCreateCompany(
   }
 
   console.log(
-    `Created new company ${companyName} with ID ${result.id} (placeholder data)`
+    `Created new company ${companyName} with ID ${result.id} (placeholder data)`,
   );
 
   return result.id;

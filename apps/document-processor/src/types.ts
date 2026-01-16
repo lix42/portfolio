@@ -6,7 +6,7 @@
  */
 export interface ProcessingMessage {
   r2Key: string;
-  event?: 'upload' | 'update' | 'delete';
+  event?: "upload" | "update" | "delete";
   timestamp?: string;
 }
 
@@ -25,11 +25,11 @@ export interface ProcessingDocumentMetadata {
  * Processing step type
  */
 export type ProcessingStep =
-  | 'download'
-  | 'embeddings'
-  | 'tags'
-  | 'store'
-  | 'complete';
+  | "download"
+  | "embeddings"
+  | "tags"
+  | "store"
+  | "complete";
 
 /**
  * Document state stored in Durable Object (key: 'state')
@@ -37,7 +37,7 @@ export type ProcessingStep =
  */
 export interface DocumentState {
   // Status
-  status: 'not_started' | 'processing' | 'completed' | 'failed';
+  status: "not_started" | "processing" | "completed" | "failed";
   r2Key: string;
   startedAt?: string;
   completedAt?: string;
@@ -72,7 +72,7 @@ export interface ChunkState {
   tokens: number;
   embedding: number[] | null;
   tags: string[] | null;
-  status: 'pending' | 'embedding_done' | 'tags_done' | 'stored';
+  status: "pending" | "embedding_done" | "tags_done" | "stored";
 }
 
 /**
@@ -81,7 +81,7 @@ export interface ChunkState {
  */
 export interface ProcessingState {
   // Status
-  status: 'not_started' | 'processing' | 'completed' | 'failed';
+  status: "not_started" | "processing" | "completed" | "failed";
   r2Key: string;
   startedAt?: string;
   completedAt?: string;
@@ -118,7 +118,7 @@ export interface ProcessingChunk {
   tokens: number;
   embedding: number[] | null;
   tags: string[] | null;
-  status: 'pending' | 'embedding_done' | 'tags_done' | 'stored';
+  status: "pending" | "embedding_done" | "tags_done" | "stored";
 }
 
 /**
@@ -135,8 +135,8 @@ export interface ProcessingError {
  * Status response for API queries
  */
 export interface ProcessingStatus {
-  status: DocumentState['status'];
-  currentStep: DocumentState['currentStep'];
+  status: DocumentState["status"];
+  currentStep: DocumentState["currentStep"];
   progress: {
     totalChunks: number;
     processedChunks: number;
@@ -159,7 +159,7 @@ export interface ChunkStorage {
   getChunk: (index: number) => Promise<ChunkState | undefined>;
   saveChunk: (chunk: ChunkState) => Promise<void>;
   saveChunks: (chunks: ChunkState[]) => Promise<void>;
-  getChunksByStatus: (status: ChunkState['status']) => Promise<ChunkState[]>;
+  getChunksByStatus: (status: ChunkState["status"]) => Promise<ChunkState[]>;
   getAllChunks: () => Promise<ChunkState[]>;
 }
 

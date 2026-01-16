@@ -3,10 +3,10 @@
  */
 
 // OpenAI Configuration
-export const EMBEDDING_MODEL = 'text-embedding-3-small' as const;
+export const EMBEDDING_MODEL = "text-embedding-3-small" as const;
 export const EMBEDDING_DIMENSIONS = 1536;
-export const TAG_GENERATION_MODEL = 'gpt-4o' as const;
-export const ANSWER_GENERATION_MODEL = 'gpt-4o' as const;
+export const TAG_GENERATION_MODEL = "gpt-4o" as const;
+export const ANSWER_GENERATION_MODEL = "gpt-4o" as const;
 
 // Chunking Configuration
 export const MAX_CHUNK_TOKENS = 800;
@@ -39,7 +39,7 @@ export function estimateTokens(text: string): number {
  */
 export function exceedsTokenLimit(
   text: string,
-  limit: number = MAX_CHUNK_TOKENS
+  limit: number = MAX_CHUNK_TOKENS,
 ): boolean {
   return estimateTokens(text) > limit;
 }

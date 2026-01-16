@@ -1,4 +1,4 @@
-import type { ChunkState, DocumentState } from '../types';
+import type { ChunkState, DocumentState } from "../types";
 
 /**
  * Get or create tag by name (case-insensitive)
@@ -6,11 +6,11 @@ import type { ChunkState, DocumentState } from '../types';
  */
 export async function getOrCreateTag(
   name: string,
-  db: D1Database
+  db: D1Database,
 ): Promise<number> {
   // Try to find existing tag (case-insensitive)
   const existing = await db
-    .prepare('SELECT id FROM tags WHERE name = ? COLLATE NOCASE')
+    .prepare("SELECT id FROM tags WHERE name = ? COLLATE NOCASE")
     .bind(name)
     .first<{ id: number }>();
 
@@ -23,7 +23,7 @@ export async function getOrCreateTag(
     .prepare(
       `INSERT INTO tags (name)
        VALUES (?)
-       RETURNING id`
+       RETURNING id`,
     )
     .bind(name)
     .first<{ id: number }>();
@@ -41,7 +41,7 @@ export async function getOrCreateTag(
  */
 export async function getOrCreateTags(
   tagNames: string[],
-  db: D1Database
+  db: D1Database,
 ): Promise<Map<string, number>> {
   const tagMap = new Map<string, number>();
 
@@ -53,10 +53,10 @@ export async function getOrCreateTags(
   const uniqueTags = Array.from(new Set(tagNames.map((t) => t.toLowerCase())));
 
   // Find existing tags
-  const placeholders = uniqueTags.map(() => '?').join(',');
+  const placeholders = uniqueTags.map(() => "?").join(",");
   const existing = await db
     .prepare(
-      `SELECT id, name FROM tags WHERE name IN (${placeholders}) COLLATE NOCASE`
+      `SELECT id, name FROM tags WHERE name IN (${placeholders}) COLLATE NOCASE`,
     )
     .bind(...uniqueTags)
     .all<{ id: number; name: string }>();
@@ -75,9 +75,9 @@ export async function getOrCreateTags(
         .prepare(
           `INSERT INTO tags (name)
            VALUES (?)
-           RETURNING id, name`
+           RETURNING id, name`,
         )
-        .bind(name)
+        .bind(name),
     );
 
     const results = await db.batch(inserts);
@@ -104,26 +104,32 @@ export async function insertIntoD1(
   state: DocumentState,
   chunks: ChunkState[],
   db: D1Database,
-  getOrCreateCompanyFn: (name: string, db: D1Database) => Promise<number>
+  getOrCreateCompanyFn: (name: string, db: D1Database) => Promise<number>,
 ): Promise<number> {
   if (!state.metadata) {
-    throw new Error('Metadata missing');
+    throw new Error("Metadata missing");
   }
 
   // Check if document exists by r2_key
   const existing = await db
-    .prepare('SELECT id, content_hash FROM documents WHERE r2_key = ?')
+    .prepare("SELECT id, content_hash FROM documents WHERE r2_key = ?")
     .bind(state.metadata.r2Key)
     .first<{ id: number; content_hash: string }>();
 
   // Prepare tag data (used for both insert and update)
   const allTagNames = new Set<string>();
   if (state.documentTags) {
-    state.documentTags.forEach((tag) => allTagNames.add(tag.toLowerCase()));
+    for (const tag of state.documentTags) {
+      allTagNames.add(tag.toLowerCase());
+    }
   }
-  chunks.forEach((chunk) => {
-    chunk.tags?.forEach((tag) => allTagNames.add(tag.toLowerCase()));
-  });
+  for (const chunk of chunks) {
+    if (chunk.tags) {
+      for (const tag of chunk.tags) {
+        allTagNames.add(tag.toLowerCase());
+      }
+    }
+  }
   const tagMap = await getOrCreateTags(Array.from(allTagNames), db);
   const documentTags = JSON.stringify(Array.from(allTagNames));
   const companyId = await getOrCreateCompanyFn(state.metadata.company, db);
@@ -134,14 +140,14 @@ export async function insertIntoD1(
     // Document exists - check if content changed
     if (existing.content_hash === state.metadata.contentHash) {
       console.log(
-        `[${state.r2Key}] Document unchanged (hash: ${existing.content_hash}), skipping`
+        `[${state.r2Key}] Document unchanged (hash: ${existing.content_hash}), skipping`,
       );
       return existing.id;
     }
 
     // Content changed - update document and replace chunks
     console.log(
-      `[${state.r2Key}] Document updated (old: ${existing.content_hash}, new: ${state.metadata.contentHash})`
+      `[${state.r2Key}] Document updated (old: ${existing.content_hash}, new: ${state.metadata.contentHash})`,
     );
 
     documentId = existing.id;
@@ -151,20 +157,20 @@ export async function insertIntoD1(
       .prepare(
         `UPDATE documents
          SET content_hash = ?, company_id = ?, tags = ?, updated_at = datetime('now')
-         WHERE id = ?`
+         WHERE id = ?`,
       )
       .bind(state.metadata.contentHash, companyId, documentTags, documentId)
       .run();
 
     // Delete old chunks (CASCADE will delete chunk_tags)
     await db
-      .prepare('DELETE FROM chunks WHERE document_id = ?')
+      .prepare("DELETE FROM chunks WHERE document_id = ?")
       .bind(documentId)
       .run();
 
     // Delete old document_tags
     await db
-      .prepare('DELETE FROM document_tags WHERE document_id = ?')
+      .prepare("DELETE FROM document_tags WHERE document_id = ?")
       .bind(documentId)
       .run();
   } else {
@@ -173,19 +179,19 @@ export async function insertIntoD1(
       .prepare(
         `INSERT INTO documents (company_id, project, r2_key, content_hash, tags)
          VALUES (?, ?, ?, ?, ?)
-         RETURNING id`
+         RETURNING id`,
       )
       .bind(
         companyId,
         state.metadata.project,
         state.metadata.r2Key,
         state.metadata.contentHash,
-        documentTags
+        documentTags,
       )
       .first<{ id: number }>();
 
     if (!documentResult) {
-      throw new Error('Failed to insert document');
+      throw new Error("Failed to insert document");
     }
 
     documentId = documentResult.id;
@@ -201,24 +207,24 @@ export async function insertIntoD1(
     const documentTagInserts = documentTagIds.map((tagId) =>
       db
         .prepare(
-          'INSERT INTO document_tags (document_id, tag_id) VALUES (?, ?)'
+          "INSERT INTO document_tags (document_id, tag_id) VALUES (?, ?)",
         )
-        .bind(documentId, tagId)
+        .bind(documentId, tagId),
     );
     await db.batch(documentTagInserts);
   }
 
   // Insert chunks (created_at and updated_at use DEFAULT values)
   const chunkInserts = chunks.map((chunk) => {
-    const tags = chunk.tags ? JSON.stringify(chunk.tags) : '[]';
+    const tags = chunk.tags ? JSON.stringify(chunk.tags) : "[]";
     const vectorizeId = `${state.r2Key}:${chunk.index}`;
     return db
       .prepare(
         `INSERT INTO chunks (document_id, content, type, tags, vectorize_id)
          VALUES (?, ?, ?, ?, ?)
-         RETURNING id`
+         RETURNING id`,
       )
-      .bind(documentId, chunk.text, 'markdown', tags, vectorizeId);
+      .bind(documentId, chunk.text, "markdown", tags, vectorizeId);
   });
 
   const chunkResults = await db.batch(chunkInserts);
@@ -243,8 +249,8 @@ export async function insertIntoD1(
     chunkTagIds.forEach((tagId) => {
       chunkTagInserts.push(
         db
-          .prepare('INSERT INTO chunk_tags (chunk_id, tag_id) VALUES (?, ?)')
-          .bind(chunkId, tagId)
+          .prepare("INSERT INTO chunk_tags (chunk_id, tag_id) VALUES (?, ?)")
+          .bind(chunkId, tagId),
       );
     });
   });
@@ -253,9 +259,9 @@ export async function insertIntoD1(
     await db.batch(chunkTagInserts);
   }
 
-  const action = existing ? 'Updated' : 'Inserted';
+  const action = existing ? "Updated" : "Inserted";
   console.log(
-    `[${state.r2Key}] ${action} document ${documentId} with ${chunks.length} chunks and ${chunkTagInserts.length} tag relationships`
+    `[${state.r2Key}] ${action} document ${documentId} with ${chunks.length} chunks and ${chunkTagInserts.length} tag relationships`,
   );
 
   return documentId;

@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { reconcileR2Documents } from './reconcile';
-import type { ProcessingStatus } from './types';
+import { reconcileR2Documents } from "./reconcile";
+import type { ProcessingStatus } from "./types";
 
 /**
  * Create a mock Env with configurable behavior
@@ -21,23 +21,23 @@ function createMockEnv(options: {
     fetch: vi.fn(async (url: string, _init?: RequestInit) => {
       const path = new URL(url).pathname;
 
-      if (path === '/status') {
+      if (path === "/status") {
         const status =
-          doStatuses.get(r2Key) ?? createDefaultStatus('not_started');
+          doStatuses.get(r2Key) ?? createDefaultStatus("not_started");
         return new Response(JSON.stringify(status), {
           status: 200,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         });
       }
 
-      if (path === '/process' || path === '/resume') {
+      if (path === "/process" || path === "/resume") {
         return new Response(JSON.stringify({ ok: true }), {
           status: 200,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         });
       }
 
-      return new Response('Not found', { status: 404 });
+      return new Response("Not found", { status: 404 });
     }),
   });
 
@@ -69,34 +69,34 @@ function createMockEnv(options: {
       idFromName: vi.fn((name: string) => ({ name })),
       get: vi.fn((id: { name: string }) => mockStub(id.name)),
     },
-    ENVIRONMENT: 'test',
+    ENVIRONMENT: "test",
   } as unknown as Env;
 }
 
 function createDefaultStatus(
-  status: ProcessingStatus['status'],
-  startedAt?: string
+  status: ProcessingStatus["status"],
+  startedAt?: string,
 ): ProcessingStatus {
   return {
     status,
-    currentStep: 'download',
+    currentStep: "download",
     progress: { totalChunks: 0, processedChunks: 0, percentage: 0 },
     errors: [],
     timing: { startedAt },
   };
 }
 
-describe('reconcileR2Documents', () => {
+describe("reconcileR2Documents", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should skip non-markdown files', async () => {
+  it("should skip non-markdown files", async () => {
     const env = createMockEnv({
       r2Objects: [
-        { key: 'documents/test.json' },
-        { key: 'documents/image.png' },
-        { key: 'documents/data.csv' },
+        { key: "documents/test.json" },
+        { key: "documents/image.png" },
+        { key: "documents/data.csv" },
       ],
     });
 
@@ -107,11 +107,11 @@ describe('reconcileR2Documents', () => {
     expect(result.skipped).toBe(0);
   });
 
-  it('should skip documents already in D1', async () => {
-    const d1Results = new Map([['documents/existing.md', { id: 1 }]]);
+  it("should skip documents already in D1", async () => {
+    const d1Results = new Map([["documents/existing.md", { id: 1 }]]);
 
     const env = createMockEnv({
-      r2Objects: [{ key: 'documents/existing.md' }],
+      r2Objects: [{ key: "documents/existing.md" }],
       d1Results,
     });
 
@@ -122,13 +122,13 @@ describe('reconcileR2Documents', () => {
     expect(result.queued).toBe(0);
   });
 
-  it('should queue documents with not_started status', async () => {
+  it("should queue documents with not_started status", async () => {
     const doStatuses = new Map([
-      ['documents/new.md', createDefaultStatus('not_started')],
+      ["documents/new.md", createDefaultStatus("not_started")],
     ]);
 
     const env = createMockEnv({
-      r2Objects: [{ key: 'documents/new.md' }],
+      r2Objects: [{ key: "documents/new.md" }],
       doStatuses,
     });
 
@@ -139,13 +139,13 @@ describe('reconcileR2Documents', () => {
     expect(result.skipped).toBe(0);
   });
 
-  it('should queue documents with failed status', async () => {
+  it("should queue documents with failed status", async () => {
     const doStatuses = new Map([
-      ['documents/failed.md', createDefaultStatus('failed')],
+      ["documents/failed.md", createDefaultStatus("failed")],
     ]);
 
     const env = createMockEnv({
-      r2Objects: [{ key: 'documents/failed.md' }],
+      r2Objects: [{ key: "documents/failed.md" }],
       doStatuses,
     });
 
@@ -155,17 +155,17 @@ describe('reconcileR2Documents', () => {
     expect(result.queued).toBe(1);
   });
 
-  it('should skip documents currently processing (< 24h)', async () => {
+  it("should skip documents currently processing (< 24h)", async () => {
     const recentTime = new Date(Date.now() - 1000 * 60 * 60).toISOString(); // 1 hour ago
     const doStatuses = new Map([
       [
-        'documents/processing.md',
-        createDefaultStatus('processing', recentTime),
+        "documents/processing.md",
+        createDefaultStatus("processing", recentTime),
       ],
     ]);
 
     const env = createMockEnv({
-      r2Objects: [{ key: 'documents/processing.md' }],
+      r2Objects: [{ key: "documents/processing.md" }],
       doStatuses,
     });
 
@@ -176,14 +176,14 @@ describe('reconcileR2Documents', () => {
     expect(result.retried).toBe(0);
   });
 
-  it('should retry stuck documents (processing > 24h)', async () => {
+  it("should retry stuck documents (processing > 24h)", async () => {
     const oldTime = new Date(Date.now() - 1000 * 60 * 60 * 25).toISOString(); // 25 hours ago
     const doStatuses = new Map([
-      ['documents/stuck.md', createDefaultStatus('processing', oldTime)],
+      ["documents/stuck.md", createDefaultStatus("processing", oldTime)],
     ]);
 
     const env = createMockEnv({
-      r2Objects: [{ key: 'documents/stuck.md' }],
+      r2Objects: [{ key: "documents/stuck.md" }],
       doStatuses,
     });
 
@@ -194,30 +194,30 @@ describe('reconcileR2Documents', () => {
     expect(result.skipped).toBe(0);
   });
 
-  it('should handle multiple documents with mixed states', async () => {
+  it("should handle multiple documents with mixed states", async () => {
     const oldTime = new Date(Date.now() - 1000 * 60 * 60 * 25).toISOString();
     const recentTime = new Date(Date.now() - 1000 * 60 * 60).toISOString();
 
-    const d1Results = new Map([['documents/existing.md', { id: 1 }]]);
+    const d1Results = new Map([["documents/existing.md", { id: 1 }]]);
 
     const doStatuses = new Map<string, ProcessingStatus>([
-      ['documents/new.md', createDefaultStatus('not_started')],
-      ['documents/failed.md', createDefaultStatus('failed')],
+      ["documents/new.md", createDefaultStatus("not_started")],
+      ["documents/failed.md", createDefaultStatus("failed")],
       [
-        'documents/processing.md',
-        createDefaultStatus('processing', recentTime),
+        "documents/processing.md",
+        createDefaultStatus("processing", recentTime),
       ],
-      ['documents/stuck.md', createDefaultStatus('processing', oldTime)],
+      ["documents/stuck.md", createDefaultStatus("processing", oldTime)],
     ]);
 
     const env = createMockEnv({
       r2Objects: [
-        { key: 'documents/existing.md' },
-        { key: 'documents/new.md' },
-        { key: 'documents/failed.md' },
-        { key: 'documents/processing.md' },
-        { key: 'documents/stuck.md' },
-        { key: 'documents/image.png' }, // Should be ignored
+        { key: "documents/existing.md" },
+        { key: "documents/new.md" },
+        { key: "documents/failed.md" },
+        { key: "documents/processing.md" },
+        { key: "documents/stuck.md" },
+        { key: "documents/image.png" }, // Should be ignored
       ],
       d1Results,
       doStatuses,
@@ -231,7 +231,7 @@ describe('reconcileR2Documents', () => {
     expect(result.retried).toBe(1); // stuck
   });
 
-  it('should handle R2 pagination', async () => {
+  it("should handle R2 pagination", async () => {
     // Create mock that returns objects in batches
     let callCount = 0;
     const env = createMockEnv({});
@@ -241,20 +241,20 @@ describe('reconcileR2Documents', () => {
         callCount++;
         if (callCount === 1) {
           return {
-            objects: [{ key: 'documents/batch1.md' }],
+            objects: [{ key: "documents/batch1.md" }],
             truncated: true,
-            cursor: 'cursor1',
+            cursor: "cursor1",
           };
         }
         if (callCount === 2) {
           return {
-            objects: [{ key: 'documents/batch2.md' }],
+            objects: [{ key: "documents/batch2.md" }],
             truncated: false,
             cursor: undefined,
           };
         }
         return { objects: [], truncated: false, cursor: undefined };
-      }
+      },
     );
 
     const result = await reconcileR2Documents(env);

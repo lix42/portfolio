@@ -12,11 +12,11 @@
       "enabled": true,
       "head_sampling_rate": 1,
       "persist": true,
-      "invocation_logs": true,
-    },
+      "invocation_logs": true
+    }
   },
   "version_metadata": {
-    "binding": "CF_VERSION_METADATA",
+    "binding": "CF_VERSION_METADATA"
   },
 
   // ============================================================================
@@ -27,15 +27,15 @@
     {
       "binding": "DB",
       "database_name": "portfolio-dev",
-      "database_id": "467f540e-2d86-461e-b9fb-98c80a736ec5",
-    },
+      "database_id": "467f540e-2d86-461e-b9fb-98c80a736ec5"
+    }
   ],
 
   "vectorize": [
     {
       "binding": "VECTORIZE",
-      "index_name": "portfolio-embeddings-dev",
-    },
+      "index_name": "portfolio-embeddings-dev"
+    }
   ],
 
   // R2: Uses local storage for wrangler dev
@@ -43,12 +43,12 @@
   "r2_buckets": [
     {
       "binding": "DOCUMENTS",
-      "bucket_name": "portfolio-documents-local",
-    },
+      "bucket_name": "portfolio-documents-local"
+    }
   ],
 
   "vars": {
-    "ENVIRONMENT": "development",
+    "ENVIRONMENT": "development"
   },
 
   // ============================================================================
@@ -59,63 +59,63 @@
     "staging": {
       "name": "chat-service-staging",
       "version_metadata": {
-        "binding": "CF_VERSION_METADATA",
+        "binding": "CF_VERSION_METADATA"
       },
       "d1_databases": [
         {
           "binding": "DB",
           "database_name": "portfolio-sql-staging",
           "database_id": "b287f8a6-1760-4092-8f2f-3f3f453cfe4f",
-          "remote": true,
-        },
+          "remote": true
+        }
       ],
       "vectorize": [
         {
           "binding": "VECTORIZE",
           "index_name": "portfolio-embeddings-staging",
-          "remote": true,
-        },
+          "remote": true
+        }
       ],
       "r2_buckets": [
         {
           "binding": "DOCUMENTS",
           "bucket_name": "portfolio-documents-staging",
-          "remote": true,
-        },
+          "remote": true
+        }
       ],
       "vars": {
-        "ENVIRONMENT": "staging",
-      },
+        "ENVIRONMENT": "staging"
+      }
     },
     "production": {
       "name": "chat-service-prod",
       "version_metadata": {
-        "binding": "CF_VERSION_METADATA",
+        "binding": "CF_VERSION_METADATA"
       },
       "d1_databases": [
         {
           "binding": "DB",
           "database_name": "portfolio-sql-prod",
-          "database_id": "7862c8d9-7982-4ac5-981d-8371b7b8cc3f",
-        },
+          "database_id": "7862c8d9-7982-4ac5-981d-8371b7b8cc3f"
+        }
       ],
       "vectorize": [
         {
           "binding": "VECTORIZE",
-          "index_name": "portfolio-embeddings-prod",
-        },
+          "index_name": "portfolio-embeddings-prod"
+        }
       ],
       "r2_buckets": [
         {
           "binding": "DOCUMENTS",
-          "bucket_name": "portfolio-documents-prod",
-        },
+          "bucket_name": "portfolio-documents-prod"
+        }
       ],
       "vars": {
-        "ENVIRONMENT": "production",
-      },
-    },
-  },
+        "ENVIRONMENT": "production"
+      }
+    }
+  }
 
   // ============================================================================
   // Bindings Configuration Examples (Reference)

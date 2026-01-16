@@ -28,13 +28,13 @@ export interface Document {
 export async function getChunksByTags(
   tagNames: readonly string[],
   db: D1Database,
-  limit = 20
+  limit = 20,
 ): Promise<ChunkWithTags[]> {
   if (tagNames.length === 0) {
     return [];
   }
 
-  const placeholders = tagNames.map(() => '?').join(',');
+  const placeholders = tagNames.map(() => "?").join(",");
 
   const result = await db
     .prepare(
@@ -51,15 +51,15 @@ export async function getChunksByTags(
       WHERE t.name IN (${placeholders}) COLLATE NOCASE
       GROUP BY c.id
       ORDER BY matched_tag_count DESC, c.id
-      LIMIT ?`
+      LIMIT ?`,
     )
     .bind(...tagNames, limit)
-    .all<Omit<ChunkWithTags, 'tags'> & { tags: string }>();
+    .all<Omit<ChunkWithTags, "tags"> & { tags: string }>();
 
   // Convert comma-separated tags to array
   return (result.results || []).map((row) => ({
     ...row,
-    tags: row.tags ? row.tags.split(',') : [],
+    tags: row.tags ? row.tags.split(",") : [],
   }));
 }
 
@@ -69,7 +69,7 @@ export async function getChunksByTags(
  */
 export async function getChunkByVectorizeId(
   vectorizeId: string,
-  db: D1Database
+  db: D1Database,
 ): Promise<ChunkWithTags | null> {
   const result = await db
     .prepare(
@@ -83,10 +83,10 @@ export async function getChunkByVectorizeId(
       LEFT JOIN chunk_tags ct ON c.id = ct.chunk_id
       LEFT JOIN tags t ON ct.tag_id = t.id
       WHERE c.vectorize_id = ?
-      GROUP BY c.id`
+      GROUP BY c.id`,
     )
     .bind(vectorizeId)
-    .first<Omit<ChunkWithTags, 'tags'> & { tags: string | null }>();
+    .first<Omit<ChunkWithTags, "tags"> & { tags: string | null }>();
 
   if (!result) {
     return null;
@@ -94,7 +94,7 @@ export async function getChunkByVectorizeId(
 
   return {
     ...result,
-    tags: result.tags ? result.tags.split(',') : [],
+    tags: result.tags ? result.tags.split(",") : [],
   };
 }
 
@@ -104,13 +104,13 @@ export async function getChunkByVectorizeId(
  */
 export async function getChunksByVectorizeIds(
   vectorizeIds: readonly string[],
-  db: D1Database
+  db: D1Database,
 ): Promise<Map<string, ChunkWithTags>> {
   if (vectorizeIds.length === 0) {
     return new Map();
   }
 
-  const placeholders = vectorizeIds.map(() => '?').join(',');
+  const placeholders = vectorizeIds.map(() => "?").join(",");
 
   const result = await db
     .prepare(
@@ -124,16 +124,16 @@ export async function getChunksByVectorizeIds(
       LEFT JOIN chunk_tags ct ON c.id = ct.chunk_id
       LEFT JOIN tags t ON ct.tag_id = t.id
       WHERE c.vectorize_id IN (${placeholders})
-      GROUP BY c.id`
+      GROUP BY c.id`,
     )
     .bind(...vectorizeIds)
-    .all<Omit<ChunkWithTags, 'tags'> & { tags: string | null }>();
+    .all<Omit<ChunkWithTags, "tags"> & { tags: string | null }>();
 
   const chunkMap = new Map<string, ChunkWithTags>();
   result.results?.forEach((row) => {
     chunkMap.set(row.vectorize_id, {
       ...row,
-      tags: row.tags ? row.tags.split(',') : [],
+      tags: row.tags ? row.tags.split(",") : [],
     });
   });
 
@@ -146,7 +146,7 @@ export async function getChunksByVectorizeIds(
  */
 export async function getDocumentById(
   documentId: number,
-  db: D1Database
+  db: D1Database,
 ): Promise<Document | null> {
   const result = await db
     .prepare(
@@ -161,10 +161,10 @@ export async function getDocumentById(
       LEFT JOIN document_tags dt ON d.id = dt.document_id
       LEFT JOIN tags t ON dt.tag_id = t.id
       WHERE d.id = ?
-      GROUP BY d.id`
+      GROUP BY d.id`,
     )
     .bind(documentId)
-    .first<Omit<Document, 'tags'> & { tags: string | null }>();
+    .first<Omit<Document, "tags"> & { tags: string | null }>();
 
   if (!result) {
     return null;
@@ -172,7 +172,7 @@ export async function getDocumentById(
 
   return {
     ...result,
-    tags: result.tags ? result.tags.split(',') : [],
+    tags: result.tags ? result.tags.split(",") : [],
   };
 }
 
@@ -192,7 +192,7 @@ export async function getAllTags(db: D1Database) {
       LEFT JOIN chunk_tags ct ON t.id = ct.tag_id
       LEFT JOIN document_tags dt ON t.id = dt.tag_id
       GROUP BY t.id
-      ORDER BY chunk_count DESC`
+      ORDER BY chunk_count DESC`,
     )
     .all<{
       id: number;

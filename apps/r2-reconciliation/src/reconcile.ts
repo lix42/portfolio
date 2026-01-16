@@ -1,4 +1,4 @@
-import type { ProcessingStatus, ReconciliationResult } from './types';
+import type { ProcessingStatus, ReconciliationResult } from "./types";
 
 const BATCH_SIZE = 100;
 const STUCK_THRESHOLD_HOURS = 24;
@@ -12,7 +12,7 @@ const STUCK_THRESHOLD_HOURS = 24;
  * 3. Are stuck in processing state (> 24 hours)
  */
 export async function reconcileR2Documents(
-  env: Env
+  env: Env,
 ): Promise<ReconciliationResult> {
   const result: ReconciliationResult = {
     checked: 0,
@@ -26,7 +26,7 @@ export async function reconcileR2Documents(
   do {
     const listOptions: R2ListOptions = {
       limit: BATCH_SIZE,
-      include: ['customMetadata'],
+      include: ["customMetadata"],
     };
     if (cursor) {
       listOptions.cursor = cursor;
@@ -35,7 +35,7 @@ export async function reconcileR2Documents(
     const listed = await env.DOCUMENTS_BUCKET.list(listOptions);
 
     for (const object of listed.objects) {
-      if (object.key.endsWith('.md')) {
+      if (object.key.endsWith(".md")) {
         await processDocument(env, object.key, result);
       }
     }
@@ -44,7 +44,7 @@ export async function reconcileR2Documents(
   } while (cursor);
 
   console.log(
-    `Reconciliation complete: checked=${result.checked}, queued=${result.queued}, retried=${result.retried}, skipped=${result.skipped}`
+    `Reconciliation complete: checked=${result.checked}, queued=${result.queued}, retried=${result.retried}, skipped=${result.skipped}`,
   );
 
   return result;
@@ -56,7 +56,7 @@ export async function reconcileR2Documents(
 async function processDocument(
   env: Env,
   r2Key: string,
-  result: ReconciliationResult
+  result: ReconciliationResult,
 ): Promise<void> {
   result.checked++;
 
@@ -64,19 +64,19 @@ async function processDocument(
     const action = await determineAction(env, r2Key);
 
     switch (action) {
-      case 'queue':
+      case "queue":
         await triggerProcessing(env, r2Key);
         result.queued++;
         console.log(`Queued for processing: ${r2Key}`);
         break;
 
-      case 'retry':
+      case "retry":
         await resumeProcessing(env, r2Key);
         result.retried++;
         console.log(`Retried stuck document: ${r2Key}`);
         break;
 
-      case 'skip':
+      case "skip":
         result.skipped++;
         break;
     }
@@ -85,48 +85,48 @@ async function processDocument(
   }
 }
 
-type ReconcileAction = 'queue' | 'retry' | 'skip';
+type ReconcileAction = "queue" | "retry" | "skip";
 
 /**
  * Determine what action to take for a document
  */
 async function determineAction(
   env: Env,
-  r2Key: string
+  r2Key: string,
 ): Promise<ReconcileAction> {
   // Check if document exists in D1
   const existing = await env.DB.prepare(
-    'SELECT id FROM documents WHERE r2_key = ?'
+    "SELECT id FROM documents WHERE r2_key = ?",
   )
     .bind(r2Key)
     .first<{ id: number }>();
 
   if (existing) {
     // Document already processed
-    return 'skip';
+    return "skip";
   }
 
   // Check Durable Object status
   const status = await getProcessingStatus(env, r2Key);
 
   switch (status.status) {
-    case 'not_started':
-    case 'failed':
-      return 'queue';
+    case "not_started":
+    case "failed":
+      return "queue";
 
-    case 'processing':
+    case "processing":
       // Check if stuck (> 24 hours)
       if (isStuck(status)) {
-        return 'retry';
+        return "retry";
       }
-      return 'skip';
+      return "skip";
 
-    case 'completed':
+    case "completed":
       // Completed but not in D1 - unusual state, queue for reprocessing
-      return 'queue';
+      return "queue";
 
     default:
-      return 'skip';
+      return "skip";
   }
 }
 
@@ -135,14 +135,14 @@ async function determineAction(
  */
 async function getProcessingStatus(
   env: Env,
-  r2Key: string
+  r2Key: string,
 ): Promise<ProcessingStatus> {
   const id = env.DOCUMENT_PROCESSOR.idFromName(r2Key);
   const stub = env.DOCUMENT_PROCESSOR.get(id);
 
   // eslint-disable-next-line sonarjs/no-clear-text-protocols
-  const response = await stub.fetch('http://internal/status', {
-    method: 'GET',
+  const response = await stub.fetch("http://internal/status", {
+    method: "GET",
   });
 
   if (!response.ok) {
@@ -160,9 +160,9 @@ async function triggerProcessing(env: Env, r2Key: string): Promise<void> {
   const stub = env.DOCUMENT_PROCESSOR.get(id);
 
   // eslint-disable-next-line sonarjs/no-clear-text-protocols
-  const response = await stub.fetch('http://internal/process', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const response = await stub.fetch("http://internal/process", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ r2Key }),
   });
 
@@ -180,8 +180,8 @@ async function resumeProcessing(env: Env, r2Key: string): Promise<void> {
   const stub = env.DOCUMENT_PROCESSOR.get(id);
 
   // eslint-disable-next-line sonarjs/no-clear-text-protocols
-  const response = await stub.fetch('http://internal/resume', {
-    method: 'POST',
+  const response = await stub.fetch("http://internal/resume", {
+    method: "POST",
   });
 
   if (!response.ok) {
@@ -194,7 +194,7 @@ async function resumeProcessing(env: Env, r2Key: string): Promise<void> {
  * Check if a processing job is stuck (> 24 hours)
  */
 function isStuck(status: ProcessingStatus): boolean {
-  if (status.status !== 'processing' || !status.timing.startedAt) {
+  if (status.status !== "processing" || !status.timing.startedAt) {
     return false;
   }
 

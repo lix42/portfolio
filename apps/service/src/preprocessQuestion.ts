@@ -10,12 +10,12 @@ import {
   DEFINE_TAGS_PROMPT,
   PREPROCESS_QUESTION_PROMPT,
   TAG_GENERATION_MODEL,
-} from '@portfolio/shared';
-import type OpenAI from 'openai';
-import { zodTextFormat } from 'openai/helpers/zod';
-import { z } from 'zod';
+} from "@portfolio/shared";
+import type OpenAI from "openai";
+import { zodTextFormat } from "openai/helpers/zod";
+import { z } from "zod";
 
-import { generateUserPromptProcessQuestion } from './utils/prompts';
+import { generateUserPromptProcessQuestion } from "./utils/prompts";
 
 /**
  * Zod schema defining the structure of the tag generation result
@@ -71,7 +71,7 @@ const nullResult: PreprocessQuestionResultType = {
  */
 export const preprocessQuestion = async (
   text: string,
-  openai: OpenAI
+  openai: OpenAI,
 ): Promise<PreprocessQuestionResultType> => {
   // Generate the user prompt by formatting the input text
   const userPrompt = generateUserPromptProcessQuestion(text);
@@ -81,20 +81,20 @@ export const preprocessQuestion = async (
     model: TAG_GENERATION_MODEL, // Use GPT-4 Omni for optimal tag generation quality
     input: [
       {
-        role: 'system',
+        role: "system",
         content: DEFINE_TAGS_PROMPT, // Provides overall context and tag generation rules
       },
       {
-        role: 'developer',
+        role: "developer",
         content: PREPROCESS_QUESTION_PROMPT, // Technical guidance for consistent tagging
       },
       {
-        role: 'user',
+        role: "user",
         content: userPrompt, // The actual question/text to be tagged
       },
     ],
     // Use Zod schema validation to ensure structured output parsing
-    text: { format: zodTextFormat(PreprocessQuestionResult, 'tagsResult') },
+    text: { format: zodTextFormat(PreprocessQuestionResult, "tagsResult") },
   });
 
   // Return parsed result or fallback to null result if parsing fails

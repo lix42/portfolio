@@ -1,18 +1,18 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from "vitest";
 
-import type { ChunkState, StepContext } from '../types';
-import { stepGenerateTagsBatch } from './generate-tags';
+import type { ChunkState, StepContext } from "../types";
+import { stepGenerateTagsBatch } from "./generate-tags";
 
-vi.mock('@portfolio/shared', () => ({
+vi.mock("@portfolio/shared", () => ({
   TAG_BATCH_SIZE: 2,
   generateTagsBatch: vi.fn(async (texts: string[]) =>
-    texts.map(() => ['tagged'])
+    texts.map(() => ["tagged"]),
   ),
 }));
 
 function createContext(
   initialChunks: ChunkState[],
-  stateOverrides?: Partial<StepContext['state']>
+  stateOverrides?: Partial<StepContext["state"]>,
 ) {
   const chunks = [...initialChunks];
 
@@ -32,15 +32,15 @@ function createContext(
         await chunkStore.saveChunk(chunk);
       }
     },
-    getChunksByStatus: async (status: ChunkState['status']) =>
+    getChunksByStatus: async (status: ChunkState["status"]) =>
       chunks.filter((chunk) => chunk.status === status),
     getAllChunks: async () => [...chunks],
-  } satisfies StepContext['chunks'];
+  } satisfies StepContext["chunks"];
 
-  const state: StepContext['state'] = {
-    status: 'processing',
-    r2Key: 'test.md',
-    currentStep: 'tags',
+  const state: StepContext["state"] = {
+    status: "processing",
+    r2Key: "test.md",
+    currentStep: "tags",
     totalChunks: chunks.length,
     processedChunks: 0,
     errors: [],
@@ -57,7 +57,7 @@ function createContext(
       DOCUMENTS_BUCKET: {} as R2Bucket,
       DB: {} as D1Database,
       VECTORIZE: {} as VectorizeIndex,
-      OPENAI_API_KEY: 'test-key',
+      OPENAI_API_KEY: "test-key",
     },
     next,
     fail: vi.fn(async () => {}),
@@ -66,24 +66,24 @@ function createContext(
   return { context, chunks, next };
 }
 
-describe('stepGenerateTagsBatch', () => {
-  it('updates processedChunks when tagging a batch', async () => {
+describe("stepGenerateTagsBatch", () => {
+  it("updates processedChunks when tagging a batch", async () => {
     const initialChunks: ChunkState[] = [
       {
         index: 0,
-        text: 'A',
+        text: "A",
         tokens: 10,
         embedding: [],
         tags: null,
-        status: 'embedding_done',
+        status: "embedding_done",
       },
       {
         index: 1,
-        text: 'B',
+        text: "B",
         tokens: 12,
         embedding: [],
         tags: null,
-        status: 'embedding_done',
+        status: "embedding_done",
       },
     ];
 
@@ -93,18 +93,18 @@ describe('stepGenerateTagsBatch', () => {
 
     expect(next).toHaveBeenCalledWith({ continueCurrentStep: true });
     expect(context.state.processedChunks).toBe(2);
-    expect(chunks.every((chunk) => chunk.status === 'tags_done')).toBe(true);
+    expect(chunks.every((chunk) => chunk.status === "tags_done")).toBe(true);
   });
 
-  it('syncs processedChunks when no pending chunks remain', async () => {
+  it("syncs processedChunks when no pending chunks remain", async () => {
     const initialChunks: ChunkState[] = [
       {
         index: 0,
-        text: 'Done',
+        text: "Done",
         tokens: 5,
         embedding: [],
-        tags: ['tagged'],
-        status: 'tags_done',
+        tags: ["tagged"],
+        status: "tags_done",
       },
     ];
 

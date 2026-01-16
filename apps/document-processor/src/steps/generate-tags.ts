@@ -1,7 +1,7 @@
-import { generateTagsBatch, TAG_BATCH_SIZE } from '@portfolio/shared';
+import { generateTagsBatch, TAG_BATCH_SIZE } from "@portfolio/shared";
 
-import type { StepContext } from '../types';
-import { syncProcessedChunks } from '../utils';
+import type { StepContext } from "../types";
+import { syncProcessedChunks } from "../utils";
 
 /**
  * Step 3: Generate tags in batches
@@ -9,13 +9,13 @@ import { syncProcessedChunks } from '../utils';
  * Each chunk is saved separately to avoid 128KB limit
  */
 export async function stepGenerateTagsBatch(
-  context: StepContext
+  context: StepContext,
 ): Promise<void> {
   console.log(`[${context.state.r2Key}] Step 3: Generate tags batch`);
 
   // Get chunks that need tags (have embeddings but no tags)
   const pendingChunks =
-    await context.chunks.getChunksByStatus('embedding_done');
+    await context.chunks.getChunksByStatus("embedding_done");
 
   if (pendingChunks.length === 0) {
     // All tags done, advance to next step in pipeline
@@ -36,7 +36,7 @@ export async function stepGenerateTagsBatch(
   const updatedChunks = batch.map((chunk, idx) => ({
     ...chunk,
     tags: tagsBatch[idx] ?? [],
-    status: 'tags_done' as const,
+    status: "tags_done" as const,
   }));
 
   // Save updated chunks (each to its own key)

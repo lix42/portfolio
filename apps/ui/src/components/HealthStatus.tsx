@@ -1,17 +1,5 @@
-import type { HealthResponse } from '@portfolio/shared';
-
-import { Button } from './ui/button';
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemGroup,
-  ItemSeparator,
-  ItemTitle,
-} from './ui/item';
-import { LoadingEllipsis } from './ui/loading-ellipsis';
-
-import { Badge } from '~/components/ui/badge';
+import type { HealthResponse } from "@portfolio/shared";
+import { Badge } from "~/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -19,8 +7,18 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '~/components/ui/card';
-import { cn } from '~/lib/utils';
+} from "~/components/ui/card";
+import { cn } from "~/lib/utils";
+import { Button } from "./ui/button";
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemSeparator,
+  ItemTitle,
+} from "./ui/item";
+import { LoadingEllipsis } from "./ui/loading-ellipsis";
 
 export interface HealthStatusProps {
   message: string;
@@ -52,8 +50,8 @@ export function HealthStatus({
               <ItemDescription>Current service availability</ItemDescription>
             </ItemContent>
             <ItemContent>
-              <Badge variant={health.ok ? 'default' : 'destructive'}>
-                {health.ok ? 'Healthy' : 'Unavailable'}
+              <Badge variant={health.ok ? "default" : "destructive"}>
+                {health.ok ? "Healthy" : "Unavailable"}
               </Badge>
             </ItemContent>
           </Item>
@@ -86,22 +84,22 @@ export function HealthStatus({
               size="sm"
               className={cn(
                 !health.services.d1.ok &&
-                  'border-destructive/50 bg-destructive/10'
+                  "border-destructive/50 bg-destructive/10",
               )}
             >
               <ItemContent>
                 <ItemTitle>D1</ItemTitle>
                 {!health.services.d1.ok && (
-                  <ItemDescription className={'text-destructive'}>
+                  <ItemDescription className={"text-destructive"}>
                     {health.services.d1.message}
                   </ItemDescription>
                 )}
               </ItemContent>
               <ItemContent>
                 <Badge
-                  variant={health.services.d1.ok ? 'default' : 'destructive'}
+                  variant={health.services.d1.ok ? "default" : "destructive"}
                 >
-                  {health.services.d1.ok ? 'Healthy' : 'Unavailable'}
+                  {health.services.d1.ok ? "Healthy" : "Unavailable"}
                 </Badge>
               </ItemContent>
             </Item>
@@ -111,22 +109,22 @@ export function HealthStatus({
               size="sm"
               className={cn(
                 !health.services.r2.ok &&
-                  'border-destructive/50 bg-destructive/10'
+                  "border-destructive/50 bg-destructive/10",
               )}
             >
               <ItemContent>
                 <ItemTitle>R2</ItemTitle>
                 {!health.services.r2.ok && (
-                  <ItemDescription className={'text-destructive'}>
+                  <ItemDescription className={"text-destructive"}>
                     {health.services.r2.message}
                   </ItemDescription>
                 )}
               </ItemContent>
               <ItemContent>
                 <Badge
-                  variant={health.services.r2.ok ? 'default' : 'destructive'}
+                  variant={health.services.r2.ok ? "default" : "destructive"}
                 >
-                  {health.services.r2.ok ? 'Healthy' : 'Unavailable'}
+                  {health.services.r2.ok ? "Healthy" : "Unavailable"}
                 </Badge>
               </ItemContent>
             </Item>
@@ -136,13 +134,13 @@ export function HealthStatus({
               size="sm"
               className={cn(
                 !health.services.vectorize.ok &&
-                  'border-destructive/50 bg-destructive/10'
+                  "border-destructive/50 bg-destructive/10",
               )}
             >
               <ItemContent>
                 <ItemTitle>Vectorize</ItemTitle>
                 {!health.services.vectorize.ok && (
-                  <ItemDescription className={'text-destructive'}>
+                  <ItemDescription className={"text-destructive"}>
                     {health.services.vectorize.message}
                   </ItemDescription>
                 )}
@@ -150,10 +148,10 @@ export function HealthStatus({
               <ItemContent>
                 <Badge
                   variant={
-                    health.services.vectorize.ok ? 'default' : 'destructive'
+                    health.services.vectorize.ok ? "default" : "destructive"
                   }
                 >
-                  {health.services.vectorize.ok ? 'Healthy' : 'Unavailable'}
+                  {health.services.vectorize.ok ? "Healthy" : "Unavailable"}
                 </Badge>
               </ItemContent>
             </Item>

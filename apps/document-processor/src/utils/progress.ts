@@ -1,4 +1,4 @@
-import type { StepContext } from '../types';
+import type { StepContext } from "../types";
 
 /**
  * Synchronize processedChunks on the document state with the number of chunks
@@ -8,8 +8,8 @@ import type { StepContext } from '../types';
  */
 export async function syncProcessedChunks(context: StepContext): Promise<void> {
   const [taggedChunks, storedChunks] = await Promise.all([
-    context.chunks.getChunksByStatus('tags_done'),
-    context.chunks.getChunksByStatus('stored'),
+    context.chunks.getChunksByStatus("tags_done"),
+    context.chunks.getChunksByStatus("stored"),
   ]);
 
   // statuses are mutually exclusive, so a simple sum is safe

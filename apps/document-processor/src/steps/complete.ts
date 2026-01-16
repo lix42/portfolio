@@ -1,4 +1,4 @@
-import type { StepContext } from '../types';
+import type { StepContext } from "../types";
 
 /**
  * Step 5: Terminal state - no-op

@@ -1,10 +1,10 @@
-import type { ChunkState, ChunkStorage, DocumentState } from '../types';
+import type { ChunkState, ChunkStorage, DocumentState } from "../types";
 
 /**
  * Storage key constants
  */
-const DOCUMENT_STATE_KEY = 'state';
-const CHUNK_KEY_PREFIX = 'chunk:';
+const DOCUMENT_STATE_KEY = "state";
+const CHUNK_KEY_PREFIX = "chunk:";
 
 /**
  * Get the storage key for a chunk by index
@@ -16,7 +16,7 @@ export const chunkKey = (index: number): string =>
  * Get document state from storage
  */
 export async function getDocumentState(
-  storage: DurableObjectStorage
+  storage: DurableObjectStorage,
 ): Promise<DocumentState | undefined> {
   return storage.get<DocumentState>(DOCUMENT_STATE_KEY);
 }
@@ -26,7 +26,7 @@ export async function getDocumentState(
  */
 export async function saveDocumentState(
   storage: DurableObjectStorage,
-  state: DocumentState
+  state: DocumentState,
 ): Promise<void> {
   await storage.put(DOCUMENT_STATE_KEY, state);
 }
@@ -36,7 +36,7 @@ export async function saveDocumentState(
  */
 export async function getChunk(
   storage: DurableObjectStorage,
-  index: number
+  index: number,
 ): Promise<ChunkState | undefined> {
   return storage.get<ChunkState>(chunkKey(index));
 }
@@ -46,7 +46,7 @@ export async function getChunk(
  */
 export async function saveChunk(
   storage: DurableObjectStorage,
-  chunk: ChunkState
+  chunk: ChunkState,
 ): Promise<void> {
   await storage.put(chunkKey(chunk.index), chunk);
 }
@@ -56,7 +56,7 @@ export async function saveChunk(
  */
 export async function saveChunks(
   storage: DurableObjectStorage,
-  chunks: ChunkState[]
+  chunks: ChunkState[],
 ): Promise<void> {
   const entries: Record<string, ChunkState> = {};
   for (const chunk of chunks) {
@@ -70,7 +70,7 @@ export async function saveChunks(
  */
 export async function getChunksByStatus(
   storage: DurableObjectStorage,
-  status: ChunkState['status']
+  status: ChunkState["status"],
 ): Promise<ChunkState[]> {
   const chunks = await getAllChunks(storage);
   return chunks.filter((chunk) => chunk.status === status);
@@ -80,7 +80,7 @@ export async function getChunksByStatus(
  * Get all chunks from storage
  */
 export async function getAllChunks(
-  storage: DurableObjectStorage
+  storage: DurableObjectStorage,
 ): Promise<ChunkState[]> {
   const entries = await storage.list<ChunkState>({
     prefix: CHUNK_KEY_PREFIX,
@@ -95,7 +95,7 @@ export async function getAllChunks(
  * Delete all state (document + all chunks)
  */
 export async function deleteAllState(
-  storage: DurableObjectStorage
+  storage: DurableObjectStorage,
 ): Promise<void> {
   await storage.deleteAll();
 }
@@ -104,13 +104,13 @@ export async function deleteAllState(
  * Create a ChunkStorage interface bound to a specific storage instance
  */
 export function createChunkStorage(
-  storage: DurableObjectStorage
+  storage: DurableObjectStorage,
 ): ChunkStorage {
   return {
     getChunk: (index: number) => getChunk(storage, index),
     saveChunk: (chunk: ChunkState) => saveChunk(storage, chunk),
     saveChunks: (chunks: ChunkState[]) => saveChunks(storage, chunks),
-    getChunksByStatus: (status: ChunkState['status']) =>
+    getChunksByStatus: (status: ChunkState["status"]) =>
       getChunksByStatus(storage, status),
     getAllChunks: () => getAllChunks(storage),
   };
@@ -121,9 +121,9 @@ export function createChunkStorage(
  */
 export function createInitialDocumentState(r2Key: string): DocumentState {
   return {
-    status: 'processing',
+    status: "processing",
     r2Key,
-    currentStep: 'download',
+    currentStep: "download",
     totalChunks: 0,
     processedChunks: 0,
     errors: [],

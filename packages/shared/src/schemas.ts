@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Schema for document metadata JSON files (e.g., webforms.json)
@@ -9,9 +9,9 @@ import { z } from 'zod';
  * - company: Company name where the project was done
  */
 export const documentMetadataSchema = z.object({
-  project: z.string().min(1, 'Project name is required'),
-  document: z.string().min(1, 'Document path is required'),
-  company: z.string().min(1, 'Company name is required'),
+  project: z.string().min(1, "Project name is required"),
+  document: z.string().min(1, "Document path is required"),
+  company: z.string().min(1, "Company name is required"),
 });
 
 /**
@@ -34,7 +34,7 @@ export function validateDocumentMetadata(data: unknown): {
   }
 
   const errors = result.error.issues.map(
-    (err) => `${err.path.join('.')}: ${err.message}`
+    (err) => `${err.path.join(".")}: ${err.message}`,
   );
 
   return { success: false, errors };
@@ -51,21 +51,21 @@ export const healthResponseSchema = z.object({
   ok: z
     .boolean()
     .describe(
-      'Overall service health status - true if all bindings operational'
+      "Overall service health status - true if all bindings operational",
     ),
-  version: z.string().describe('Deployed version metadata from Cloudflare'),
+  version: z.string().describe("Deployed version metadata from Cloudflare"),
   services: z.object({
     d1: z.object({
-      ok: z.boolean().describe('D1 database connectivity status'),
-      message: z.string().optional().describe('Error message if unhealthy'),
+      ok: z.boolean().describe("D1 database connectivity status"),
+      message: z.string().optional().describe("Error message if unhealthy"),
     }),
     r2: z.object({
-      ok: z.boolean().describe('R2 object storage connectivity status'),
-      message: z.string().optional().describe('Error message if unhealthy'),
+      ok: z.boolean().describe("R2 object storage connectivity status"),
+      message: z.string().optional().describe("Error message if unhealthy"),
     }),
     vectorize: z.object({
-      ok: z.boolean().describe('Vectorize index connectivity status'),
-      message: z.string().optional().describe('Error message if unhealthy'),
+      ok: z.boolean().describe("Vectorize index connectivity status"),
+      message: z.string().optional().describe("Error message if unhealthy"),
     }),
   }),
 });
@@ -76,7 +76,7 @@ export type HealthResponse = z.infer<typeof healthResponseSchema>;
  * Chat request schema
  */
 export const chatRequestSchema = z.object({
-  message: z.string().min(1, 'Message cannot be empty'),
+  message: z.string().min(1, "Message cannot be empty"),
 });
 
 export type ChatRequest = z.infer<typeof chatRequestSchema>;
@@ -92,7 +92,7 @@ export const chatResponseSchema = z.object({
         document: z.string(),
         chunk: z.string(),
         similarity: z.number(),
-      })
+      }),
     )
     .optional(),
 });

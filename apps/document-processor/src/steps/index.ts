@@ -3,38 +3,38 @@ import type {
   ProcessingStep,
   StepHandler,
   StepRegistration,
-} from '../types';
-import { stepComplete } from './complete';
-import { stepDownloadAndChunk } from './download-and-chunk';
-import { stepGenerateEmbeddingsBatch } from './generate-embeddings';
-import { stepGenerateTagsBatch } from './generate-tags';
-import { stepStoreToD1AndVectorize } from './store-to-databases';
+} from "../types";
+import { stepComplete } from "./complete";
+import { stepDownloadAndChunk } from "./download-and-chunk";
+import { stepGenerateEmbeddingsBatch } from "./generate-embeddings";
+import { stepGenerateTagsBatch } from "./generate-tags";
+import { stepStoreToD1AndVectorize } from "./store-to-databases";
 
 /**
  * Registry of all processing steps
  * Order matters - determines execution sequence
  * The 'complete' step is automatically appended
  */
-const PROCESSING_STEPS_CONFIG: Omit<StepRegistration, 'nextStep'>[] = [
+const PROCESSING_STEPS_CONFIG: Omit<StepRegistration, "nextStep">[] = [
   {
-    name: 'download',
+    name: "download",
     handler: stepDownloadAndChunk,
-    description: 'Download from R2 and chunk markdown',
+    description: "Download from R2 and chunk markdown",
   },
   {
-    name: 'embeddings',
+    name: "embeddings",
     handler: stepGenerateEmbeddingsBatch,
-    description: 'Generate embeddings for chunks (batched)',
+    description: "Generate embeddings for chunks (batched)",
   },
   {
-    name: 'tags',
+    name: "tags",
     handler: stepGenerateTagsBatch,
-    description: 'Generate tags for chunks (batched)',
+    description: "Generate tags for chunks (batched)",
   },
   {
-    name: 'store',
+    name: "store",
     handler: stepStoreToD1AndVectorize,
-    description: 'Store to D1 and Vectorize (two-phase commit)',
+    description: "Store to D1 and Vectorize (two-phase commit)",
   },
 ];
 
@@ -43,7 +43,7 @@ const PROCESSING_STEPS_CONFIG: Omit<StepRegistration, 'nextStep'>[] = [
  */
 function getNextStepName(index: number): ProcessingStep {
   const nextConfig = PROCESSING_STEPS_CONFIG[index + 1];
-  return nextConfig ? nextConfig.name : 'complete';
+  return nextConfig ? nextConfig.name : "complete";
 }
 
 /**
@@ -57,21 +57,21 @@ export const PROCESSING_STEPS: StepRegistration[] = [
     nextStep: getNextStepName(index),
   })),
   {
-    name: 'complete',
+    name: "complete",
     handler: stepComplete,
-    description: 'Terminal state',
-    nextStep: 'complete' as ProcessingStep, // Self-loop
+    description: "Terminal state",
+    nextStep: "complete" as ProcessingStep, // Self-loop
   },
 ];
 
 /**
  * Build lookup maps for O(1) access
  */
-export const STEP_HANDLERS = new Map<DocumentState['currentStep'], StepHandler>(
-  PROCESSING_STEPS.map(({ name, handler }) => [name, handler])
+export const STEP_HANDLERS = new Map<DocumentState["currentStep"], StepHandler>(
+  PROCESSING_STEPS.map(({ name, handler }) => [name, handler]),
 );
 
 export const STEP_NEXT = new Map<
-  DocumentState['currentStep'],
-  DocumentState['currentStep']
+  DocumentState["currentStep"],
+  DocumentState["currentStep"]
 >(PROCESSING_STEPS.map(({ name, nextStep }) => [name, nextStep]));

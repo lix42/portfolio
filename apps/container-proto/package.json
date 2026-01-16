@@ -5,8 +5,6 @@
   "scripts": {
     "dev": "wrangler dev --port 8787",
     "deploy": "wrangler deploy",
-    "lint": "eslint .",
-    "lint:check": "eslint .",
     "typecheck": "tsc --noEmit",
     "type:check:ci": "$npm_execpath run typecheck",
     "cf-typegen": "wrangler types"
@@ -17,8 +15,6 @@
     "json-schema-to-ts": "^3.1.1"
   },
   "devDependencies": {
-    "@portfolio/eslint-config": "workspace:*",
-    "eslint": "^9.39.2",
     "typescript": "^5.9.3",
     "wrangler": "^4.59.1"
   }

@@ -1,16 +1,17 @@
-import { readFile } from 'node:fs/promises';
+import { readFile } from "node:fs/promises";
 
 import {
   DeleteObjectCommand,
   HeadObjectCommand,
   ListObjectsV2Command,
   S3Client,
-} from '@aws-sdk/client-s3';
-import { Upload } from '@aws-sdk/lib-storage';
-import { NodeHttpHandler } from '@smithy/node-http-handler';
-import { HttpsProxyAgent } from 'hpagent';
+  type S3ClientConfig,
+} from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
+import { HttpsProxyAgent } from "hpagent";
 
-import type { FileOperation, R2Object } from './types.js';
+import type { FileOperation, R2Object } from "./types.js";
 
 export class R2Client {
   private r2: S3Client;
@@ -20,7 +21,7 @@ export class R2Client {
     accountId: string,
     accessKeyId: string,
     secretAccessKey: string,
-    bucketName: string
+    bucketName: string,
   ) {
     this.bucketName = bucketName;
 
@@ -29,13 +30,13 @@ export class R2Client {
 
     // Configure proxy agent if HTTP_PROXY or HTTPS_PROXY is set
     const proxyUrl =
-      process.env['HTTPS_PROXY'] ||
-      process.env['https_proxy'] ||
-      process.env['HTTP_PROXY'] ||
-      process.env['http_proxy'];
+      process.env["HTTPS_PROXY"] ||
+      process.env["https_proxy"] ||
+      process.env["HTTP_PROXY"] ||
+      process.env["http_proxy"];
 
-    const clientConfig: any = {
-      region: 'auto',
+    const clientConfig: S3ClientConfig = {
+      region: "auto",
       endpoint,
       credentials: {
         accessKeyId,
@@ -85,9 +86,9 @@ export class R2Client {
 
               // Use SHA-256 from metadata, fallback to ETag (MD5) if not available
               const contentHash =
-                headResponse.Metadata?.['sha256'] ||
-                obj.ETag?.replace(/"/g, '') ||
-                '';
+                headResponse.Metadata?.["sha256"] ||
+                obj.ETag?.replace(/"/g, "") ||
+                "";
 
               return {
                 key: obj.Key,
@@ -106,13 +107,13 @@ export class R2Client {
 
         const settledResults = await Promise.allSettled(objectPromises);
         settledResults.forEach((result) => {
-          if (result.status === 'fulfilled' && result.value) {
+          if (result.status === "fulfilled" && result.value) {
             objects.push(result.value);
-          } else if (result.status === 'rejected') {
+          } else if (result.status === "rejected") {
             // TODO: handle individual object metadata fetch errors if needed
             console.error(
               `Failed to get metadata for an object:`,
-              result.reason
+              result.reason,
             );
           }
         });
@@ -131,7 +132,7 @@ export class R2Client {
     localPath: string,
     r2Key: string,
     contentHash: string,
-    maxRetries = 3
+    maxRetries = 3,
   ): Promise<FileOperation> {
     const startTime = Date.now();
     let lastError: Error | undefined;
@@ -139,9 +140,9 @@ export class R2Client {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const fileContent = await readFile(localPath);
-        const contentType = r2Key.endsWith('.json')
-          ? 'application/json'
-          : 'text/markdown';
+        const contentType = r2Key.endsWith(".json")
+          ? "application/json"
+          : "text/markdown";
 
         const upload = new Upload({
           client: this.r2,
@@ -160,8 +161,8 @@ export class R2Client {
 
         return {
           path: r2Key,
-          operation: 'upload',
-          status: 'success',
+          operation: "upload",
+          status: "success",
           size: fileContent.length,
           duration: Date.now() - startTime,
           retries: attempt - 1,
@@ -179,9 +180,9 @@ export class R2Client {
 
     return {
       path: r2Key,
-      operation: 'upload',
-      status: 'failed',
-      error: lastError?.message || 'Unknown error',
+      operation: "upload",
+      status: "failed",
+      error: lastError?.message || "Unknown error",
       duration: Date.now() - startTime,
       retries: maxRetries,
     };
@@ -205,8 +206,8 @@ export class R2Client {
 
         return {
           path: r2Key,
-          operation: 'delete',
-          status: 'success',
+          operation: "delete",
+          status: "success",
           duration: Date.now() - startTime,
           retries: attempt - 1,
         };
@@ -222,9 +223,9 @@ export class R2Client {
 
     return {
       path: r2Key,
-      operation: 'delete',
-      status: 'failed',
-      error: lastError?.message || 'Unknown error',
+      operation: "delete",
+      status: "failed",
+      error: lastError?.message || "Unknown error",
       duration: Date.now() - startTime,
       retries: maxRetries,
     };
