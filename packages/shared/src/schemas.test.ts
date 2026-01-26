@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  chatRequestSchema,
-  chatResponseSchema,
+  ChatErrorResponseSchema,
+  ChatRequestSchema,
+  ChatSuccessResponseSchema,
   documentMetadataSchema,
   healthResponseSchema,
+  isErrorChat,
+  isSuccessChat,
   syncOptionsSchema,
   validateDocumentMetadata,
 } from "./schemas";
@@ -106,62 +109,99 @@ describe("schemas", () => {
     });
   });
 
-  describe("chatRequestSchema", () => {
+  describe("ChatRequestSchema", () => {
     it("should validate chat request", () => {
       const valid = { message: "Hello" };
-      const result = chatRequestSchema.safeParse(valid);
+      const result = ChatRequestSchema.safeParse(valid);
       expect(result.success).toBe(true);
     });
 
     it("should reject empty message", () => {
       const invalid = { message: "" };
-      const result = chatRequestSchema.safeParse(invalid);
+      const result = ChatRequestSchema.safeParse(invalid);
       expect(result.success).toBe(false);
     });
 
     it("should reject missing message", () => {
       const invalid = {};
-      const result = chatRequestSchema.safeParse(invalid);
+      const result = ChatRequestSchema.safeParse(invalid);
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject message exceeding max length", () => {
+      const invalid = { message: "a".repeat(1001) };
+      const result = ChatRequestSchema.safeParse(invalid);
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject non-string message", () => {
+      const invalid = { message: 123 };
+      const result = ChatRequestSchema.safeParse(invalid);
       expect(result.success).toBe(false);
     });
   });
 
-  describe("chatResponseSchema", () => {
-    it("should validate chat response with sources", () => {
-      const valid = {
-        answer: "This is the answer",
-        sources: [
-          {
-            document: "doc1.md",
-            chunk: "chunk content",
-            similarity: 0.95,
-          },
-        ],
-      };
-      const result = chatResponseSchema.safeParse(valid);
+  describe("ChatSuccessResponseSchema", () => {
+    it("should validate success response", () => {
+      const valid = { answer: "This is the answer" };
+      const result = ChatSuccessResponseSchema.safeParse(valid);
       expect(result.success).toBe(true);
     });
 
-    it("should validate chat response without sources", () => {
-      const valid = {
-        answer: "This is the answer",
-      };
-      const result = chatResponseSchema.safeParse(valid);
-      expect(result.success).toBe(true);
-    });
-
-    it("should reject invalid source structure", () => {
-      const invalid = {
-        answer: "This is the answer",
-        sources: [
-          {
-            document: "doc1.md",
-            // missing chunk and similarity
-          },
-        ],
-      };
-      const result = chatResponseSchema.safeParse(invalid);
+    it("should reject missing answer", () => {
+      const invalid = {};
+      const result = ChatSuccessResponseSchema.safeParse(invalid);
       expect(result.success).toBe(false);
+    });
+
+    it("should reject non-string answer", () => {
+      const invalid = { answer: 123 };
+      const result = ChatSuccessResponseSchema.safeParse(invalid);
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe("ChatErrorResponseSchema", () => {
+    it("should validate error response", () => {
+      const valid = { error: "Something went wrong" };
+      const result = ChatErrorResponseSchema.safeParse(valid);
+      expect(result.success).toBe(true);
+    });
+
+    it("should reject missing error", () => {
+      const invalid = {};
+      const result = ChatErrorResponseSchema.safeParse(invalid);
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject non-string error", () => {
+      const invalid = { error: 500 };
+      const result = ChatErrorResponseSchema.safeParse(invalid);
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe("isSuccessChat", () => {
+    it("should return true for success response", () => {
+      const response = { answer: "This is the answer" };
+      expect(isSuccessChat(response)).toBe(true);
+    });
+
+    it("should return false for error response", () => {
+      const response = { error: "Something went wrong" };
+      expect(isSuccessChat(response)).toBe(false);
+    });
+  });
+
+  describe("isErrorChat", () => {
+    it("should return true for error response", () => {
+      const response = { error: "Something went wrong" };
+      expect(isErrorChat(response)).toBe(true);
+    });
+
+    it("should return false for success response", () => {
+      const response = { answer: "This is the answer" };
+      expect(isErrorChat(response)).toBe(false);
     });
   });
 

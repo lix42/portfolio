@@ -73,31 +73,71 @@ export const healthResponseSchema = z.object({
 export type HealthResponse = z.infer<typeof healthResponseSchema>;
 
 /**
- * Chat request schema
+ * Chat request schema - validates incoming chat messages
  */
-export const chatRequestSchema = z.object({
-  message: z.string().min(1, "Message cannot be empty"),
+export const ChatRequestSchema = z.object({
+  message: z
+    .string()
+    .min(1, "Message cannot be empty")
+    .max(1000, "Message too long (max 1000 characters)")
+    .describe(
+      "User question about portfolio, work experience, skills, or projects",
+    ),
 });
-
-export type ChatRequest = z.infer<typeof chatRequestSchema>;
 
 /**
- * Chat response schema
+ * Successful chat response schema
  */
-export const chatResponseSchema = z.object({
-  answer: z.string(),
-  sources: z
-    .array(
-      z.object({
-        document: z.string(),
-        chunk: z.string(),
-        similarity: z.number(),
-      }),
-    )
-    .optional(),
+export const ChatSuccessResponseSchema = z.object({
+  status: z.literal("ok").describe("Indicates a successful response"),
+  answer: z
+    .string()
+    .describe(
+      "AI-generated answer based on portfolio documents and context retrieved via RAG",
+    ),
 });
 
-export type ChatResponse = z.infer<typeof chatResponseSchema>;
+/**
+ * Chat error response schema
+ */
+export const ChatErrorResponseSchema = z.object({
+  status: z.literal("error").describe("Indicates an error response"),
+  error: z
+    .string()
+    .describe(
+      "Error message - either validation error, processing failure, or server error",
+    ),
+});
+
+export const ChatResponseSchema = z.discriminatedUnion("status", [
+  ChatSuccessResponseSchema,
+  ChatErrorResponseSchema,
+]);
+
+// Type exports for TypeScript consumers
+export type ChatRequest = z.infer<typeof ChatRequestSchema>;
+export type ChatSuccessResponse = z.infer<typeof ChatSuccessResponseSchema>;
+export type ChatErrorResponse = z.infer<typeof ChatErrorResponseSchema>;
+
+export type ChatResponse = z.infer<typeof ChatResponseSchema>;
+
+/**
+ * Type guard to check if response is a successful chat response
+ */
+export function isSuccessChat(
+  response: ChatResponse,
+): response is ChatSuccessResponse {
+  return "answer" in response;
+}
+
+/**
+ * Type guard to check if response is an error chat response
+ */
+export function isErrorChat(
+  response: ChatSuccessResponse | ChatErrorResponse,
+): response is ChatErrorResponse {
+  return "error" in response;
+}
 
 /**
  * R2 Sync CLI options schema

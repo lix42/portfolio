@@ -42,5 +42,5 @@ const fetchHealth = createServerFn({ method: "GET" }).handler(async () => {
 export const healthQueryOptions = {
   queryKey: ["health"],
   queryFn: () => fetchHealth(),
-  refetchInterval: 3_000, // Refetch every 3 seconds
+  refetchInterval: 300_000, // Refetch every 5 minutes
 };
