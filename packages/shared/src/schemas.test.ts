@@ -143,7 +143,7 @@ describe("schemas", () => {
 
   describe("ChatSuccessResponseSchema", () => {
     it("should validate success response", () => {
-      const valid = { answer: "This is the answer" };
+      const valid = { status: "ok", answer: "This is the answer" };
       const result = ChatSuccessResponseSchema.safeParse(valid);
       expect(result.success).toBe(true);
     });
@@ -163,7 +163,7 @@ describe("schemas", () => {
 
   describe("ChatErrorResponseSchema", () => {
     it("should validate error response", () => {
-      const valid = { error: "Something went wrong" };
+      const valid = { status: "error", error: "Something went wrong" };
       const result = ChatErrorResponseSchema.safeParse(valid);
       expect(result.success).toBe(true);
     });
@@ -183,24 +183,30 @@ describe("schemas", () => {
 
   describe("isSuccessChat", () => {
     it("should return true for success response", () => {
-      const response = { answer: "This is the answer" };
+      const response = { status: "ok" as const, answer: "This is the answer" };
       expect(isSuccessChat(response)).toBe(true);
     });
 
     it("should return false for error response", () => {
-      const response = { error: "Something went wrong" };
+      const response = {
+        status: "error" as const,
+        error: "Something went wrong",
+      };
       expect(isSuccessChat(response)).toBe(false);
     });
   });
 
   describe("isErrorChat", () => {
     it("should return true for error response", () => {
-      const response = { error: "Something went wrong" };
+      const response = {
+        status: "error" as const,
+        error: "Something went wrong",
+      };
       expect(isErrorChat(response)).toBe(true);
     });
 
     it("should return false for success response", () => {
-      const response = { answer: "This is the answer" };
+      const response = { status: "ok" as const, answer: "This is the answer" };
       expect(isErrorChat(response)).toBe(false);
     });
   });

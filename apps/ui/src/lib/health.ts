@@ -8,7 +8,7 @@ interface LoaderData {
   health: HealthResponse;
 }
 
-const fetchHealth = createServerFn({ method: "GET" }).handler(async () => {
+const fetchHealthFn = createServerFn({ method: "GET" }).handler(async () => {
   const message = env.VALUE_FROM_CLOUDFLARE ?? "Hello from Cloudflare";
   const endpoint = new URL("/v1/health", "https://chat-service");
 
@@ -41,6 +41,6 @@ const fetchHealth = createServerFn({ method: "GET" }).handler(async () => {
 
 export const healthQueryOptions = {
   queryKey: ["health"],
-  queryFn: () => fetchHealth(),
+  queryFn: () => fetchHealthFn(),
   refetchInterval: 300_000, // Refetch every 5 minutes
 };
