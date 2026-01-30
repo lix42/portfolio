@@ -21,9 +21,9 @@
     "tail:prod": "wrangler tail --env production"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@types/node": "^22.19.7",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.16",
-    "wrangler": "^4.59.1"
+    "vitest": "^4.0.18",
+    "wrangler": "^4.61.1"
   }
 }

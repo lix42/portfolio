@@ -16,20 +16,20 @@
     "type:check:ci": "$npm_execpath run type:check"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.962.0",
-    "@aws-sdk/lib-storage": "^3.962.0",
+    "@aws-sdk/client-s3": "^3.978.0",
+    "@aws-sdk/lib-storage": "^3.978.0",
     "@portfolio/shared": "workspace:*",
-    "@smithy/node-http-handler": "^4.4.7",
-    "chalk": "^5.3.0",
+    "@smithy/node-http-handler": "^4.4.8",
+    "chalk": "^5.6.2",
     "commander": "^14.0.2",
     "hpagent": "^1.2.0"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
-    "@vitest/coverage-v8": "^4.0.16",
+    "@types/node": "^22.19.7",
+    "@vitest/coverage-v8": "^4.0.18",
     "dotenv": "^17.2.3",
     "tsup": "^8.5.1",
-    "typescript": "^5.3.3",
-    "vitest": "^4.0.16"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }

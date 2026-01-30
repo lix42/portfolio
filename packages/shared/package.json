@@ -18,13 +18,13 @@
     "test:watch": "vitest --watch"
   },
   "dependencies": {
-    "openai": "^6.15.0",
-    "zod": "^4.3.4"
+    "openai": "^6.17.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
-    "@vitest/coverage-v8": "^4.0.16",
-    "typescript": "^5.3.3",
-    "vitest": "^4.0.16"
+    "@types/node": "^22.19.7",
+    "@vitest/coverage-v8": "^4.0.18",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }
