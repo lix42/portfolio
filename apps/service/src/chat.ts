@@ -6,22 +6,23 @@
  * to provide relevant responses from a knowledge base.
  */
 
+import {
+  type ChatErrorResponse,
+  ChatErrorResponseSchema,
+  ChatRequestSchema,
+  type ChatSuccessResponse,
+  ChatSuccessResponseSchema,
+} from "@portfolio/shared";
 import { Hono } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { describeRoute, resolver, validator as zValidator } from "hono-openapi";
 import OpenAI from "openai";
-
 import {
   answerQuestionWithChunks,
   extractAssistantAnswer,
 } from "./answerQuestion";
 import { getContext } from "./getContext";
 import { preprocessQuestion } from "./preprocessQuestion";
-import {
-  ChatErrorResponseSchema,
-  ChatRequestSchema,
-  ChatSuccessResponseSchema,
-} from "./schemas";
 import { embed } from "./utils/embed";
 
 /**
@@ -93,15 +94,21 @@ app.post(
     const result = await answerQuestion(message, c.env);
 
     if (result.hasError) {
-      return c.json({ error: result.error }, result.code);
+      const response: ChatErrorResponse = {
+        status: "error",
+        error: result.error,
+      };
+      return c.json(response, result.code);
     }
     // Return successful response with the original message, generated tags, and search results
     // Provide empty array as fallback if no search results are found
-    return c.json({ answer: result.answer });
+    const response: ChatSuccessResponse = {
+      status: "ok",
+      answer: result.answer,
+    };
+    return c.json(response);
   },
 );
-
-export type ChatResponse = { error: string } | { answer: string };
 
 export const answerQuestion = async (
   message: string,

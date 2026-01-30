@@ -1,2 +1,1 @@
-export type { HealthResponse } from "@portfolio/shared";
-export type { ChatResponse } from "./chat";
+export type { ChatResponse, HealthResponse } from "@portfolio/shared";

@@ -45,17 +45,23 @@ export {
 } from "./prompts";
 // Schemas
 export type {
+  ChatErrorResponse,
   ChatRequest,
   ChatResponse,
+  ChatSuccessResponse,
   DocumentMetadata,
   HealthResponse,
   SyncOptions,
 } from "./schemas";
 export {
-  chatRequestSchema,
-  chatResponseSchema,
+  ChatErrorResponseSchema,
+  ChatRequestSchema,
+  ChatResponseSchema,
+  ChatSuccessResponseSchema,
   documentMetadataSchema,
   healthResponseSchema,
+  isErrorChat,
+  isSuccessChat,
   syncOptionsSchema,
   validateDocumentMetadata,
 } from "./schemas";
