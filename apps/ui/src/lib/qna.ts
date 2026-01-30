@@ -1,10 +1,10 @@
 import { env } from "cloudflare:workers";
-import { createServerFn } from "@tanstack/react-start";
 import {
   type ChatRequest,
   type ChatResponse,
   ChatResponseSchema,
-} from "node_modules/@portfolio/shared/dist/schemas";
+} from "@portfolio/shared";
+import { createServerFn } from "@tanstack/react-start";
 
 const answerQuestion = createServerFn({ method: "POST" })
   .inputValidator((data: { question: string }) => data)
