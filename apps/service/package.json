@@ -33,7 +33,7 @@
     "@portfolio/shared": "workspace:*",
     "@scalar/hono-api-reference": "^0.9.30",
     "@standard-community/standard-openapi": "^0.2.9",
-    "hono": "^4.11.3",
+    "hono": "^4.11.7",
     "hono-openapi": "^1.1.2",
     "openai": "^6.15.0",
     "openapi-types": "^12.1.3",
