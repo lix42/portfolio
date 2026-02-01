@@ -156,3 +156,65 @@ export const syncOptionsSchema = z.object({
 });
 
 export type SyncOptions = z.infer<typeof syncOptionsSchema>;
+
+/**
+ * SSE Event Schemas for Chat Streaming
+ *
+ * These schemas define the structure of Server-Sent Events
+ * emitted during the RAG pipeline execution.
+ */
+
+export const SSEStatusEventSchema = z.object({
+  step: z.enum(["init", "preprocessing", "searching", "generating"]),
+  message: z.string().min(1),
+});
+
+export const SSEInitEventSchema = z.object({
+  requestId: z.string().uuid(),
+});
+
+export const SSEPreprocessedEventSchema = z.object({
+  tags: z.array(z.string()),
+  isValid: z.boolean(),
+});
+
+export const SSEContextEventSchema = z.object({
+  chunksCount: z.number().int().nonnegative(),
+  documentFound: z.boolean(),
+});
+
+export const SSEChunkEventSchema = z.object({
+  text: z.string().min(1),
+});
+
+export const SSEDoneEventSchema = z.object({
+  answer: z.string(),
+});
+
+export const SSEErrorEventSchema = z.object({
+  error: z.string().min(1),
+  code: z.number().int().min(400).max(599),
+  requestId: z.string().uuid().optional(),
+});
+
+export const SSEEventSchema = z.discriminatedUnion("event", [
+  z.object({ event: z.literal("init"), data: SSEInitEventSchema }),
+  z.object({ event: z.literal("status"), data: SSEStatusEventSchema }),
+  z.object({
+    event: z.literal("preprocessed"),
+    data: SSEPreprocessedEventSchema,
+  }),
+  z.object({ event: z.literal("context"), data: SSEContextEventSchema }),
+  z.object({ event: z.literal("chunk"), data: SSEChunkEventSchema }),
+  z.object({ event: z.literal("done"), data: SSEDoneEventSchema }),
+  z.object({ event: z.literal("error"), data: SSEErrorEventSchema }),
+]);
+
+export type SSEInitEvent = z.infer<typeof SSEInitEventSchema>;
+export type SSEStatusEvent = z.infer<typeof SSEStatusEventSchema>;
+export type SSEPreprocessedEvent = z.infer<typeof SSEPreprocessedEventSchema>;
+export type SSEContextEvent = z.infer<typeof SSEContextEventSchema>;
+export type SSEChunkEvent = z.infer<typeof SSEChunkEventSchema>;
+export type SSEDoneEvent = z.infer<typeof SSEDoneEventSchema>;
+export type SSEErrorEvent = z.infer<typeof SSEErrorEventSchema>;
+export type SSEEvent = z.infer<typeof SSEEventSchema>;

@@ -43,6 +43,34 @@ export const answerQuestionWithWholeDocument = async (
   return response.output;
 };
 
+export async function* answerQuestionStreaming(
+  context: string[],
+  question: string,
+  openai: OpenAI,
+  signal?: AbortSignal,
+): AsyncGenerator<string> {
+  const userPrompt = generateUserPromptAnswerQuestion(context, question);
+  const stream = await openai.responses.create({
+    model: ANSWER_GENERATION_MODEL,
+    input: [
+      { role: "system", content: ANSWER_QUESTION_PROMPT },
+      { role: "user", content: userPrompt },
+    ],
+    stream: true,
+  });
+
+  // Abort the OpenAI stream when signal fires
+  signal?.addEventListener("abort", () => {
+    stream.controller.abort();
+  });
+
+  for await (const event of stream) {
+    if (event.type === "response.output_text.delta") {
+      yield event.delta;
+    }
+  }
+}
+
 export const extractAssistantAnswer = (output: ResponseOutputItem[]) => {
   return output
     .filter(
