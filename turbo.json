@@ -21,7 +21,7 @@
       "persistent": true
     },
     "build": {
-      "dependsOn": ["^lint:fix", "^build"],
+      "dependsOn": ["^lint", "^build"],
       "outputs": [
         "dist/**",
         "build/**",
