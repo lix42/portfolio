@@ -11,11 +11,11 @@
   },
   "dependencies": {
     "@cfworker/json-schema": "^4.1.1",
-    "@cloudflare/containers": "^0.0.31",
+    "@cloudflare/containers": "^0.1.0",
     "json-schema-to-ts": "^3.1.1"
   },
   "devDependencies": {
     "typescript": "^5.9.3",
-    "wrangler": "^4.59.1"
+    "wrangler": "^4.61.1"
   }
 }

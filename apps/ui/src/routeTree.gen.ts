@@ -25,7 +25,7 @@ const HealthIndexRoute = HealthIndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/health': typeof HealthIndexRoute
+  '/health/': typeof HealthIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -38,7 +38,7 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/health'
+  fullPaths: '/' | '/health/'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/health'
   id: '__root__' | '/' | '/health/'
@@ -61,7 +61,7 @@ declare module '@tanstack/react-router' {
     '/health/': {
       id: '/health/'
       path: '/health'
-      fullPath: '/health'
+      fullPath: '/health/'
       preLoaderRoute: typeof HealthIndexRouteImport
       parentRoute: typeof rootRouteImport
     }

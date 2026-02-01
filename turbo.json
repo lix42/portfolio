@@ -16,12 +16,12 @@
   ],
   "tasks": {
     "dev": {
-      "dependsOn": ["^build"],
+      "with": ["dev"],
       "cache": false,
       "persistent": true
     },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^lint", "^build"],
       "outputs": [
         "dist/**",
         "build/**",
