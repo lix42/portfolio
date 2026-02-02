@@ -48,7 +48,10 @@ export const getContext = async (
   embedding: readonly number[],
   tags: readonly string[],
   env: CloudflareBindings,
-): Promise<{ topChunks: string[]; topDocumentContent: string | null }> => {
+): Promise<{
+  topChunks: string[] | null;
+  topDocumentContent: string | null;
+}> => {
   // Execute queries in parallel
   const [vectorChunks, tagChunks] = await Promise.all([
     queryByEmbedding(embedding, env.VECTORIZE, 10).then(
@@ -132,8 +135,7 @@ export const getContext = async (
       : rankedChunks.map((c) => c.content);
 
   return {
-    topChunks:
-      topChunks.length > 0 ? topChunks : [rankedChunks[0]?.content || ""],
+    topChunks: topChunks.length > 0 ? topChunks : null,
     topDocumentContent,
   };
 };

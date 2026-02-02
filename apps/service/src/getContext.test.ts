@@ -245,14 +245,14 @@ describe("getContext with mocked adapters", () => {
     expect(result.topDocumentContent).toBe("Full content");
   });
 
-  it("should return empty string when no results found", async () => {
+  it("should return null when no results found", async () => {
     vi.mocked(adapters.queryByEmbedding).mockResolvedValue([]);
     vi.mocked(adapters.getChunksByVectorizeIds).mockResolvedValue(new Map());
     vi.mocked(adapters.getChunksByTags).mockResolvedValue([]);
 
     const result = await getContext([0.1, 0.2, 0.3], ["nonexistent"], mockEnv);
 
-    expect(result.topChunks).toEqual([""]);
+    expect(result.topChunks).toBeNull();
     expect(result.topDocumentContent).toBeNull();
   });
 
