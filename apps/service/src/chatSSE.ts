@@ -30,16 +30,15 @@ const app = new Hono<{ Bindings: CloudflareBindings }>();
 app.post("/", zValidator("json", ChatRequestSchema), async (c) => {
   const { message } = c.req.valid("json");
 
-  return streamSSE(
-    c,
-    async (stream) => {
-      const abortController = new AbortController();
-      const requestId = crypto.randomUUID();
+  return streamSSE(c, async (stream) => {
+    const abortController = new AbortController();
+    const requestId = crypto.randomUUID();
 
-      stream.onAbort(() => {
-        abortController.abort();
-      });
+    stream.onAbort(() => {
+      abortController.abort();
+    });
 
+    try {
       const openai = new OpenAI({ apiKey: c.env.OPENAI_API_KEY });
 
       // Emit init event with requestId for correlation
@@ -121,10 +120,22 @@ app.post("/", zValidator("json", ChatRequestSchema), async (c) => {
       await stream.writeSSE({
         event: "context",
         data: JSON.stringify({
-          chunksCount: topChunks.length,
-          documentFound: topChunks.length > 0,
+          chunksCount: topChunks?.length ?? 0,
+          documentFound: topChunks !== null,
         } satisfies SSEContextEvent),
       });
+
+      if (!topChunks) {
+        await stream.writeSSE({
+          event: "error",
+          data: JSON.stringify({
+            error: "No relevant documents found",
+            code: 404,
+            requestId,
+          } satisfies SSEErrorEvent),
+        });
+        return;
+      }
 
       // Step 3: Generating answer
       await stream.writeSSE({
@@ -155,18 +166,18 @@ app.post("/", zValidator("json", ChatRequestSchema), async (c) => {
         event: "done",
         data: JSON.stringify({ answer: fullAnswer } satisfies SSEDoneEvent),
       });
-    },
-    async (err, stream) => {
+    } catch (err) {
       console.error("SSE stream error:", err);
       await stream.writeSSE({
         event: "error",
         data: JSON.stringify({
           error: err instanceof Error ? err.message : "Internal server error",
           code: 500,
-        } as SSEErrorEvent),
+          requestId,
+        } satisfies SSEErrorEvent),
       });
-    },
-  );
+    }
+  });
 });
 
 export default app;

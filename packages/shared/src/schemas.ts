@@ -165,7 +165,7 @@ export type SyncOptions = z.infer<typeof syncOptionsSchema>;
  */
 
 export const SSEStatusEventSchema = z.object({
-  step: z.enum(["init", "preprocessing", "searching", "generating"]),
+  step: z.enum(["preprocessing", "searching", "generating"]),
   message: z.string().min(1),
 });
 

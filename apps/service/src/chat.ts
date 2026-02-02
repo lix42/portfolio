@@ -147,6 +147,10 @@ export const answerQuestion = async (
     env, // Pass env instead of supabaseClient
   );
 
+  if (!topChunks) {
+    return { hasError: true, error: "No relevant documents found", code: 404 };
+  }
+
   const answer = extractAssistantAnswer(
     await answerQuestionWithChunks(topChunks, message, openai),
   );

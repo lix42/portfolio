@@ -49,6 +49,10 @@ export async function* answerQuestionStreaming(
   openai: OpenAI,
   signal?: AbortSignal,
 ): AsyncGenerator<string> {
+  if (signal?.aborted) {
+    return;
+  }
+
   const userPrompt = generateUserPromptAnswerQuestion(context, question);
   const stream = await openai.responses.create({
     model: ANSWER_GENERATION_MODEL,
@@ -59,15 +63,20 @@ export async function* answerQuestionStreaming(
     stream: true,
   });
 
-  // Abort the OpenAI stream when signal fires
-  signal?.addEventListener("abort", () => {
+  const abortHandler = () => {
     stream.controller.abort();
-  });
+  };
 
-  for await (const event of stream) {
-    if (event.type === "response.output_text.delta") {
-      yield event.delta;
+  signal?.addEventListener("abort", abortHandler);
+
+  try {
+    for await (const event of stream) {
+      if (event.type === "response.output_text.delta") {
+        yield event.delta;
+      }
     }
+  } finally {
+    signal?.removeEventListener("abort", abortHandler);
   }
 }
 
