@@ -20,13 +20,11 @@
     "dev": "wrangler dev -e staging --port 5000",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
-    "build": "$npm_execpath run type:build",
-    "deploy": "$npm_execpath install && $npm_execpath run build && $npm_execpath run deploy:wrangler",
+    "build": "tsc --project tsconfig.type.json",
+    "deploy": "wrangler deploy --minify --env staging",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
-    "type:check": "tsc --noEmit",
-    "type:check:ci": "$npm_execpath run type:check",
-    "type:build": "tsc --project tsconfig.type.json",
-    "deploy:wrangler": "wrangler deploy --minify"
+    "typecheck": "tsc --noEmit",
+    "deploy:prod": "wrangler deploy --minify --env production"
   },
   "dependencies": {
     "@hono/standard-validator": "^0.2.2",

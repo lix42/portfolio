@@ -25,12 +25,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build service
-        run: pnpm build:service
-
       - name: Deploy to Cloudflare Workers (Staging)
-        working-directory: apps/service
-        run: pnpm run deploy:wrangler --env staging
+        run: pnpm exec turbo run deploy --filter=@portfolio/service
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -55,8 +51,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Deploy Document Processor (Staging)
-        working-directory: apps/document-processor
-        run: pnpm run deploy:staging
+        run: pnpm exec turbo run deploy --filter=@portfolio/document-processor
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -81,8 +76,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Deploy R2 Reconciliation (Staging)
-        working-directory: apps/r2-reconciliation
-        run: pnpm run deploy:staging
+        run: pnpm exec turbo run deploy --filter=@portfolio/r2-reconciliation
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

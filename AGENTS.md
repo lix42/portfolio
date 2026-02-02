@@ -2,16 +2,15 @@
 ## Project Structure & Module Organization
 - `apps/service`: Cloudflare Worker API built with Hono; business logic lives under `src` and shared bindings in `worker-configuration.d.ts`.
 - `apps/ui`: TanStack Start + React client; UI flows live in `src/app`, assets in `public`.
-- `packages/common-ui`: Shared presentation components and hooks; keep exports tree-shakeable and versioned via the workspace.
 - `packages/eslint-config`: Shared ESLint presets (`index.js`, `react.js`, `vitest.js`) consumed by every app.
 - Supporting directories: `documents` (RAG source JSON), `scripts` (Python ingestion), `supabase` (SQL schema), and `research` for experiments.
 
 ## Build, Test & Development Commands
 - `pnpm install` to bootstrap (Node 22.x required).
-- `pnpm dev` (now powered by `turbo run dev`) launches service (Wrangler on :5173) and UI (TanStack Start dev server) together; use `pnpm dev:service`, `pnpm dev:ui`, or `turbo run dev --filter @portfolio/<pkg>` for focused work.
-- `pnpm build` calls `turbo run build` so dependency graphs (e.g., `apps/service` → `packages/shared`) are respected; scope with `pnpm build:service`/`turbo run build --filter @portfolio/service` when debugging.
-- `pnpm test`, `pnpm test:service`, `pnpm test:ui` execute Vitest suites; add `--runInBand` if worker resources are limited.
-- `pnpm lint:check`, `pnpm format:check`, and `pnpm biome:check` gate PRs; use the `:fix` variants before committing.
+- `pnpm dev` launches the UI dev server; use `turbo run dev --filter @portfolio/<pkg>` for focused work on other packages.
+- `pnpm build` calls `turbo run build` so dependency graphs (e.g., `apps/service` → `packages/shared`) are respected; scope with `turbo run build --filter @portfolio/service` when debugging.
+- `pnpm test` executes Vitest suites; scope with `turbo run test --filter @portfolio/<pkg>`.
+- `pnpm lint` runs Biome checks; use `pnpm lint:fix` to auto-fix issues before committing.
 
 ## Coding Style & Naming Conventions
 - Biome enforces 2-space indentation, single quotes, trailing commas, and semicolons; never bypass the formatter.

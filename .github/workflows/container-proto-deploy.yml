@@ -36,8 +36,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint Worker sources
-        run: pnpm lint
+      - name: Lint workspace
+        run: pnpm -w lint
 
       - name: Type-check Worker sources
         run: pnpm typecheck

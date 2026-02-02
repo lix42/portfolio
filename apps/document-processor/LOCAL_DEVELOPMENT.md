@@ -163,7 +163,7 @@ Queue:     Local queue (portfolio-doc-processing-local) - ISOLATED (not used)
 ### Staging Deployment
 
 ```bash
-pnpm deploy:staging
+pnpm deploy
 ```
 
 ```

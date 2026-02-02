@@ -12,8 +12,7 @@
     "sync": "node ./dist/cli.js",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
-    "type:check": "tsc --noEmit",
-    "type:check:ci": "$npm_execpath run type:check"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.978.0",

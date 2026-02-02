@@ -147,8 +147,8 @@ pnpm test
 ### Deployment
 
 ```bash
-# Deploy to staging
-pnpm deploy:staging
+# Deploy to staging (default)
+pnpm deploy
 
 # Deploy to production
 pnpm deploy:prod
