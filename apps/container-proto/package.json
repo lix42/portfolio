@@ -2,11 +2,13 @@
   "name": "@portfolio/container-proto",
   "version": "0.1.0",
   "type": "module",
+  "//": "build/test are no-ops: wrangler compiles TS directly, no separate build needed",
   "scripts": {
     "dev": "wrangler dev --port 8787",
+    "build": "node -e \"\"",
+    "test": "node -e \"\"",
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
-    "type:check:ci": "$npm_execpath run typecheck",
     "cf-typegen": "wrangler types"
   },
   "dependencies": {

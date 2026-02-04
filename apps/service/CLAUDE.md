@@ -27,7 +27,6 @@ Hybrid RAG approach combining tag-based and vector similarity search:
 - Vector similarity search for relevant document chunks
 - Streaming chat responses using OpenAI
 - CORS-enabled API endpoints
-- Environment-based configuration (local/remote Supabase)
 
 ## Development
 
@@ -38,13 +37,16 @@ pnpm dev
 # Run tests
 pnpm test
 
-# Type checking and linting
-pnpm build
+# Type checking
+pnpm typecheck
 
-# Deploy to Cloudflare Workers (with minification)
+# Deploy to Cloudflare Workers (staging by default)
 pnpm deploy
 
-# Generate Cloudflare bindings types
+# Deploy to production
+pnpm deploy:prod
+
+# Generate Cloudflare bindings types (local only)
 pnpm cf-typegen
 ```
 
@@ -92,15 +94,13 @@ Cloudflare bindings (configured in `wrangler.jsonc`):
 
 The service uses wrangler for both development and deployment:
 
-- **No build step required** for deployment - wrangler handles TypeScript compilation
-- **Build command** (`pnpm build`) runs linting and type checking for validation
-- **Deployment** uses `wrangler deploy --minify` for optimized bundle size
+- **Build command** (`pnpm build`) generates type artifacts via `tsc --project tsconfig.type.json`
+- **Type checking** uses `pnpm typecheck` (`tsc --noEmit`)
+- **Deployment** uses `wrangler deploy --minify` with staging as the default env
 
 ### Build Verification
 
-Run `pnpm build` to verify code quality without deploying:
-- Runs `eslint .` for linting checks
-- Runs `tsc --noEmit` for TypeScript type checking
+Run `pnpm build` to generate type artifacts without deploying.
 
 ## Code Conventions
 

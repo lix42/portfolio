@@ -104,26 +104,23 @@ index_name = "portfolio-embeddings"
 ### Deploy to Staging
 
 ```bash
-# Build and deploy document processor
-cd apps/document-processor
-pnpm build
-wrangler deploy --env staging
+# Deploy document processor (staging by default)
+pnpm exec turbo run deploy --filter=@portfolio/document-processor
 
 # Deploy reconciliation worker
-cd apps/r2-reconciliation
-wrangler deploy --env staging
+pnpm exec turbo run deploy --filter=@portfolio/r2-reconciliation
 
 # Deploy query service
-cd apps/service
-pnpm build
-wrangler deploy --env staging
+pnpm exec turbo run deploy --filter=@portfolio/service
 ```
 
 ### Deploy to Production
 
 ```bash
 # Same commands with production env
-wrangler deploy --env production
+pnpm exec turbo run deploy:prod --filter=@portfolio/service
+pnpm exec turbo run deploy:prod --filter=@portfolio/document-processor
+pnpm exec turbo run deploy:prod --filter=@portfolio/r2-reconciliation
 ```
 
 ### Rollback
@@ -322,7 +319,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
       - run: pnpm install
-      - run: wrangler deploy --env staging
+      - run: pnpm exec turbo run deploy --filter=@portfolio/service
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
@@ -335,7 +332,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
       - run: pnpm install
-      - run: wrangler deploy --env production
+      - run: pnpm exec turbo run deploy:prod --filter=@portfolio/service
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 ```

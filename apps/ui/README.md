@@ -4,9 +4,9 @@ A TanStack Start prototype that exercises the `@portfolio/service` health endpoi
 
 ## Scripts
 
-- `pnpm dev --filter @portfolio/ui` – start the Vite dev server.
-- `pnpm build --filter @portfolio/ui` – produce a production build and run TypeScript checks.
-- `pnpm deploy --filter @portfolio/ui` – build and deploy with Wrangler.
+- `pnpm --filter @portfolio/ui dev` – start the Vite dev server.
+- `pnpm --filter @portfolio/ui build` – produce a production build and run TypeScript checks.
+- `pnpm --filter @portfolio/ui deploy` – deploy with Wrangler (env comes from Wrangler config).
 
 ## Environment
 

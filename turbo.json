@@ -21,7 +21,7 @@
       "persistent": true
     },
     "build": {
-      "dependsOn": ["^lint", "^build"],
+      "dependsOn": ["lint", "typecheck", "^build"],
       "outputs": [
         "dist/**",
         "build/**",
@@ -44,43 +44,18 @@
     "lint": {
       "outputs": []
     },
-    "lint:check": {
-      "outputs": []
-    },
-    "lint:fix": {
-      "outputs": []
-    },
-    "format:check": {
-      "outputs": []
-    },
-    "format:fix": {
-      "outputs": []
-    },
-    "biome": {
-      "outputs": []
-    },
-    "biome:check": {
-      "outputs": []
-    },
-    "biome:fix": {
-      "outputs": []
-    },
     "cf-typegen": {
       "outputs": ["apps/**/.wrangler/**", ".wrangler/**"]
     },
-    "type:check": {
-      "dependsOn": ["^type:check"],
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
       "outputs": []
-    },
-    "type:check:ci": {
-      "dependsOn": ["^build"],
-      "outputs": []
-    },
-    "type:build": {
-      "dependsOn": ["^type:build"],
-      "outputs": ["dist/**", "types/**"]
     },
     "deploy": {
+      "dependsOn": ["build"],
+      "outputs": []
+    },
+    "deploy:prod": {
       "dependsOn": ["build"],
       "outputs": []
     },
