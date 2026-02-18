@@ -8,6 +8,8 @@ const config: StorybookConfig = {
   addons: ["@storybook/addon-docs"],
   viteFinal: async (config) => {
     config.plugins = [
+      // Exclude SSR/deploy-only plugins — they require a Cloudflare Workers
+      // runtime context that isn't available in Storybook's Vite dev server.
       ...(config.plugins ?? []).filter((p) => {
         if (!p || typeof p !== "object" || !("name" in p)) return true;
         const name = (p as { name: string }).name;

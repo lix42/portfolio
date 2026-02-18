@@ -65,6 +65,7 @@ Icon
 dist/
 build/
 .turbo/
+storybook-static/
 *.min.js
 *.min.css
 
