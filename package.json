@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "turbo run dev --filter=@portfolio/ui",
+    "storybook": "turbo run storybook --filter=@portfolio/ui",
     "typecheck": "turbo run typecheck",
     "cf-typegen": "turbo run cf-typegen",
     "lint": "biome check",
