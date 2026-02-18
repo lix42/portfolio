@@ -35,8 +35,20 @@ app.post(
       "Streams real-time RAG pipeline progress events using Server-Sent Events. Emits init, status, preprocessed, context, chunk, done, and error events.",
     tags: ["Chat"],
     responses: {
-      200: { description: "SSE stream of chat events" },
+      200: {
+        description: "SSE stream of chat events",
+        content: {
+          "text/event-stream": {
+            schema: {
+              type: "string",
+              description:
+                "Server-Sent Events stream emitting init, status, preprocessed, context, chunk, done, and error events",
+            },
+          },
+        },
+      },
       400: { description: "Invalid question" },
+      404: { description: "No relevant documents found" },
       500: { description: "Internal server error" },
     },
   }),
