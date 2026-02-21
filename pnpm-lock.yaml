@@ -124,22 +124,22 @@ importers:
     dependencies:
       '@hono/standard-validator':
         specifier: ^0.2.2
-        version: 0.2.2(@standard-schema/spec@1.1.0)(hono@4.11.7)
+        version: 0.2.2(@standard-schema/spec@1.1.0)(hono@4.11.10)
       '@portfolio/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       '@scalar/hono-api-reference':
         specifier: ^0.9.38
-        version: 0.9.38(hono@4.11.7)
+        version: 0.9.38(hono@4.11.10)
       '@standard-community/standard-openapi':
         specifier: ^0.2.9
         version: 0.2.9(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(valibot@1.1.0(typescript@5.9.3))(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6))(@standard-schema/spec@1.1.0)(openapi-types@12.1.3)(valibot@1.1.0(typescript@5.9.3))(zod-openapi@5.4.6(zod@4.3.6))(zod@4.3.6)
       hono:
-        specifier: ^4.11.7
-        version: 4.11.7
+        specifier: ^4.11.10
+        version: 4.11.10
       hono-openapi:
         specifier: ^1.2.0
-        version: 1.2.0(@hono/standard-validator@0.2.2(@standard-schema/spec@1.1.0)(hono@4.11.7))(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(valibot@1.1.0(typescript@5.9.3))(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6))(@standard-community/standard-openapi@0.2.9(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(valibot@1.1.0(typescript@5.9.3))(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6))(@standard-schema/spec@1.1.0)(openapi-types@12.1.3)(valibot@1.1.0(typescript@5.9.3))(zod-openapi@5.4.6(zod@4.3.6))(zod@4.3.6))(@types/json-schema@7.0.15)(hono@4.11.7)(openapi-types@12.1.3)
+        version: 1.2.0(@hono/standard-validator@0.2.2(@standard-schema/spec@1.1.0)(hono@4.11.10))(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(valibot@1.1.0(typescript@5.9.3))(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6))(@standard-community/standard-openapi@0.2.9(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(valibot@1.1.0(typescript@5.9.3))(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6))(@standard-schema/spec@1.1.0)(openapi-types@12.1.3)(valibot@1.1.0(typescript@5.9.3))(zod-openapi@5.4.6(zod@4.3.6))(zod@4.3.6))(@types/json-schema@7.0.15)(hono@4.11.10)(openapi-types@12.1.3)
       openai:
         specifier: ^6.17.0
         version: 6.17.0(ws@8.19.0)(zod@4.3.6)
@@ -239,7 +239,7 @@ importers:
         version: 19.2.4(react@19.2.4)
       shadcn:
         specifier: ^3.7.0
-        version: 3.7.0(@cfworker/json-schema@4.1.1)(@types/node@22.19.7)(hono@4.11.7)(typescript@5.9.3)
+        version: 3.7.0(@cfworker/json-schema@4.1.1)(@types/node@22.19.7)(hono@4.11.10)(typescript@5.9.3)
       tailwind-merge:
         specifier: ^3.4.0
         version: 3.4.0
@@ -2781,6 +2781,9 @@ packages:
   '@types/ms@2.1.0':
     resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
 
+  '@types/node@22.19.11':
+    resolution: {integrity: sha512-BH7YwL6rA93ReqeQS1c4bsPpcfOmJasG+Fkr6Y59q83f9M1WcBRHR2vM+P9eOisYRcN3ujQoiZY8uk5W+1WL8w==}
+
   '@types/node@22.19.7':
     resolution: {integrity: sha512-MciR4AKGHWl7xwxkBa6xUGxQJ4VBOmPTF7sL+iGzuahOFaO0jHCsuEfS80pan1ef4gWId1oWOweIhrDEYLuaOw==}
 
@@ -2937,6 +2940,11 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
+  acorn@8.16.0:
+    resolution: {integrity: sha512-UVJyE9MttOsBQIDKw1skb9nAwQuR5wuGD3+82K6JgJlm/Y+KI92oNsMNGZCYdDsVtRHSak0pcV5Dno5+4jh9sw==}
+    engines: {node: '>=0.4.0'}
+    hasBin: true
+
   agent-base@7.1.4:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
@@ -2964,6 +2972,9 @@ packages:
 
   ajv@8.17.1:
     resolution: {integrity: sha512-B/gBuNg5SiMTrPkC+A2+cW0RszwxYmn6VYxB/inlBStS5nx6xHIt/ehKRhIMhqusl7a8LjQoZnjCs5vhwxOQ1g==}
+
+  ajv@8.18.0:
+    resolution: {integrity: sha512-PlXPeEWMXMZ7sPYOHqmDyCJzcfNrUr3fGNKtezX14ykXOEIvyK81d+qydx89KY5O71FKMPaQ2vBfBFI5NHR63A==}
 
   ansi-escapes@7.2.0:
     resolution: {integrity: sha512-g6LhBsl+GBPRWGWsBtutpzBYuIIdBkLEvad5C/va/74Db018+5TZiyA26cZJAr3Rft5lprVqOIPxf5Vid6tqAw==}
@@ -3457,6 +3468,10 @@ packages:
     resolution: {integrity: sha512-LgQMM4WXU3QI+SYgEc2liRgznaD5ojbmY3sb8LxyguVkIg5FxdpTkvk72te2R38/TGKxH634oLxXRGY6d7AP+Q==}
     engines: {node: '>=10.13.0'}
 
+  enhanced-resolve@5.19.0:
+    resolution: {integrity: sha512-phv3E1Xl4tQOShqSte26C7Fl84EwUdZsyOuSSk9qtAGyyQs2s3jJzComh+Abf4g187lUUAvH+H26omrqia2aGg==}
+    engines: {node: '>=10.13.0'}
+
   entities@4.5.0:
     resolution: {integrity: sha512-V0hjH4dGPh9Ao5p0MoRY6BVqtwCjhz6vI5LT8AJ55H+4g9/4vbHx1I54fS0XuclLhDHArPQCiMjDxjaL8fPxhw==}
     engines: {node: '>=0.12'}
@@ -3781,8 +3796,8 @@ packages:
       hono:
         optional: true
 
-  hono@4.11.7:
-    resolution: {integrity: sha512-l7qMiNee7t82bH3SeyUCt9UF15EVmaBvsppY2zQtrbIhl/yzBTny+YUxsVjSjQ6gaqaeVtZmGocom8TzBlA4Yw==}
+  hono@4.11.10:
+    resolution: {integrity: sha512-kyWP5PAiMooEvGrA9jcD3IXF7ATu8+o7B3KCbPXid5se52NPqnOpM/r9qeW2heMnOekF4kqR1fXJqCYeCLKrZg==}
     engines: {node: '>=16.9.0'}
 
   hpagent@1.2.0:
@@ -5539,8 +5554,8 @@ packages:
     resolution: {integrity: sha512-BMhLD/Sw+GbJC21C/UgyaZX41nPt8bUTg+jWyDeg7e7YN4xOM05YPSIXceACnXVtqyEw/LMClUQMtMZ+PGGpqQ==}
     engines: {node: '>=20'}
 
-  webpack-sources@3.3.3:
-    resolution: {integrity: sha512-yd1RBzSGanHkitROoPFd6qsrxt+oFhg/129YzheDGqeustzX0vTZJZsSsQjVQC4yzBQ56K55XU8gaNCtIzOnTg==}
+  webpack-sources@3.3.4:
+    resolution: {integrity: sha512-7tP1PdV4vF+lYPnkMR0jMY5/la2ub5Fc/8VQrrU+lXkiM6C4TjVfGw7iKfyhnTQOsD+6Q/iKw0eFciziRgD58Q==}
     engines: {node: '>=10.13.0'}
 
   webpack-virtual-modules@0.6.2:
@@ -6833,14 +6848,14 @@ snapshots:
 
   '@fontsource-variable/nunito-sans@5.2.7': {}
 
-  '@hono/node-server@1.19.9(hono@4.11.7)':
+  '@hono/node-server@1.19.9(hono@4.11.10)':
     dependencies:
-      hono: 4.11.7
+      hono: 4.11.10
 
-  '@hono/standard-validator@0.2.2(@standard-schema/spec@1.1.0)(hono@4.11.7)':
+  '@hono/standard-validator@0.2.2(@standard-schema/spec@1.1.0)(hono@4.11.10)':
     dependencies:
       '@standard-schema/spec': 1.1.0
-      hono: 4.11.7
+      hono: 4.11.10
 
   '@hugeicons/core-free-icons@3.1.1': {}
 
@@ -7038,9 +7053,9 @@ snapshots:
       '@types/react': 19.2.10
       react: 19.2.4
 
-  '@modelcontextprotocol/sdk@1.25.3(@cfworker/json-schema@4.1.1)(hono@4.11.7)(zod@3.25.76)':
+  '@modelcontextprotocol/sdk@1.25.3(@cfworker/json-schema@4.1.1)(hono@4.11.10)(zod@3.25.76)':
     dependencies:
-      '@hono/node-server': 1.19.9(hono@4.11.7)
+      '@hono/node-server': 1.19.9(hono@4.11.10)
       ajv: 8.17.1
       ajv-formats: 3.0.1(ajv@8.17.1)
       content-type: 1.0.5
@@ -7353,10 +7368,10 @@ snapshots:
 
   '@scalar/helpers@0.2.9': {}
 
-  '@scalar/hono-api-reference@0.9.38(hono@4.11.7)':
+  '@scalar/hono-api-reference@0.9.38(hono@4.11.10)':
     dependencies:
       '@scalar/core': 0.3.35
-      hono: 4.11.7
+      hono: 4.11.10
 
   '@scalar/types@0.6.0':
     dependencies:
@@ -8390,6 +8405,11 @@ snapshots:
 
   '@types/ms@2.1.0': {}
 
+  '@types/node@22.19.11':
+    dependencies:
+      undici-types: 6.21.0
+    optional: true
+
   '@types/node@22.19.7':
     dependencies:
       undici-types: 6.21.0
@@ -8620,27 +8640,30 @@ snapshots:
       mime-types: 3.0.2
       negotiator: 1.0.0
 
-  acorn-import-phases@1.0.4(acorn@8.15.0):
+  acorn-import-phases@1.0.4(acorn@8.16.0):
     dependencies:
-      acorn: 8.15.0
+      acorn: 8.16.0
     optional: true
 
   acorn@8.15.0: {}
 
+  acorn@8.16.0:
+    optional: true
+
   agent-base@7.1.4: {}
 
-  ajv-formats@2.1.1(ajv@8.17.1):
+  ajv-formats@2.1.1(ajv@8.18.0):
     optionalDependencies:
-      ajv: 8.17.1
+      ajv: 8.18.0
     optional: true
 
   ajv-formats@3.0.1(ajv@8.17.1):
     optionalDependencies:
       ajv: 8.17.1
 
-  ajv-keywords@5.1.0(ajv@8.17.1):
+  ajv-keywords@5.1.0(ajv@8.18.0):
     dependencies:
-      ajv: 8.17.1
+      ajv: 8.18.0
       fast-deep-equal: 3.1.3
     optional: true
 
@@ -8650,6 +8673,14 @@ snapshots:
       fast-uri: 3.1.0
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
+
+  ajv@8.18.0:
+    dependencies:
+      fast-deep-equal: 3.1.3
+      fast-uri: 3.1.0
+      json-schema-traverse: 1.0.0
+      require-from-string: 2.0.2
+    optional: true
 
   ansi-escapes@7.2.0:
     dependencies:
@@ -9083,6 +9114,12 @@ snapshots:
       graceful-fs: 4.2.11
       tapable: 2.3.0
 
+  enhanced-resolve@5.19.0:
+    dependencies:
+      graceful-fs: 4.2.11
+      tapable: 2.3.0
+    optional: true
+
   entities@4.5.0: {}
 
   entities@6.0.1: {}
@@ -9462,17 +9499,17 @@ snapshots:
 
   headers-polyfill@4.0.3: {}
 
-  hono-openapi@1.2.0(@hono/standard-validator@0.2.2(@standard-schema/spec@1.1.0)(hono@4.11.7))(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(valibot@1.1.0(typescript@5.9.3))(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6))(@standard-community/standard-openapi@0.2.9(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(valibot@1.1.0(typescript@5.9.3))(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6))(@standard-schema/spec@1.1.0)(openapi-types@12.1.3)(valibot@1.1.0(typescript@5.9.3))(zod-openapi@5.4.6(zod@4.3.6))(zod@4.3.6))(@types/json-schema@7.0.15)(hono@4.11.7)(openapi-types@12.1.3):
+  hono-openapi@1.2.0(@hono/standard-validator@0.2.2(@standard-schema/spec@1.1.0)(hono@4.11.10))(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(valibot@1.1.0(typescript@5.9.3))(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6))(@standard-community/standard-openapi@0.2.9(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(valibot@1.1.0(typescript@5.9.3))(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6))(@standard-schema/spec@1.1.0)(openapi-types@12.1.3)(valibot@1.1.0(typescript@5.9.3))(zod-openapi@5.4.6(zod@4.3.6))(zod@4.3.6))(@types/json-schema@7.0.15)(hono@4.11.10)(openapi-types@12.1.3):
     dependencies:
       '@standard-community/standard-json': 0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(valibot@1.1.0(typescript@5.9.3))(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6)
       '@standard-community/standard-openapi': 0.2.9(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(valibot@1.1.0(typescript@5.9.3))(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6))(@standard-schema/spec@1.1.0)(openapi-types@12.1.3)(valibot@1.1.0(typescript@5.9.3))(zod-openapi@5.4.6(zod@4.3.6))(zod@4.3.6)
       '@types/json-schema': 7.0.15
       openapi-types: 12.1.3
     optionalDependencies:
-      '@hono/standard-validator': 0.2.2(@standard-schema/spec@1.1.0)(hono@4.11.7)
-      hono: 4.11.7
+      '@hono/standard-validator': 0.2.2(@standard-schema/spec@1.1.0)(hono@4.11.10)
+      hono: 4.11.10
 
-  hono@4.11.7: {}
+  hono@4.11.10: {}
 
   hpagent@1.2.0: {}
 
@@ -9648,7 +9685,7 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 22.19.7
+      '@types/node': 22.19.11
       merge-stream: 2.0.0
       supports-color: 8.1.1
     optional: true
@@ -10679,9 +10716,9 @@ snapshots:
   schema-utils@4.3.3:
     dependencies:
       '@types/json-schema': 7.0.15
-      ajv: 8.17.1
-      ajv-formats: 2.1.1(ajv@8.17.1)
-      ajv-keywords: 5.1.0(ajv@8.17.1)
+      ajv: 8.18.0
+      ajv-formats: 2.1.1(ajv@8.18.0)
+      ajv-keywords: 5.1.0(ajv@8.18.0)
     optional: true
 
   semver@6.3.1: {}
@@ -10732,7 +10769,7 @@ snapshots:
 
   setprototypeof@1.2.0: {}
 
-  shadcn@3.7.0(@cfworker/json-schema@4.1.1)(@types/node@22.19.7)(hono@4.11.7)(typescript@5.9.3):
+  shadcn@3.7.0(@cfworker/json-schema@4.1.1)(@types/node@22.19.7)(hono@4.11.10)(typescript@5.9.3):
     dependencies:
       '@antfu/ni': 25.0.0
       '@babel/core': 7.28.6
@@ -10740,7 +10777,7 @@ snapshots:
       '@babel/plugin-transform-typescript': 7.28.6(@babel/core@7.28.6)
       '@babel/preset-typescript': 7.28.5(@babel/core@7.28.6)
       '@dotenvx/dotenvx': 1.52.0
-      '@modelcontextprotocol/sdk': 1.25.3(@cfworker/json-schema@4.1.1)(hono@4.11.7)(zod@3.25.76)
+      '@modelcontextprotocol/sdk': 1.25.3(@cfworker/json-schema@4.1.1)(hono@4.11.10)(zod@3.25.76)
       '@types/validate-npm-package-name': 4.0.2
       browserslist: 4.28.1
       commander: 14.0.2
@@ -11030,7 +11067,7 @@ snapshots:
   terser@5.44.1:
     dependencies:
       '@jridgewell/source-map': 0.3.11
-      acorn: 8.15.0
+      acorn: 8.16.0
       commander: 2.20.3
       source-map-support: 0.5.21
     optional: true
@@ -11373,7 +11410,7 @@ snapshots:
 
   webidl-conversions@8.0.1: {}
 
-  webpack-sources@3.3.3:
+  webpack-sources@3.3.4:
     optional: true
 
   webpack-virtual-modules@0.6.2: {}
@@ -11386,11 +11423,11 @@ snapshots:
       '@webassemblyjs/ast': 1.14.1
       '@webassemblyjs/wasm-edit': 1.14.1
       '@webassemblyjs/wasm-parser': 1.14.1
-      acorn: 8.15.0
-      acorn-import-phases: 1.0.4(acorn@8.15.0)
+      acorn: 8.16.0
+      acorn-import-phases: 1.0.4(acorn@8.16.0)
       browserslist: 4.28.1
       chrome-trace-event: 1.0.4
-      enhanced-resolve: 5.18.4
+      enhanced-resolve: 5.19.0
       es-module-lexer: 1.7.0
       eslint-scope: 5.1.1
       events: 3.3.0
@@ -11404,7 +11441,7 @@ snapshots:
       tapable: 2.3.0
       terser-webpack-plugin: 5.3.16(esbuild@0.27.2)(webpack@5.102.1(esbuild@0.27.2))
       watchpack: 2.5.1
-      webpack-sources: 3.3.3
+      webpack-sources: 3.3.4
     transitivePeerDependencies:
       - '@swc/core'
       - esbuild
