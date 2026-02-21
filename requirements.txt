@@ -1,7 +1,0 @@
-python-dotenv
-supabase
-langchain
-tiktoken
-nltk
-dotenv
-openai
