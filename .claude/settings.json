@@ -1,0 +1,46 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tsc --noEmit)",
+      "Bash(pnpx tsc:*)",
+      "Bash(pnpm run storybook:*)",
+      "Bash(pnpm test)",
+      "Bash(pnpx shadcn@latest add:*)",
+      "Bash(pnpx @tanstack/router-cli:*)",
+      "Bash(CLOUDFLARE_ENV=staging pnpm build:*)",
+      "Bash(env CLOUDFLARE_ENV=staging pnpm build:*)",
+      "Bash(eslint:*)",
+      "WebFetch(domain:hono.dev)",
+      "WebFetch(domain:ui.shadcn.com)",
+      "WebFetch(domain:biomejs.dev)",
+      "WebFetch(domain:developers.cloudflare.com)",
+      "mcp__claude_ai_Cloudflare_Developer_Platform__workers_list",
+      "mcp__claude_ai_Cloudflare_Developer_Platform__accounts_list",
+      "mcp__claude_ai_Cloudflare_Developer_Platform__set_active_account"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd $(git rev-parse --show-toplevel 2>/dev/null || pwd) && pnpm lint:fix --files-ignore-unknown=true 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PROJECT_DIR}/.claude/hooks/check-sensitive-file.py"
+          }
+        ]
+      }
+    ]
+  }
+}

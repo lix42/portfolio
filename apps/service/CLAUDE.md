@@ -37,6 +37,9 @@ pnpm dev
 # Run tests
 pnpm test
 
+# Watch mode
+pnpm test:watch
+
 # Type checking
 pnpm typecheck
 
@@ -57,12 +60,15 @@ pnpm dev # start the server
 
 # test the API
 curl --request POST \
-  --url http://localhost:5173/v1/chat \
+  --url http://localhost:5000/v1/chat \
   --header 'Content-Type: application/json' \
   --header 'User-Agent: insomnia/11.2.0' \
   --data '{
   "message": "Tell me an example about how you cooperate with other people."
 }'
+
+# View interactive API docs
+open http://localhost:5000/scalar
 ```
 
 ## Environment Variables
@@ -78,9 +84,15 @@ Cloudflare bindings (configured in `wrangler.jsonc`):
 
 ## API Endpoints
 
-- `GET /`: Health check
-- `POST /chat`: RAG chat endpoint (accepts `{ message: string }`, returns
-  streaming response)
+- `GET /v1/health`: Health check (returns version + status)
+- `POST /v1/chat`: RAG chat (accepts `{ message: string }`, returns JSON answer)
+- `POST /v1/chat/sse`: Streaming chat via SSE (same input, streams response)
+- `GET /openapi.json`: OpenAPI spec
+- `GET /scalar`: Interactive API docs UI (Scalar)
+
+## Service Binding
+
+The service exports a `WorkerEntrypoint` (`ChatServiceBinding`) consumed by `apps/ui` via Cloudflare service binding. The binding exposes `health()` and `chat(message)` methods for direct Worker-to-Worker calls without HTTP overhead.
 
 ## Configuration
 
