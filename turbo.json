@@ -31,7 +31,6 @@
         "build/**",
         ".next/**",
         ".output/**",
-        ".react-router/**",
         ".waku/**",
         ".wrangler/**",
         ".svelte-kit/**"

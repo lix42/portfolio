@@ -4,10 +4,10 @@ TanStack Start (React) frontend deployed on Cloudflare Workers. Communicates wit
 
 ## Architecture
 
-- **Framework**: TanStack Start (React Router v7, file-based routing)
+- **Framework**: TanStack Start (TanStack Router file-based routing)
 - **Runtime**: Cloudflare Workers (via Nitro + Wrangler)
 - **Styling**: Tailwind CSS v4 + `tw-animate-css`
-- **UI primitives**: Base UI (headless), `class-variance-authority`, `clsx`, `tailwind-merge`
+- **UI components**: shadcn/ui (Base UI primitives), `class-variance-authority`, `clsx`, `tailwind-merge`
 - **Data fetching**: TanStack Query
 - **Icons**: HugeIcons
 - **Service binding**: `CHAT_SERVICE` → `@portfolio/service` Worker
@@ -60,16 +60,9 @@ pnpm cf-typegen
 | `wrangler.jsonc` | Cloudflare bindings configuration |
 | `vite.config.ts` | Vite + TanStack Start plugin config |
 
-## Cloudflare Bindings
-
-Configured in `wrangler.jsonc`:
-
-- `VALUE_FROM_CLOUDFLARE` — KV text value displayed on home screen
-- `CHAT_SERVICE` — Service binding to `@portfolio/service` Worker
-
 ## Component Library
 
-UI components in `src/components/ui/` follow a Shadcn-inspired pattern with CVA variants. Each component has a `.stories.tsx` file for Storybook. Run `pnpm storybook` to explore them interactively.
+UI components in `src/components/ui/` are shadcn/ui components (built on Base UI primitives) with CVA variants. Each component has a `.stories.tsx` file for Storybook. Run `pnpm storybook` to explore them interactively.
 
 ## Gotchas
 

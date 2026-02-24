@@ -54,9 +54,9 @@ TanStack Start (React 19) on Cloudflare Workers. File-based routing via TanStack
 
 **Client state:** React `useState` + localStorage (theme only). No dedicated store library.
 
-**Styling:** Tailwind CSS v4 + shadcn components (base-nova style) + `class-variance-authority` for variants + `@base-ui/react` primitives + Hugeicons.
+**Styling:** Tailwind CSS v4 + shadcn/ui components (Base UI primitives, base-nova style) + `class-variance-authority` for variants + Hugeicons.
 
-**SSR:** `react-router-ssr-query` integration; loaders use `prefetchQuery`/`ensureQueryData` for server-side data fetching.
+**SSR:** `@tanstack/react-router-ssr-query` integration; loaders use `prefetchQuery`/`ensureQueryData` for server-side data fetching.
 
 **Storybook:** v10, `@storybook/react-vite`, stories colocated as `*.stories.tsx` beside components. The Storybook Vite config strips `cloudflare` and `tanstack-start` plugins since they require Workers runtime.
 

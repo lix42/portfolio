@@ -72,14 +72,6 @@ Required in `.dev.vars` (local) and Cloudflare secrets (production):
 
 - `OPENAI_API_KEY`: For embeddings and tag generation
 
-Cloudflare bindings (in `wrangler.jsonc`):
-
-| Environment | D1 | R2 Bucket | Vectorize | Queue |
-|-------------|-----|-----------|-----------|-------|
-| Local | `portfolio-sql-staging` (remote) | local storage | `portfolio-embeddings-staging` | `portfolio-doc-processing-local` |
-| Staging | `portfolio-sql-staging` | `portfolio-documents-staging` | `portfolio-embeddings-staging` | `portfolio-doc-processing-staging` |
-| Production | `portfolio-sql-prod` | `portfolio-documents-prod` | `portfolio-embeddings-prod` | `portfolio-doc-processing-prod` |
-
 ## Gotchas
 
 - **Processing stuck?** Check `/status` then use `/resume`. If it's corrupted, use `/reprocess` (destructive — wipes existing chunks/embeddings for that document).
