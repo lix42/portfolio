@@ -13,27 +13,33 @@ CLI tool to synchronize local documents to Cloudflare R2 buckets.
 
 ## Usage
 
-### Local Development
+### Syncing
+
+`--env` is required — either `staging` or `production`. There is no default.
+Local dev uses wrangler's local R2 storage (no sync needed).
 
 ```bash
-# Preview changes
-pnpm sync:r2 --dry-run
+# Sync to staging
+pnpm sync:r2 -- --env staging
 
-# Sync to dev environment
-pnpm sync:r2
+# Sync to production
+pnpm sync:r2 -- --env production
+
+# Preview changes without executing
+pnpm sync:r2 -- --env staging --dry-run
 
 # Sync with deletions enabled
-pnpm sync:r2  --delete
+pnpm sync:r2 -- --env staging --delete
 
 # Fail fast (stop on first error)
-pnpm sync:r2  --fail-fast
+pnpm sync:r2 -- --env staging --fail-fast
 ```
 
 ### CI/CD Mode
 
 ```bash
 # Non-interactive mode with JSON output
-pnpm sync:r2 --ci
+pnpm sync:r2 -- --env staging --ci
 
 # Each file operation outputs one JSON line
 # Final summary as last line

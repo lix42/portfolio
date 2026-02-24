@@ -77,11 +77,6 @@ Required in `.dev.vars` (local) and Cloudflare Workers secrets (production):
 
 - `OPENAI_API_KEY`: OpenAI API key for embeddings and chat completions
 
-Cloudflare bindings (configured in `wrangler.jsonc`):
-- `DB`: D1 database binding
-- `VECTORIZE`: Vectorize index binding
-- `DOCUMENTS`: R2 bucket binding
-
 ## API Endpoints
 
 - `GET /v1/health`: Health check (returns version + status)

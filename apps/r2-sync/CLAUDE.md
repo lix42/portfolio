@@ -17,14 +17,19 @@ Built with `tsup` — compiled to `dist/cli.js` before running.
 # Build (required before sync)
 pnpm build
 
-# Run from repo root (builds then syncs)
-pnpm sync:r2
+# --env is required (staging or production). No default.
+# Buckets: staging → portfolio-documents-staging, production → portfolio-documents-prod
+# Local dev uses wrangler's local R2 storage (no sync needed).
 
-# Sync options
-pnpm sync:r2 --dry-run       # Preview changes only
-pnpm sync:r2 --delete        # Also delete files removed locally
-pnpm sync:r2 --fail-fast     # Stop on first error
-pnpm sync:r2 --ci            # Non-interactive JSON-lines output
+# Run from repo root (builds then syncs)
+pnpm sync:r2 -- --env staging
+pnpm sync:r2 -- --env production
+
+# Sync options (append to any command above)
+pnpm sync:r2 -- --env staging --dry-run       # Preview changes only
+pnpm sync:r2 -- --env staging --delete        # Also delete files removed locally
+pnpm sync:r2 -- --env staging --fail-fast     # Stop on first error
+pnpm sync:r2 -- --env staging --ci            # Non-interactive JSON-lines output
 
 # Tests
 pnpm test
