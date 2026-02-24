@@ -40,3 +40,48 @@ File organization pattern:
 	•	utils.ts or utils/ - Pure utility functions
 	•	Feature folders (e.g., steps/) for domain logic
 	•	Class files contain minimal orchestration only
+
+## Project Overview
+
+Turborepo monorepo using pnpm workspaces.
+
+**Apps:**
+- `apps/service` — Hono API on Cloudflare Workers (RAG backend)
+- `apps/ui` — TanStack Start (React) frontend on Cloudflare Workers
+
+**Packages:**
+- `packages/shared` — Shared schemas, types, prompts, utilities
+- `packages/env-config` — Environment configuration
+- `packages/eslint-config` — Shared ESLint config
+
+## Commands
+
+```bash
+# Development (UI only)
+pnpm dev
+
+# Run all tests
+pnpm test
+
+# Lint (Biome)
+pnpm lint
+pnpm lint:fix
+
+# Type checking (all packages)
+pnpm typecheck
+
+# Build all
+pnpm build
+
+# Database migrations (D1)
+pnpm db:migrate:local -- migrations/001.sql
+pnpm db:migrate:staging -- migrations/001.sql
+pnpm db:query:local -- "SELECT * FROM table"
+```
+
+## Tech Stack
+
+- **Monorepo:** Turborepo + pnpm workspaces
+- **Linter/Formatter:** Biome (not ESLint/Prettier)
+- **Frontend:** TanStack Start (React Router v7), Tailwind CSS v4, Base UI, TanStack Query
+- **Backend:** Hono on Cloudflare Workers with D1 + Vectorize + R2 + OpenAI
