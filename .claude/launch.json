@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev"],
+      "port": 3000
+    },
+    {
+      "name": "service",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev:service"],
+      "port": 5000
+    },
+    {
+      "name": "storybook",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@portfolio/ui", "storybook"],
+      "port": 6006
+    }
+  ]
+}
