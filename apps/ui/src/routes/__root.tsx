@@ -78,6 +78,7 @@ function RootDocument() {
                 />
               }
               variant="ghost"
+              nativeButton={false}
               aria-label="health"
             >
               <HugeiconsIcon icon={healthIcon} />
