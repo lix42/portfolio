@@ -9,6 +9,16 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+// Mock CookieStore (not supported in jsdom)
+Object.defineProperty(globalThis, "cookieStore", {
+  writable: true,
+  value: {
+    set: vi.fn().mockResolvedValue(undefined),
+    get: vi.fn().mockResolvedValue(null),
+    delete: vi.fn().mockResolvedValue(undefined),
+  },
+});
+
 // Mock matchMedia
 Object.defineProperty(window, "matchMedia", {
   writable: true,
