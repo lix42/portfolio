@@ -19,6 +19,7 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { ModeToggle } from "~/components/ModeToggler";
 import { Button } from "~/components/ui/button";
 import { healthQueryOptions } from "~/lib/health";
+import { getServerTheme } from "~/lib/themeServer";
 import { cn } from "~/lib/utils";
 import appCss from "~/styles.css?url";
 
@@ -38,13 +39,16 @@ export const Route = createRootRouteWithContext<{
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
-  loader: ({ context }) => {
+  loader: async ({ context }) => {
     context.queryClient.prefetchQuery(healthQueryOptions);
+    const serverTheme = await getServerTheme().catch(() => null);
+    return { serverTheme };
   },
   component: RootDocument,
 });
 
 function RootDocument() {
+  const { serverTheme } = Route.useLoaderData();
   const { data } = useQuery(healthQueryOptions);
   const healthOK = data?.health?.ok;
   const healthIcon = healthOK
@@ -53,7 +57,7 @@ function RootDocument() {
       ? HeartRemoveIcon
       : HealthIcon;
   return (
-    <html lang="en">
+    <html lang="en" className={serverTheme === "dark" ? "dark" : undefined}>
       <head>
         <HeadContent />
       </head>
@@ -78,6 +82,7 @@ function RootDocument() {
                 />
               }
               variant="ghost"
+              nativeButton={false}
               aria-label="health"
             >
               <HugeiconsIcon icon={healthIcon} />

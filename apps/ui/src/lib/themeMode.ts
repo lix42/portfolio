@@ -1,3 +1,5 @@
+import { THEME_COOKIE_NAME } from "./constants";
+
 export type ThemePreference = "light" | "dark" | "system";
 export type EffectiveTheme = "light" | "dark";
 
@@ -27,9 +29,23 @@ export function getEffectiveTheme(
   return pref;
 }
 
+function setThemeCookie(effective: EffectiveTheme): void {
+  cookieStore
+    .set({
+      name: THEME_COOKIE_NAME,
+      value: effective,
+      expires: Date.now() + 365 * 24 * 60 * 60 * 1000,
+    })
+    .catch(() => {
+      // Cookie write can fail in sandboxed/restricted contexts.
+      // SSR theme will fall back to system default on next load.
+    });
+}
+
 export function applyTheme(pref: ThemePreference = getThemePreference()): void {
   const effective = getEffectiveTheme(pref);
   document.documentElement.classList.toggle("dark", effective === "dark");
+  setThemeCookie(effective);
 }
 
 export function setTheme(pref: ThemePreference): void {
