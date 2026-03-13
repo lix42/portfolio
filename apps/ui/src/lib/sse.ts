@@ -1,46 +1,24 @@
-import {
-  SSEChunkEventSchema,
-  SSEContextEventSchema,
-  SSEDoneEventSchema,
-  SSEErrorEventSchema,
-  type SSEEvent,
-  SSEInitEventSchema,
-  SSEPreprocessedEventSchema,
-  SSEStatusEventSchema,
-} from "@portfolio/shared";
-
-const eventSchemas = {
-  init: SSEInitEventSchema,
-  status: SSEStatusEventSchema,
-  preprocessed: SSEPreprocessedEventSchema,
-  context: SSEContextEventSchema,
-  chunk: SSEChunkEventSchema,
-  done: SSEDoneEventSchema,
-  error: SSEErrorEventSchema,
-};
+import { type SSEEvent, SSEEventSchema } from "@portfolio/shared";
 
 function parseSSEBlock(block: string): SSEEvent | null {
   let event = "";
-  let data = "";
+  const dataLines: string[] = [];
 
   for (const line of block.split("\n")) {
     if (line.startsWith("event:")) {
       event = line.slice("event:".length).trim();
     } else if (line.startsWith("data:")) {
-      data = line.slice("data:".length).trim();
+      // Per SSE spec, strip only a single leading space after the colon
+      dataLines.push(line.substring("data:".length).replace(/^ /, ""));
     }
   }
+
+  const data = dataLines.join("\n");
 
   if (!event || !data) {
     console.warn("[sse] Skipping block with missing event or data:", block);
     return null;
   }
-  if (!(event in eventSchemas)) {
-    console.warn(`[sse] Unknown event type: "${event}"`);
-    return null;
-  }
-
-  const schema = eventSchemas[event as keyof typeof eventSchemas];
 
   let jsonData: unknown;
   try {
@@ -50,16 +28,16 @@ function parseSSEBlock(block: string): SSEEvent | null {
     return null;
   }
 
-  const parsed = schema.safeParse(jsonData);
+  const parsed = SSEEventSchema.safeParse({ event, data: jsonData });
   if (!parsed.success) {
     console.warn(
-      `[sse] Schema validation failed for "${event}":`,
+      `[sse] Schema validation failed for event "${event}":`,
       parsed.error.issues,
     );
     return null;
   }
 
-  return { event, data: parsed.data } as SSEEvent;
+  return parsed.data;
 }
 
 export async function* streamSSEEvents(
