@@ -21,6 +21,7 @@ import {
   answerQuestionWithChunks,
   extractAssistantAnswer,
 } from "./answerQuestion";
+import chatJSONL from "./chatJSONL";
 import chatSSE from "./chatSSE";
 import { getContext } from "./getContext";
 import { preprocessQuestion } from "./preprocessQuestion";
@@ -158,7 +159,8 @@ export const answerQuestion = async (
   return { hasError: false, answer };
 };
 
-// Mount SSE streaming endpoint
+// Mount streaming endpoints
 app.route("/sse", chatSSE);
+app.route("/jsonl", chatJSONL);
 
 export default app;

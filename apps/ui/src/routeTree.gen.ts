@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as HealthIndexRouteImport } from './routes/health/index'
+import { Route as ApiChatJsonlRouteImport } from './routes/api/chat-jsonl'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const HealthIndexRoute = HealthIndexRouteImport.update({
   path: '/health/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiChatJsonlRoute = ApiChatJsonlRouteImport.update({
+  id: '/api/chat-jsonl',
+  path: '/api/chat-jsonl',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -32,30 +38,34 @@ const ApiChatRoute = ApiChatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/chat-jsonl': typeof ApiChatJsonlRoute
   '/health/': typeof HealthIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/chat-jsonl': typeof ApiChatJsonlRoute
   '/health': typeof HealthIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/chat-jsonl': typeof ApiChatJsonlRoute
   '/health/': typeof HealthIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/chat' | '/health/'
+  fullPaths: '/' | '/api/chat' | '/api/chat-jsonl' | '/health/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/chat' | '/health'
-  id: '__root__' | '/' | '/api/chat' | '/health/'
+  to: '/' | '/api/chat' | '/api/chat-jsonl' | '/health'
+  id: '__root__' | '/' | '/api/chat' | '/api/chat-jsonl' | '/health/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiChatJsonlRoute: typeof ApiChatJsonlRoute
   HealthIndexRoute: typeof HealthIndexRoute
 }
 
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HealthIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/chat-jsonl': {
+      id: '/api/chat-jsonl'
+      path: '/api/chat-jsonl'
+      fullPath: '/api/chat-jsonl'
+      preLoaderRoute: typeof ApiChatJsonlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
@@ -88,17 +105,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiChatJsonlRoute: ApiChatJsonlRoute,
   HealthIndexRoute: HealthIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
