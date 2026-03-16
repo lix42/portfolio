@@ -158,63 +158,66 @@ export const syncOptionsSchema = z.object({
 export type SyncOptions = z.infer<typeof syncOptionsSchema>;
 
 /**
- * SSE Event Schemas for Chat Streaming
+ * Stream Event Schemas for Chat Streaming
  *
- * These schemas define the structure of Server-Sent Events
+ * These schemas define the structure of streaming events
  * emitted during the RAG pipeline execution.
+ * Used by both SSE and JSONL transports.
  */
 
-export const SSEStatusEventSchema = z.object({
+export const StreamStatusEventSchema = z.object({
   step: z.enum(["preprocessing", "searching", "generating"]),
   message: z.string().min(1),
 });
 
-export const SSEInitEventSchema = z.object({
+export const StreamInitEventSchema = z.object({
   requestId: z.string().uuid(),
 });
 
-export const SSEPreprocessedEventSchema = z.object({
+export const StreamPreprocessedEventSchema = z.object({
   tags: z.array(z.string()),
   isValid: z.boolean(),
 });
 
-export const SSEContextEventSchema = z.object({
+export const StreamContextEventSchema = z.object({
   chunksCount: z.number().int().nonnegative(),
   documentFound: z.boolean(),
 });
 
-export const SSEChunkEventSchema = z.object({
+export const StreamChunkEventSchema = z.object({
   text: z.string().min(1),
 });
 
-export const SSEDoneEventSchema = z.object({
+export const StreamDoneEventSchema = z.object({
   answer: z.string(),
 });
 
-export const SSEErrorEventSchema = z.object({
+export const StreamErrorEventSchema = z.object({
   error: z.string().min(1),
   code: z.number().int().min(400).max(599),
   requestId: z.string().uuid().optional(),
 });
 
-export const SSEEventSchema = z.discriminatedUnion("event", [
-  z.object({ event: z.literal("init"), data: SSEInitEventSchema }),
-  z.object({ event: z.literal("status"), data: SSEStatusEventSchema }),
+export const StreamEventSchema = z.discriminatedUnion("event", [
+  z.object({ event: z.literal("init"), data: StreamInitEventSchema }),
+  z.object({ event: z.literal("status"), data: StreamStatusEventSchema }),
   z.object({
     event: z.literal("preprocessed"),
-    data: SSEPreprocessedEventSchema,
+    data: StreamPreprocessedEventSchema,
   }),
-  z.object({ event: z.literal("context"), data: SSEContextEventSchema }),
-  z.object({ event: z.literal("chunk"), data: SSEChunkEventSchema }),
-  z.object({ event: z.literal("done"), data: SSEDoneEventSchema }),
-  z.object({ event: z.literal("error"), data: SSEErrorEventSchema }),
+  z.object({ event: z.literal("context"), data: StreamContextEventSchema }),
+  z.object({ event: z.literal("chunk"), data: StreamChunkEventSchema }),
+  z.object({ event: z.literal("done"), data: StreamDoneEventSchema }),
+  z.object({ event: z.literal("error"), data: StreamErrorEventSchema }),
 ]);
 
-export type SSEInitEvent = z.infer<typeof SSEInitEventSchema>;
-export type SSEStatusEvent = z.infer<typeof SSEStatusEventSchema>;
-export type SSEPreprocessedEvent = z.infer<typeof SSEPreprocessedEventSchema>;
-export type SSEContextEvent = z.infer<typeof SSEContextEventSchema>;
-export type SSEChunkEvent = z.infer<typeof SSEChunkEventSchema>;
-export type SSEDoneEvent = z.infer<typeof SSEDoneEventSchema>;
-export type SSEErrorEvent = z.infer<typeof SSEErrorEventSchema>;
-export type SSEEvent = z.infer<typeof SSEEventSchema>;
+export type StreamInitEvent = z.infer<typeof StreamInitEventSchema>;
+export type StreamStatusEvent = z.infer<typeof StreamStatusEventSchema>;
+export type StreamPreprocessedEvent = z.infer<
+  typeof StreamPreprocessedEventSchema
+>;
+export type StreamContextEvent = z.infer<typeof StreamContextEventSchema>;
+export type StreamChunkEvent = z.infer<typeof StreamChunkEventSchema>;
+export type StreamDoneEvent = z.infer<typeof StreamDoneEventSchema>;
+export type StreamErrorEvent = z.infer<typeof StreamErrorEventSchema>;
+export type StreamEvent = z.infer<typeof StreamEventSchema>;
