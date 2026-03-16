@@ -22,7 +22,7 @@ export const eventSchemas = {
 type EventKey = keyof typeof eventSchemas;
 
 function isEventKey(text: string): text is EventKey {
-  return text in eventSchemas;
+  return Object.hasOwn(eventSchemas, text);
 }
 
 /**

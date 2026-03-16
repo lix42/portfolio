@@ -12,10 +12,10 @@ export async function runChatPipeline(params: {
   message: string;
   env: CloudflareBindings;
   signal: AbortSignal;
+  requestId: string;
   onEvent: OnEvent;
 }): Promise<void> {
-  const { message, env, signal, onEvent } = params;
-  const requestId = crypto.randomUUID();
+  const { message, env, signal, requestId, onEvent } = params;
   const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
   await onEvent({ event: "init", data: { requestId } });
@@ -26,20 +26,19 @@ export async function runChatPipeline(params: {
   });
 
   const [preprocessResult, embedding] = await Promise.all([
-    preprocessQuestion(message, openai).then(async (result) => {
-      await onEvent({
-        event: "preprocessed",
-        data: {
-          tags: result?.tags ?? [],
-          isValid: result?.is_valid ?? false,
-        },
-      });
-      return result;
-    }),
+    preprocessQuestion(message, openai),
     embed(message, openai),
   ]);
 
   if (signal.aborted) return;
+
+  await onEvent({
+    event: "preprocessed",
+    data: {
+      tags: preprocessResult?.tags ?? [],
+      isValid: preprocessResult?.is_valid ?? false,
+    },
+  });
 
   if (!preprocessResult?.is_valid) {
     await onEvent({
