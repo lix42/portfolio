@@ -47,12 +47,14 @@ app.post(
     return streamText(c, async (stream) => {
       const abortController = new AbortController();
       stream.onAbort(() => abortController.abort());
+      const requestId = crypto.randomUUID();
 
       try {
         await runChatPipeline({
           message,
           env: c.env,
           signal: abortController.signal,
+          requestId,
           onEvent: async (event) => {
             await stream.write(`${JSON.stringify(event)}\n`);
           },
@@ -61,7 +63,7 @@ app.post(
         console.error("JSONL stream error:", err);
         try {
           await stream.write(
-            `${JSON.stringify({ event: "error", data: { error: err instanceof Error ? err.message : "Internal server error", code: 500 } })}\n`,
+            `${JSON.stringify({ event: "error", data: { error: err instanceof Error ? err.message : "Internal server error", code: 500, requestId } })}\n`,
           );
         } catch (writeErr) {
           console.error("JSONL: failed to write error event:", writeErr);

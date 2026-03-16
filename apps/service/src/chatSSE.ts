@@ -46,12 +46,14 @@ app.post(
     return streamSSE(c, async (stream) => {
       const abortController = new AbortController();
       stream.onAbort(() => abortController.abort());
+      const requestId = crypto.randomUUID();
 
       try {
         await runChatPipeline({
           message,
           env: c.env,
           signal: abortController.signal,
+          requestId,
           onEvent: async (event) => {
             await stream.writeSSE({
               event: event.event,
@@ -68,6 +70,7 @@ app.post(
               error:
                 err instanceof Error ? err.message : "Internal server error",
               code: 500,
+              requestId,
             }),
           });
         } catch (writeErr) {
