@@ -1,6 +1,8 @@
-import { type SSEEvent, SSEEventSchema } from "@portfolio/shared";
+import type { StreamEvent } from "@portfolio/shared";
 
-function parseSSEBlock(block: string): SSEEvent | null {
+import { validateEvent } from "./streamEvents";
+
+function parseSSEBlock(block: string): StreamEvent | null {
   let event = "";
   const dataLines: string[] = [];
 
@@ -13,36 +15,27 @@ function parseSSEBlock(block: string): SSEEvent | null {
     }
   }
 
-  const data = dataLines.join("\n");
+  const dataStr = dataLines.join("\n");
 
-  if (!event || !data) {
+  if (!event || !dataStr) {
     console.warn("[sse] Skipping block with missing event or data:", block);
     return null;
   }
 
-  let jsonData: unknown;
+  let data: unknown;
   try {
-    jsonData = JSON.parse(data);
+    data = JSON.parse(dataStr);
   } catch {
-    console.warn(`[sse] Malformed JSON in event "${event}":`, data);
+    console.warn(`[sse] Malformed JSON in event "${event}":`, dataStr);
     return null;
   }
 
-  const parsed = SSEEventSchema.safeParse({ event, data: jsonData });
-  if (!parsed.success) {
-    console.warn(
-      `[sse] Schema validation failed for event "${event}":`,
-      parsed.error.issues,
-    );
-    return null;
-  }
-
-  return parsed.data;
+  return validateEvent(event, data, "sse");
 }
 
 export async function* streamSSEEvents(
   response: Response,
-): AsyncGenerator<SSEEvent> {
+): AsyncGenerator<StreamEvent> {
   const reader = response.body?.getReader();
   if (!reader) throw new Error("Response has no readable body");
 
