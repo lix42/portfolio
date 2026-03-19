@@ -54,6 +54,7 @@ pnpm cf-typegen
 | `src/routes/__root.tsx` | Root layout |
 | `src/routes/index.tsx` | Home page |
 | `src/routes/health/` | Health check page |
+| `src/routes/api/` | API routes (server functions) |
 | `src/components/ui/` | Shared UI primitives (Button, Card, Badge, etc.) |
 | `src/components/HealthStatus.tsx` | Fetches health via service binding |
 | `src/components/ModeToggler.tsx` | Dark/light mode toggle |

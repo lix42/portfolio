@@ -25,6 +25,11 @@ Turborepo monorepo using pnpm workspaces.
 **Apps:**
 - `apps/service` — Hono API on Cloudflare Workers (RAG backend)
 - `apps/ui` — TanStack Start (React) frontend on Cloudflare Workers
+- `apps/document-processor` — Event-driven document ingestion (R2 → Queue → Durable Object → D1/Vectorize)
+- `apps/database` — D1 migration SQL files (not a workspace package)
+- `apps/r2-sync` — CLI to sync local documents to R2
+- `apps/r2-reconciliation` — R2 reconciliation tool
+- `apps/container-proto` — PoC: Worker + containerised FastAPI
 
 **Packages:**
 - `packages/shared` — Shared schemas, types, prompts, utilities
@@ -50,6 +55,16 @@ pnpm typecheck
 
 # Build all
 pnpm build
+
+# Deploy (staging / production)
+pnpm deploy
+pnpm deploy:prod
+
+# Storybook (component explorer)
+pnpm storybook
+
+# Sync documents to R2
+pnpm sync:r2 -- --env staging
 ```
 
 ## Tech Stack

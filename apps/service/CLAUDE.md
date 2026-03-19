@@ -82,6 +82,7 @@ Required in `.dev.vars` (local) and Cloudflare Workers secrets (production):
 - `GET /v1/health`: Health check (returns version + status)
 - `POST /v1/chat`: RAG chat (accepts `{ message: string }`, returns JSON answer)
 - `POST /v1/chat/sse`: Streaming chat via SSE (same input, streams response)
+- `POST /v1/chat/jsonl`: Streaming chat via JSONL (same input, newline-delimited JSON)
 - `GET /openapi.json`: OpenAPI spec
 - `GET /scalar`: Interactive API docs UI (Scalar)
 
