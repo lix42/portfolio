@@ -44,6 +44,9 @@ pnpm test
 
 # Generate Cloudflare bindings types
 pnpm cf-typegen
+
+# Regenerate TanStack Router route tree (after adding/removing route files)
+pnpm generate-routes
 ```
 
 ## Key Files
@@ -68,4 +71,6 @@ UI components in `src/components/ui/` are shadcn/ui components (built on Base UI
 ## Gotchas
 
 - **Route file naming**: TanStack Router uses file-based routing — `routeTree.gen.ts` is auto-generated. Do not edit it manually; it regenerates on `dev`/`build`.
+- **Route generation on demand**: After adding/removing route files outside of `dev` mode, run `pnpm generate-routes` to regenerate `routeTree.gen.ts`.
+- **HugeIcons icon type**: The icon data type for `icon` props is `IconSvgElement` from `@hugeicons/react`.
 - **Service binding vs HTTP**: The UI calls `@portfolio/service` via the `CHAT_SERVICE` binding, not HTTP. Local dev requires both workers running or the service binding to be configured in `wrangler.jsonc`.
