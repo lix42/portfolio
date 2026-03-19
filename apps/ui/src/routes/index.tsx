@@ -1,40 +1,35 @@
-import { Md } from "@m2d/react-markdown";
-import { isErrorChat, isSuccessChat } from "@portfolio/shared";
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { Card } from "~/components/ui/card";
-import { Skeleton } from "~/components/ui/skeleton";
-import { answerQueryOptions } from "~/lib/qna";
-
-const firstQuestion =
-  "Tell me an example about how you cooperate with other people.";
+import {
+  HealthIcon,
+  LiveStreamingIcon,
+  MessageQuestionIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Card, CardContent } from "~/components/ui/card";
 
 export const Route = createFileRoute("/")({
-  loader: async ({ context }) => {
-    const data = await context.queryClient.ensureQueryData(
-      answerQueryOptions(firstQuestion),
-    );
-
-    return data;
-  },
   component: Home,
 });
 
+const navCards: { to: string; icon: IconSvgElement; label: string }[] = [
+  { to: "/questions", icon: MessageQuestionIcon, label: "Questions" },
+  { to: "/streaming", icon: LiveStreamingIcon, label: "Streaming" },
+  { to: "/health", icon: HealthIcon, label: "Health" },
+];
+
 function Home() {
-  const { data, isLoading, isError, error } = useQuery(
-    answerQueryOptions(firstQuestion),
-  );
   return (
-    <Card className="px-2 sm:px-4">
-      <h2 className="text-xl text-primary font-bold">{firstQuestion}</h2>
-      {isLoading && <Skeleton />}
-      {isError && <p className="text-destructive">Error: {String(error)}</p>}
-      {!isLoading && !isError && data && isErrorChat(data) && (
-        <p className="text-destructive">Error: {data.error}</p>
-      )}
-      {!isLoading && !isError && data && isSuccessChat(data) && (
-        <Md>{data.answer}</Md>
-      )}
-    </Card>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
+      {navCards.map(({ to, icon, label }) => (
+        <Link key={to} to={to}>
+          <Card className="hover:bg-accent transition-colors cursor-pointer h-full">
+            <CardContent className="flex flex-col items-center gap-3 py-8">
+              <HugeiconsIcon icon={icon} className="size-8 text-primary" />
+              <span className="font-semibold text-lg">{label}</span>
+            </CardContent>
+          </Card>
+        </Link>
+      ))}
+    </div>
   );
 }

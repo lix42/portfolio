@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StreamingIndexRouteImport } from './routes/streaming/index'
+import { Route as QuestionsIndexRouteImport } from './routes/questions/index'
 import { Route as HealthIndexRouteImport } from './routes/health/index'
 import { Route as ApiChatJsonlRouteImport } from './routes/api/chat-jsonl'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
@@ -17,6 +19,16 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StreamingIndexRoute = StreamingIndexRouteImport.update({
+  id: '/streaming/',
+  path: '/streaming/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuestionsIndexRoute = QuestionsIndexRouteImport.update({
+  id: '/questions/',
+  path: '/questions/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HealthIndexRoute = HealthIndexRouteImport.update({
@@ -40,12 +52,16 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/api/chat-jsonl': typeof ApiChatJsonlRoute
   '/health/': typeof HealthIndexRoute
+  '/questions/': typeof QuestionsIndexRoute
+  '/streaming/': typeof StreamingIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/chat': typeof ApiChatRoute
   '/api/chat-jsonl': typeof ApiChatJsonlRoute
   '/health': typeof HealthIndexRoute
+  '/questions': typeof QuestionsIndexRoute
+  '/streaming': typeof StreamingIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +69,34 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/api/chat-jsonl': typeof ApiChatJsonlRoute
   '/health/': typeof HealthIndexRoute
+  '/questions/': typeof QuestionsIndexRoute
+  '/streaming/': typeof StreamingIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/chat' | '/api/chat-jsonl' | '/health/'
+  fullPaths:
+    | '/'
+    | '/api/chat'
+    | '/api/chat-jsonl'
+    | '/health/'
+    | '/questions/'
+    | '/streaming/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/chat' | '/api/chat-jsonl' | '/health'
-  id: '__root__' | '/' | '/api/chat' | '/api/chat-jsonl' | '/health/'
+  to:
+    | '/'
+    | '/api/chat'
+    | '/api/chat-jsonl'
+    | '/health'
+    | '/questions'
+    | '/streaming'
+  id:
+    | '__root__'
+    | '/'
+    | '/api/chat'
+    | '/api/chat-jsonl'
+    | '/health/'
+    | '/questions/'
+    | '/streaming/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +104,8 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiChatJsonlRoute: typeof ApiChatJsonlRoute
   HealthIndexRoute: typeof HealthIndexRoute
+  QuestionsIndexRoute: typeof QuestionsIndexRoute
+  StreamingIndexRoute: typeof StreamingIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -76,6 +115,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/streaming/': {
+      id: '/streaming/'
+      path: '/streaming'
+      fullPath: '/streaming/'
+      preLoaderRoute: typeof StreamingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/questions/': {
+      id: '/questions/'
+      path: '/questions'
+      fullPath: '/questions/'
+      preLoaderRoute: typeof QuestionsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/health/': {
@@ -107,7 +160,18 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiChatJsonlRoute: ApiChatJsonlRoute,
   HealthIndexRoute: HealthIndexRoute,
+  QuestionsIndexRoute: QuestionsIndexRoute,
+  StreamingIndexRoute: StreamingIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
