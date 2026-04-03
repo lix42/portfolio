@@ -103,8 +103,8 @@ describe("DocumentProcessor", () => {
       // Should skip restart
     });
 
-    it("should skip if already completed", async () => {
-      // Set up existing state
+    it("should restart if already completed (re-upload scenario)", async () => {
+      // Set up existing completed state
       await mockState.storage.put("state", {
         status: "completed",
         r2Key: "test.md",
@@ -119,7 +119,9 @@ describe("DocumentProcessor", () => {
       const response = await processor.fetch(request);
 
       expect(response.ok).toBe(true);
-      // Should skip restart
+      // State should be reset (not left as completed) — processing restarts
+      const state = await mockState.storage.get("state");
+      expect((state as { status: string }).status).not.toBe("completed");
     });
   });
 

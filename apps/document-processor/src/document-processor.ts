@@ -110,15 +110,12 @@ export class DocumentProcessor implements DurableObject {
       throw new Error("r2Key required");
     }
 
-    // Check if already processing
+    // Check if already processing (but allow re-processing completed documents
+    // so that re-uploads to R2 trigger a fresh run; the hash check in insertIntoD1
+    // will skip writing to D1/Vectorize if content hasn't changed)
     const existing = await getDocumentState(this.state.storage);
-    if (
-      existing &&
-      (existing.status === "processing" || existing.status === "completed")
-    ) {
-      console.log(
-        `Document ${r2Key} already ${existing.status}, skipping restart`,
-      );
+    if (existing && existing.status === "processing") {
+      console.log(`Document ${r2Key} already processing, skipping restart`);
       return;
     }
 
