@@ -10,6 +10,8 @@ export interface ReconciliationResult {
   retried: number;
   /** Documents already processed (in D1 or currently processing) */
   skipped: number;
+  /** Documents that encountered errors during reconciliation */
+  errors: number;
 }
 
 /**

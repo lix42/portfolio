@@ -16,15 +16,11 @@ export default {
   async scheduled(
     _event: ScheduledEvent,
     env: Env,
-    ctx: ExecutionContext,
+    _ctx: ExecutionContext,
   ): Promise<void> {
     console.log("Starting scheduled reconciliation...");
-
-    ctx.waitUntil(
-      reconcileR2Documents(env).catch((error) => {
-        console.error("Reconciliation failed:", error);
-      }),
-    );
+    const result = await reconcileR2Documents(env);
+    console.log("Scheduled reconciliation completed:", JSON.stringify(result));
   },
 
   /**

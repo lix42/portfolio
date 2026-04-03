@@ -67,6 +67,26 @@ pnpm storybook
 pnpm sync:r2 -- --env staging
 ```
 
+## CI/CD & Document Pipeline
+
+**Branches:** `main` → staging, `prod` → production
+
+**On push to `main`/`prod` with `documents/**` changes:**
+1. `sync-documents.yml` — syncs `documents/` to R2 (key = path relative to `documents/`, e.g. `experiments/webforms.md`)
+2. `deploy-staging.yml` / `deploy-production.yml` — redeploys all workers (runs on any push, no path filter)
+3. Document processor picks up new files via Queue → Durable Object pipeline
+4. `r2-reconciliation` runs daily at 2 AM UTC as a safety net
+
+**Monitoring:** Use `/monitor-docs <PR#>` skill to verify end-to-end processing after merge
+
+**Cloudflare resources (staging):**
+- Document processor: `https://portfolio-document-processor-staging.i-70e.workers.dev`
+- D1 database ID: `b287f8a6-1760-4092-8f2f-3f3f453cfe4f`
+
+**Cloudflare resources (production):**
+- Document processor: `https://portfolio-document-processor-prod.i-70e.workers.dev`
+- D1 database ID: `e8ae40da-e089-47f8-8845-7586f7a555ec`
+
 ## Tech Stack
 
 - **Monorepo:** Turborepo + pnpm workspaces

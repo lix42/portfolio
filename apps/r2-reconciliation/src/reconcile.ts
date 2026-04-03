@@ -14,16 +14,22 @@ const STUCK_THRESHOLD_HOURS = 24;
 export async function reconcileR2Documents(
   env: Env,
 ): Promise<ReconciliationResult> {
+  const startTime = Date.now();
+  console.log("Starting R2 reconciliation");
+
   const result: ReconciliationResult = {
     checked: 0,
     queued: 0,
     retried: 0,
     skipped: 0,
+    errors: 0,
   };
 
   let cursor: string | undefined;
+  let batchNumber = 0;
 
   do {
+    batchNumber++;
     const listOptions: R2ListOptions = {
       limit: BATCH_SIZE,
       include: ["customMetadata"],
@@ -33,18 +39,21 @@ export async function reconcileR2Documents(
     }
 
     const listed = await env.DOCUMENTS_BUCKET.list(listOptions);
+    const mdFiles = listed.objects.filter((o) => o.key.endsWith(".md"));
+    console.log(
+      `Batch ${batchNumber}: ${listed.objects.length} objects, ${mdFiles.length} markdown files`,
+    );
 
-    for (const object of listed.objects) {
-      if (object.key.endsWith(".md")) {
-        await processDocument(env, object.key, result);
-      }
+    for (const object of mdFiles) {
+      await processDocument(env, object.key, result);
     }
 
     cursor = listed.truncated ? listed.cursor : undefined;
   } while (cursor);
 
+  const durationMs = Date.now() - startTime;
   console.log(
-    `Reconciliation complete: checked=${result.checked}, queued=${result.queued}, retried=${result.retried}, skipped=${result.skipped}`,
+    `Reconciliation complete in ${durationMs}ms: checked=${result.checked}, queued=${result.queued}, retried=${result.retried}, skipped=${result.skipped}, errors=${result.errors}`,
   );
 
   return result;
@@ -67,13 +76,13 @@ async function processDocument(
       case "queue":
         await triggerProcessing(env, r2Key);
         result.queued++;
-        console.log(`Queued for processing: ${r2Key}`);
+        console.log(`[${r2Key}] Queued for processing`);
         break;
 
       case "retry":
         await resumeProcessing(env, r2Key);
         result.retried++;
-        console.log(`Retried stuck document: ${r2Key}`);
+        console.log(`[${r2Key}] Retried stuck document`);
         break;
 
       case "skip":
@@ -81,7 +90,8 @@ async function processDocument(
         break;
     }
   } catch (error) {
-    console.error(`Error processing ${r2Key}:`, error);
+    result.errors++;
+    console.error(`[${r2Key}] Error during reconciliation:`, error);
   }
 }
 
@@ -102,7 +112,6 @@ async function determineAction(
     .first<{ id: number }>();
 
   if (existing) {
-    // Document already processed
     return "skip";
   }
 
@@ -111,21 +120,33 @@ async function determineAction(
 
   switch (status.status) {
     case "not_started":
+      console.log(`[${r2Key}] Not started, will queue for processing`);
+      return "queue";
+
     case "failed":
+      console.log(
+        `[${r2Key}] Previously failed at step "${status.currentStep}", will re-queue`,
+      );
       return "queue";
 
     case "processing":
-      // Check if stuck (> 24 hours)
       if (isStuck(status)) {
+        console.warn(
+          `[${r2Key}] Stuck in "${status.currentStep}" since ${status.timing.startedAt}, will retry`,
+        );
         return "retry";
       }
       return "skip";
 
     case "completed":
-      // Completed but not in D1 - unusual state, queue for reprocessing
+      // Completed in DO but not in D1 — data may have been lost
+      console.warn(
+        `[${r2Key}] Completed in DO (documentId=${status.documentId}) but missing from D1, will re-queue`,
+      );
       return "queue";
 
     default:
+      console.warn(`[${r2Key}] Unknown status "${status.status}", skipping`);
       return "skip";
   }
 }
@@ -146,7 +167,13 @@ async function getProcessingStatus(
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to get status for ${r2Key}: ${response.status}`);
+    const body = await response.text();
+    console.error(
+      `[${r2Key}] Failed to get processing status: ${response.status} ${body}`,
+    );
+    throw new Error(
+      `Failed to get status for ${r2Key}: ${response.status} ${body}`,
+    );
   }
 
   return response.json();
@@ -168,6 +195,7 @@ async function triggerProcessing(env: Env, r2Key: string): Promise<void> {
 
   if (!response.ok) {
     const error = await response.text();
+    console.error(`[${r2Key}] Failed to trigger processing: ${error}`);
     throw new Error(`Failed to trigger processing for ${r2Key}: ${error}`);
   }
 }
@@ -186,6 +214,7 @@ async function resumeProcessing(env: Env, r2Key: string): Promise<void> {
 
   if (!response.ok) {
     const error = await response.text();
+    console.error(`[${r2Key}] Failed to resume processing: ${error}`);
     throw new Error(`Failed to resume processing for ${r2Key}: ${error}`);
   }
 }
