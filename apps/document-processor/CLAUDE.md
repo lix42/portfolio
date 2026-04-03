@@ -41,7 +41,10 @@ pnpm tail:prod
 
 ## API Endpoints
 
-All endpoints available at `http://localhost:8787` locally or `https://portfolio-document-processor-staging.i-70e.workers.dev` on staging.
+All endpoints available at:
+- Local: `http://localhost:8787`
+- Staging: `https://portfolio-document-processor-staging.i-70e.workers.dev`
+- Production: `https://portfolio-document-processor-prod.i-70e.workers.dev`
 
 ```bash
 # Health check
@@ -71,6 +74,12 @@ GET /r2-keys
 Required in `.dev.vars` (local) and Cloudflare secrets (production):
 
 - `OPENAI_API_KEY`: For embeddings and tag generation
+
+## Observability
+
+- **Workers Logs:** enabled, 100% sampling, persisted (viewable in CF dashboard)
+- **Workers Traces:** enabled, 100% sampling, auto-instruments fetch/binding/handler calls (no code changes needed)
+- **Log convention:** `[${r2Key}] Step N: description` prefix pattern for filtering
 
 ## Gotchas
 

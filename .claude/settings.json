@@ -1,12 +1,13 @@
 {
   "permissions": {
     "allow": [
+      "Bash(pnpm:*)",
       "Bash(tsc --noEmit)",
       "Bash(pnpx tsc:*)",
-      "Bash(pnpm run storybook:*)",
-      "Bash(pnpm test)",
+      "Bash(npx tsc:*)",
       "Bash(pnpx shadcn@latest add:*)",
       "Bash(pnpx @tanstack/router-cli:*)",
+      "Bash(npx @tanstack/router-cli generate)",
       "Bash(CLOUDFLARE_ENV=staging pnpm build:*)",
       "Bash(env CLOUDFLARE_ENV=staging pnpm build:*)",
       "Bash(eslint:*)",
@@ -15,8 +16,10 @@
       "WebFetch(domain:biomejs.dev)",
       "WebFetch(domain:developers.cloudflare.com)",
       "mcp__claude_ai_Cloudflare_Developer_Platform__workers_list",
+      "mcp__claude_ai_Cloudflare_Developer_Platform__workers_get_worker",
       "mcp__claude_ai_Cloudflare_Developer_Platform__accounts_list",
       "mcp__claude_ai_Cloudflare_Developer_Platform__set_active_account",
+      "mcp__claude_ai_Cloudflare_Developer_Platform__search_cloudflare_documentation",
       "mcp__plugin_context7_context7__resolve-library-id",
       "mcp__plugin_context7_context7__query-docs",
       "mcp__chrome-devtools__list_pages",
@@ -29,7 +32,10 @@
       "mcp__Claude_Preview__preview_start",
       "Bash(gh pr create:*)",
       "Bash(gh pr view:*)",
+      "Bash(gh pr diff:*)",
       "Bash(gh pr checks:*)",
+      "Bash(gh api:*)",
+      "Bash(gh repo:*)",
       "Bash(gh run list:*)",
       "Bash(gh run view:*)",
       "Bash(gh run watch:*)",
@@ -51,6 +57,7 @@
       "Bash(cp:*)",
       "Bash(tree:*)",
       "Skill(commit-commands:commit-push-pr)",
+      "Skill(pr-review-toolkit:review-pr)",
       "Skill(frontend-design:frontend-design)",
       "Skill(skill-creator)"
     ]
