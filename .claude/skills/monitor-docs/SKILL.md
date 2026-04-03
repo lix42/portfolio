@@ -1,7 +1,6 @@
 ---
 name: monitor-docs
 description: Monitor document processing pipeline after a documents update PR is merged. Takes a PR number or URL, determines staging/prod from the base branch, then checks GitHub Actions, R2 sync, document-processor status, and D1 data. Use when the user says "monitor docs", "check document processing", "watch the doc pipeline", or wants to verify documents were ingested after a PR merge.
-disable-model-invocation: true
 ---
 
 # Monitor Document Processing Pipeline
