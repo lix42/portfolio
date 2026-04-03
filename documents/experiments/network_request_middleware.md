@@ -1,219 +1,184 @@
 # Network Request Middleware at Databricks
 
-Project Duration: June 2024 – January 2025
-
 ## Overview
 
-The Network Request Middleware project was a foundational initiative at
-Databricks to support **multi-workspace routing** under a single URL—a core
-requirement of the company's long-term vision for **SPOG (Single Pane Of
-Glass)**. The middleware introduced a unified, extensible request layer that
-transparently injected `workspaceId` into all outgoing network requests and
-centralized the handling of CSRF tokens, session expiration, streaming, binary
-response handling, and observability.
+The Network Request Middleware project was a foundational initiative at Databricks to support **multi-workspace routing** under a single URL—a core requirement of the company's long-term vision for **SPOG (Single Panel Of Glass)**. The middleware introduced a unified, extensible request layer that transparently injected `workspaceId` into all outgoing network requests and centralized the handling of CSRF tokens, session expiration, streaming, and observability.
 
 ## Background and Motivation
 
-Databricks user assets (e.g., notebooks, dashboards, data modules) were
-originally scoped per workspace, and each workspace had its own unique URL. This
-architecture posed several limitations:
+Databricks user assets (e.g., notebooks, dashboards, data modules) were originally scoped per workspace, and each workspace had its own unique URL. This architecture posed several limitations:
 
 - Workspace URLs were long and not user-friendly
 - Users couldn't view or interact with multiple workspaces on a single page
 - The frontend couldn't easily support features that spanned multiple workspaces
 
-To address this, Databricks launched **SPOG**, a multi-year initiative to allow
-users to interact with multiple workspaces via a unified interface. The initial
-phase included three projects:
+To address this, Databricks launched **SPOG**, a multi-year initiative to allow users to interact with multiple workspaces via a unified interface. The initial phase included three projects:
 
-1. **SPOG UI Infrastructure** – foundational work, including the network request
-   middleware
-2. **SPOG API Service** – a backend that routes requests to the correct
-   workspace
-3. **SPOG UI Features** – new frontend features that leverage the multi-workspace
-   model, such as a unified config page
+1. **SPOG UI Infrastructure** – foundational work, including the network request middleware
+2. **SPOG API Service** – a backend that routes requests to the correct workspace
+3. **SPOG UI Features** – new frontend features that leverage the multi-workspace model
 
-The middleware was the **linchpin** of SPOG UI Infrastructure, ensuring that
-`workspaceId` was correctly passed in all frontend network requests, enabling
-SPOG API routing.
+The middleware was the **linchpin** of SPOG UI Infrastructure, ensuring that `workspaceId` was correctly passed in all frontend network requests.
 
-## Early Decisions
+## Goals and Approach
 
-Initially, I evaluated low-level solutions like monkey-patching `fetch` or
-injecting a service worker. These approaches were brittle, hard to test, and
-offered poor maintainability. Databricks' frontend was already fragmented with
-over **10 different ways** of sending network requests—ranging from raw `fetch`
-and Axios to jQuery, Backbone, and various wrappers on top of each. This made
-cross-cutting concerns like session handling and CSRF protection difficult to
-standardize.
+**Goals:**
 
-To resolve this, I proposed creating a **unified network request API**, designed
-to be extensible, observable, and compatible with all the frontend stacks. It
-would serve SPOG's needs while laying a long-term foundation for all Databricks
-frontend teams.
+- Support multiple workspaces under a single URL by injecting `workspaceId` into all requests
+- Replace fragmented request methods with a single unified API
+- Centralize handling of security (CSRF tokens, session checks)
+- Enable streaming response support and GraphQL compatibility
+- Lay the groundwork for global error handling and observability
+
+**Approach:**
+
+Initially, I evaluated low-level solutions like monkey-patching `fetch` or injecting a service worker. While technically viable, these options lacked maintainability. Based on prior experience, I also recognized that Databricks had over **10 fragmented network request methods** across the frontend codebase. To solve both the SPOG and long-standing architectural issues, I proposed and built a **unified network request API** that:
+
+- Centralized logic for request transformation
+- Ensured long-term maintainability and extensibility
+- Provided a platform layer usable by all frontend teams
 
 ## Key Challenges
 
 ### 1. Micro Frontend Architecture and Shared State
+Databricks uses a micro frontend architecture that doesn't support shared modules. This meant each frontend module had its own isolated instance of any package. To work around this, I used the global RPC registry to manage shared state and request logic.
 
-Databricks uses a micro frontend architecture where each micro app is deployed
-independently and does not share memory. As a result, modules cannot rely on
-shared singletons or common runtime state.
-
-To share request state like CSRF tokens, I used the company's global function
-registry, **RPC**. I registered core request handlers like `fetchDataRpc` and
-`sessionDataRpc` to this registry, allowing any micro app to invoke them as
-shared services. Because RPC calls serialize data, I extended the
-boxing/unboxing system to support:
-
-- JavaScript `Headers` objects
+I registered shared request handlers like `fetchDataRpc` and `sessionDataRpc` to RPC, and built robust boxing/unboxing layers to support:
+- Complex types like `Headers`
 - Binary response data (`Blob`, `ArrayBuffer`)
-- Streaming readers for fetch responses
+- Streaming readers (`ReadableStream`) for fetch responses
 
-### 2. Heterogeneous Request APIs
+### 2. API Fragmentation
+At the time, network requests were performed through:
+- jQuery, Backbone
+- Native `fetch`, raw Axios
+- Multiple internal wrappers on both
+- Three different GraphQL clients
 
-The project had to support a wide range of request use cases:
-
-- `onUploadProgress` (XHR/Axios only)
-- `ReadableStream` response parsing (fetch only)
-- Multipart file uploads
+Each had distinct needs, such as:
+- `onUploadProgress` (Axios only)
+- Streaming support (fetch only)
+- Binary response parsing
 - Legacy data formats (e.g., `application/x-www-form-urlencoded`)
 
-I implemented dual low-level implementation for the unified API:
+The new API needed to accommodate all these constraints.
 
-- **Axios**: used when upload progress tracking is required
-- **fetch**: used for streaming and modern workflows
+### 3. Switching Between Axios and Fetch
+The middleware dynamically chose between Axios and fetch:
+- Used Axios when `onUploadProgress` was needed
+- Used fetch for streaming and modern response types
 
-This switch is done dynamically based on request config, allowing gradual
-migration while supporting legacy and modern use cases.
+We planned to migrate fully to fetch when native upload progress was supported.
 
-### 3. Low Test Coverage
-
-Databricks had **less than 5% integration test coverage** for many core apps,
-and most tests relied on mocked responses. To mitigate this:
-
-- All changes were behind **feature flags**, with gradual rollout to staging
-- Built **alert hooks** and **internal dashboards** to monitor real traffic
-- Developed **manual regression checklists** for high-risk areas (file uploads,
-  large query responses, session expiry)
+### 4. Testing Constraints
+The integration test coverage was under 5%, and most tests used mocked responses. This made regression testing difficult. Instead, I used:
+- Feature flags to control rollout
+- Internal staging environments for validation
+- Deep monitoring to catch real-world regressions early
+- Manual regression checklists for high-risk areas (file uploads, large query responses, session expiry)
 
 ## Architecture
 
-I based the system on an existing RPC-compatible fetch wrapper that I extended
-and productionized. Core components:
+I selected an existing internal wrapper as the base for the unified API because it already integrated with RPC. After assuming ownership from its original maintainer, I expanded it into a robust, extensible platform.
 
-- **`fetchDataRpc`**: Main entry point for all requests. Injects `workspaceId`,
-  CSRF token, common headers. Handles errors, logs telemetry, and selects Axios
-  or fetch backend.
-- **`sessionDataRpc`**: Tracks CSRF tokens per workspace. Fetches tokens when
-  missing or expired. Enforces caching and lock-based retry to prevent duplicate
-  token requests.
-- **Host App Bootstrapping**: The RPC implementations (`fetchDataRpc`,
-  `sessionDataRpc`) are registered by top-level host apps like Workspace
-  Console, SQL App, and Account Console.
-- **API Adapters**: Drop-in compatibility layers that wrap the unified API and
-  mimic legacy Axios/fetch interfaces, easing team adoption.
-- **`spogFetch` API**: The primary developer-facing API. Supports REST, GraphQL,
-  file uploads, downloads, streaming, and advanced retry logic.
-- **GraphQL Integration**: I rewired all GraphQL clients to use a new `HttpLink`
-  built on `fetchDataRpc`, bypassing legacy CSRF/session middleware. Updated
-  `useQuery` and `useMutation` wrappers to include workspace context.
-- **`CsrfBarrier`**: A concurrency-safe gate that pauses outgoing requests when
-  a CSRF failure is detected. It triggers `sessionDataRpc` to refresh the token,
-  then resumes queued requests.
-- **`SessionPolicy` Event System**: Publishes lifecycle events like
-  `SESSION_EXPIRED`, `LOGIN`, and `SESSION_RESTORED`. All major consumers
-  (GraphQL, React Query) respond to these events to pause or resume requests. A
-  global modal prompts user re-authentication when needed. Once logged in, a
-  `HealthChecker` confirms session restoration.
-- **Observability Layer**: Integrated logging and alerting at all major
-  boundaries:
-  - Request initiation and completion
-  - Axios/fetch failures
-  - RPC response decoding
-  - Session recovery attempts
+### Request Interceptor Middleware
+
+A pluggable middleware layer that modifies request configs, injects `workspaceId`, and applies headers. This serves as the core extension point for all cross-cutting request concerns.
+
+### Key Components
+
+- **`fetchDataRpc`**: Core network function that:
+  - Injects `workspaceId`
+  - Appends CSRF token
+  - Performs error handling and session detection
+
+- **`sessionDataRpc`**: Manages CSRF tokens per workspace. Automatically fetches new tokens if expired or missing. Enforces caching and lock-based retry to prevent duplicate token requests.
+
+- **Host App Setup**: Each top-level app (workspace console, account console, SQL) registers `fetchDataRpc` to RPC.
+
+- **API Adapters**: Thin wrappers over `fetchDataRpc` that expose Axios-compatible and fetch-compatible interfaces, easing adoption for teams on legacy request patterns.
+
+- **`spogFetch` API**: New unified API surface used by teams. Internally routes to `fetchDataRpc`. Supports REST, GraphQL, file uploads, downloads, streaming, and advanced retry logic.
+
+### GraphQL Integration
+
+- Replaces legacy middleware with custom `HttpLink` powered by `fetchDataRpc`
+- Updates `useQuery` and `useMutation` to inject `workspaceId` automatically
+
+### CSRF and Session Management
+
+- **`CsrfBarrier`**:
+  - Pauses in-flight requests when a CSRF error occurs
+  - Triggers token refresh via `sessionDataRpc`
+  - Resumes all paused requests once resolved
+
+- **`SessionPolicy` Event System**:
+  - Publishes `SESSION_EXPIRED`, `LOGIN`, and `SESSION_RESTORED` events
+  - React Query and GQL clients pause/resume requests accordingly
+  - A global modal prompts users to sign in when needed
+  - Session health is verified via a `HealthChecker`
+
+### Observability
+
+- Multi-layer error monitoring built into:
+  - `fetchDataRpc`
+  - API Adapters
+  - GraphQL and React Query clients
+- Covers Fetch/Axios errors, middleware transformation errors, and React Query/GraphQL layer failures
+- Logging hooks to aid debugging in production and staging
+- Allows detection of failures in real time
 
 ## Cross-Team Collaboration
 
-This project required alignment across multiple engineering and platform orgs:
+The success of this project depended heavily on close collaboration with multiple frontend and platform teams. I initiated and maintained technical partnerships with:
 
-- **Platform UI Team**: Co-designed GraphQL integration strategy. Shared
-  requirements for fetch abstraction and workspace-scoped queries.
-- **Security Team**: Reviewed token strategy and ensured CSRF mitigation aligned
-  with company policy. Helped validate RPC serialization safety.
-- **Feature Teams (Jobs, SQL, Compute)**: I proactively interviewed developers
-  to gather usage patterns—e.g., binary export in SQL, streaming logs in Jobs.
-  These inputs shaped adapter interface and fallback handling.
-- **Legacy Library Owners**: Audited and deprecated various internal wrappers.
-  Shared migration utilities and code examples to ease adoption.
-- **GraphQL Platform Team**: I discovered a parallel initiative aiming to unify
-  REST and GraphQL traffic. Their proposed API did not support micro frontend
-  constraints. After reviewing their spec and discussing trade-offs, they agreed
-  to adopt my API as the unified solution. They retained focus on GraphQL
-  tooling while building on my platform.
-- **QA and Release Teams**: Worked closely to set up staging environments,
-  feature toggles, and monitoring dashboards. Triage regressions during rollout.
+- **Platform UI Team**: Worked together on React Query and GraphQL integrations. Aligned on how to structure the unified request interface and standardized handling of workspace-scoped queries.
 
-## Internal Launch and Follow-Up
+- **Security Team**: Validated CSRF strategies and RPC boxing/unboxing formats. Incorporated their feedback into CSRF token management and session recovery design.
 
-In **November 2024**, the SPOG prototype went live internally. We received early
-bug reports from users, which I investigated and resolved. During this debugging
-phase, I uncovered a gap in the original design: the assumption that
-`workspaceId` only needed to be included in network requests.
+- **Feature Teams**: Interviewed and gathered requirements from teams across different products (e.g., Jobs, Compute, SQL) to understand edge cases like streaming logs, binary export in SQL, file downloads, or multipart form uploads.
 
-In reality, some application components generated URLs for use in:
+- **Original Owners of Legacy Libraries**: Reviewed and deprecated older request utilities. Coordinated transitions and provided migration utilities, code examples, and support for migration to the new unified API.
 
-- `<img>` `src` attributes
-- `window.open()` calls
-- Embedding APIs into markdown and rich content
+- **GraphQL Platform Team**: While writing my design document, I heard about a team working on a similar initiative. I reached out and discovered they owned the GraphQL platform. Their long-term goal was to unify all network requests under GraphQL, but their first step was to consolidate all REST requests into a single API—which directly overlapped with my project's scope. After reading their design spec, I found they hadn't done sufficient research into the micro frontend architecture constraints, and their plan would have migrated REST requests to an API that didn't meet those requirements. I discussed the issue with them, pointed out the gaps, and shared my design document. After our conversation, they agreed to let me lead the unification of all network requests using my new API. Their team would then continue their GraphQL-specific work using the new API as a foundation.
 
-These URLs also needed to include `workspaceId` as a query parameter to function
-properly under the SPOG API gateway.
+- **QA and Release Teams**: Established staging environments with feature flags and shared rollout plans. Partnered to monitor regressions, triage issues, and ensure system stability.
 
-In **January 2025**, I initiated and completed follow-up work to fix this issue:
-
-- Designed and implemented a new component and utility API for generating
-  SPOG-safe URLs
-- Updated all known usages across multiple frontend modules
-- Documented the correct usage patterns and shared the guidelines company-wide
-- Partnered with platform maintainers to ensure all future usages adopted the
-  new pattern
-
-This work closed a critical design gap and improved SPOG stability across a
-wider set of real-world use cases.
+This collaboration ensured the middleware not only met SPOG's needs but was also robust and flexible enough to become the foundation for all frontend network communication at Databricks.
 
 ## Rollout Strategy
 
-- Launched as an **opt-in platform**, with detailed migration guides
-- **Incremental rollout** to SPOG features and selected high-traffic paths
-- Used **feature flags** to control exposure
-- Built custom **Grafana dashboards** to monitor errors by app/module/request
-  type
-- Triggered **email and Slack alerts** for CSRF/session/streaming failures
+- Launched as an opt-in platform, with detailed migration guides
+- Introduced behind feature flags for safe rollout
+- Deployed first to internal staging, then incremental rollout to SPOG features and selected high-traffic paths
+- Added telemetry and error logging for traceability
+- Built custom Grafana dashboards to monitor errors by app/module/request type
+- Triggered email and Slack alerts for CSRF/session/streaming failures
+- Gradually adopted by teams working on SPOG and other shared UI infrastructure
+
+## Post-Launch Iteration
+
+The project spanned from June 2024 to January 2025. In November 2024, the SPOG prototype went live internally, and we began receiving bug reports. I investigated and fixed these issues, and in the process discovered a gap in the initial design: workspace API URLs were not only used in network requests, but also in contexts like image `src` attributes and `window.open` calls. These usages also required `workspaceId` as a query parameter, but were not covered by the middleware. (URL-based routing had already been handled separately, so that was not affected.)
+
+In January 2025, I initiated a follow-up effort to close this gap. I created new components and APIs to handle cases where API URLs were used outside of standard network requests—such as in image sources or `window.open`. I wrote documentation explaining how to handle these usages, shared it with all frontend teams, and migrated all existing instances across the codebase.
 
 ## Results & Impact
 
 - Unblocked SPOG development and cross-workspace features
-- Replaced over 10+ legacy request implementations with one unified platform
-- Greatly improved resiliency to CSRF/session errors
-- Reduced overhead of adding cross-cutting concerns to request paths
-- Became the **default request system** for all new frontend features
-- Enabled consistent **observability and security** practices across micro frontends
+- Consolidated over 10 disparate network methods into one unified API
+- Created a long-term platform layer for secure, observable network traffic
+- Improved CSRF/session error resilience across apps
+- Reduced confusion and duplication in frontend request logic
 
 ## Lessons Learned
 
-- Micro frontend environments need deliberate shared state mechanisms
-- Dual backends (Axios + fetch) allow flexible evolution while supporting legacy
-  needs
-- Centralized observability is vital in low-test environments
-- Design decisions validated through real adoption are more scalable than
-  theoretical alignment
+- Shared state in micro frontend architectures must be planned carefully
+- Supporting multiple request interfaces requires flexible abstraction
+- Real-world observability is critical when integration test coverage is low
+- Taking ownership of and evolving existing internal tools accelerates delivery
+- Design decisions validated through real adoption are more scalable than theoretical alignment
 - Proactive cross-team alignment accelerates platform consolidation
-- Early internal feedback surfaces edge cases often missed in initial scope
 
 ---
 
-This system is now the de facto standard for network communication in the
-Databricks frontend. It powers key SPOG experiences and continues to scale with
-new product features, reinforcing its role as a core frontend infrastructure
-component.
+This system is now the de facto standard for network communication in the Databricks frontend, and it serves as a core piece of infrastructure powering the company's move toward a unified user experience across multiple workspaces.
