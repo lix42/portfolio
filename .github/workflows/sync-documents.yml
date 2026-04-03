@@ -39,7 +39,7 @@ jobs:
         run: pnpm install
 
       - name: Build R2 sync tool
-        run: pnpm --filter @portfolio/r2-sync build
+        run: pnpm exec turbo run build --filter=@portfolio/r2-sync
 
       - name: Determine target environment
         id: env

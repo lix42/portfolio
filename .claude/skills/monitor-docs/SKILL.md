@@ -28,9 +28,9 @@ gh pr view <PR> --json baseRefName -q '.baseRefName'
 
 ## Steps
 
-Run these steps sequentially. Report status after each step before proceeding to the next.
+Run these steps sequentially. **Stop immediately and report a summary** when any step fails — do not continue to later steps since they depend on earlier ones succeeding.
 
-### Step 1: PR Status
+### Step 1: PR Status (stop if not merged)
 
 Check that the PR is merged:
 
@@ -38,9 +38,9 @@ Check that the PR is merged:
 gh pr view <PR> --json state,mergedAt,baseRefName,headRefName
 ```
 
-If not merged, report the current state and stop. The pipeline only runs after merge.
+If not merged, report the current state and **stop**. The pipeline only runs after merge.
 
-### Step 2: Identify Changed Documents
+### Step 2: Identify Changed Documents (stop if no documents)
 
 Extract document file paths changed in the PR:
 
@@ -52,9 +52,9 @@ Convert file paths to R2 keys by stripping the `documents/` prefix:
 - `documents/experiments/webforms.md` -> R2 key: `experiments/webforms.md`
 - `documents/prompts.json` -> R2 key: `prompts.json`
 
-If no `documents/` files were changed, report that and stop — the sync workflow won't trigger.
+If no `documents/` files were changed, report that and **stop** — the sync workflow won't trigger.
 
-### Step 3: GitHub Actions — Sync Documents Workflow
+### Step 3: GitHub Actions — Sync Documents Workflow (stop if failed)
 
 Check if the "Sync Documents to R2" workflow ran successfully after merge:
 
@@ -69,9 +69,11 @@ gh run view <run-id>
 gh run view <run-id> --log-failed   # if failed
 ```
 
-Report the workflow status. If failed, show the failure logs and stop.
+Report the workflow status. If failed, show the failure logs and **stop** — documents were not synced to R2, so the processor will not have new content. Suggest fixing the workflow and re-triggering with `gh workflow run sync-documents.yml --field environment=<env>`.
 
 ### Step 4: GitHub Actions — Deploy Workflow
+
+Only proceed here if Step 3 succeeded.
 
 Check the deploy workflow also succeeded (it runs in parallel):
 
@@ -85,7 +87,9 @@ gh run list --workflow=deploy-production.yml --limit=3
 
 Report status. A deploy failure doesn't block document processing (the worker was already deployed), but it's worth noting.
 
-### Step 5: Document Processor Status
+### Step 5: Document Processor Status (stop if all failed)
+
+Only proceed here if Step 3 succeeded.
 
 For each changed `.md` file, check its processing status via the document-processor API:
 
@@ -105,6 +109,8 @@ Report the status of each document. If any are `processing`, wait 10-15 seconds 
 If any document is `failed`, show the errors array and suggest using `POST /resume` or `POST /reprocess`.
 
 ### Step 6: Verify D1 Data
+
+Only proceed here if at least one document completed in Step 5.
 
 For each completed document, verify it exists in D1 using the Cloudflare MCP `d1_database_query` tool:
 
