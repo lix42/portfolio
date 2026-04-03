@@ -53,7 +53,7 @@ jobs:
           fi
 
       - name: Sync documents to R2
-        run: pnpm sync:r2 -- --env ${{ steps.env.outputs.target }} --ci
+        run: node apps/r2-sync/dist/cli.js --env ${{ steps.env.outputs.target }} --ci
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
