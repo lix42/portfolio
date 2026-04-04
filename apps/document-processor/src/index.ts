@@ -272,7 +272,17 @@ export default {
     // Process each message
     for (const message of batch.messages) {
       try {
-        const { r2Key } = message.body;
+        // Handle both self-enqueued messages ({ r2Key }) and R2 event
+        // notifications ({ object: { key } })
+        const body = message.body as
+          | { r2Key: string }
+          | { object: { key: string } };
+        const r2Key =
+          "r2Key" in body
+            ? body.r2Key
+            : "object" in body
+              ? body.object.key
+              : undefined;
 
         if (!r2Key) {
           console.error("Message missing r2Key:", message);
