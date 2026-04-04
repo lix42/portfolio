@@ -62,5 +62,7 @@ Required (set in shell or CI secrets):
 ## Gotchas
 
 - **Build before sync**: `pnpm sync:r2` (root script) runs `turbo run sync` which depends on `build`. Direct `node ./dist/cli.js` requires a manual `pnpm build` first.
+- **Running from repo root**: Default `--documents-path ../../documents` resolves incorrectly. Pass `--documents-path ./documents` explicitly when running `node apps/r2-sync/dist/cli.js` from the repo root.
+- **CI env vars**: Run via `node` directly, not `pnpm sync:r2` (turbo) — turbo doesn't pass GitHub Actions secrets to child processes.
 - **Syncs both `.md` and `.json`**: Document content (`.md`) and metadata (`.json`) are paired — always keep them in sync.
 - See `docs/cloudflare-migration/execution-plans/secrets-management.md` for R2 API token setup.

@@ -74,8 +74,18 @@ pnpm sync:r2 -- --env staging
 **On push to `main`/`prod` with `documents/**` changes:**
 1. `sync-documents.yml` — syncs `documents/` to R2 (key = path relative to `documents/`, e.g. `experiments/webforms.md`)
 2. `deploy-staging.yml` / `deploy-production.yml` — redeploys all workers (runs on any push, no path filter)
-3. Document processor picks up new files via Queue → Durable Object pipeline
+3. R2 upload triggers event notification → `portfolio-doc-processing-<env>` queue → document processor
 4. `r2-reconciliation` runs daily at 2 AM UTC as a safety net
+
+**Re-trigger sync manually (e.g. after fixing the workflow):**
+```bash
+gh workflow run sync-documents.yml --field environment=staging
+```
+
+**Gotchas:**
+- `sync-documents.yml` runs `node apps/r2-sync/dist/cli.js` directly (not via turbo) — turbo doesn't pass GitHub Actions secrets to child processes
+- `node apps/r2-sync/dist/cli.js` must be run from repo root with `--documents-path ./documents`
+- PRs branched from feature branches may have zero net diff to `main` — sync workflow won't trigger if `documents/**` files are unchanged relative to main
 
 **Monitoring:** Use `/monitor-docs <PR#>` skill to verify end-to-end processing after merge
 
