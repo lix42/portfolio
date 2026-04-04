@@ -83,6 +83,9 @@ Required in `.dev.vars` (local) and Cloudflare secrets (production):
 
 ## Gotchas
 
+- **Re-upload behavior:** `startProcessing` re-processes completed documents — removed `completed` from skip guard so R2 re-uploads trigger a fresh run. The content hash check in `insertIntoD1` handles dedup.
+- **Queue message format:** R2 event notifications send `{ object: { key } }`, not `{ r2Key }`. The queue consumer handles both. Don't revert to single-format handling.
+- **Check R2 event notification config:** `wrangler r2 bucket notification list <bucket-name>`
 - **Processing stuck?** Check `/status` then use `/resume`. If it's corrupted, use `/reprocess` (destructive — wipes existing chunks/embeddings for that document).
 - **R2 object not found locally**: Run `./sync-experiments.sh` to pull test documents.
 - **Local dev uses remote D1** for staging data — local D1 support for Queue consumers is limited.
