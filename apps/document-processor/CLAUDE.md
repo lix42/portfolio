@@ -55,7 +55,10 @@ POST /process
 {"r2Key": "experiments/webforms.md"}
 
 # Check processing status
-GET /status?r2Key=experiments/webforms.md
+GET /status?r2key=experiments/webforms.md
+
+# Query stored document + chunks + embeddings (debug)
+GET /data?r2key=experiments/webforms.md
 
 # Resume a failed/stuck job
 POST /resume
@@ -63,6 +66,10 @@ POST /resume
 
 # Reprocess (cleans existing data and restarts)
 POST /reprocess
+{"r2Key": "experiments/webforms.md"}
+
+# Delete Durable Object state
+DELETE /delete
 {"r2Key": "experiments/webforms.md"}
 
 # List all R2 keys (debug)
