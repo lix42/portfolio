@@ -36,7 +36,7 @@ pnpm --filter @portfolio/document-processor dev
 ```
 
 **What happens when you run `pnpm dev`**:
-- ☁️ D1: Uses **remote staging** database (shared)
+- ✅ D1: Uses **local** SQLite (wrangler-managed, isolated)
 - ✅ R2: Uses **local** storage (.wrangler/state/v3/r2/)
 - ☁️ Vectorize: Uses **remote staging** index (shared)
 - ✅ Queue: Uses **local** queue (portfolio-doc-processing-local, not currently used)
@@ -111,24 +111,19 @@ wrangler r2 object put portfolio-documents/test-doc.md \
 # This requires additional setup and is not part of the current workflow
 ```
 
-### Inspecting Remote D1 Database
+### Inspecting D1 Database
 
-Since local dev uses the remote staging D1 database, query it with:
+For local dev, query the local SQLite database with `--local`. To inspect the remote staging database, omit `--local`:
 
 ```bash
-# Query documents
-wrangler d1 execute portfolio-sql-staging \
+# Query local D1
+wrangler d1 execute portfolio-sql-staging --local \
   --command "SELECT * FROM documents;"
 
-# Query chunks
-wrangler d1 execute portfolio-sql-staging \
+wrangler d1 execute portfolio-sql-staging --local \
   --command "SELECT id, document_id, LENGTH(content) as length FROM chunks LIMIT 5;"
 
-# Query companies
-wrangler d1 execute portfolio-sql-staging \
-  --command "SELECT * FROM companies;"
-
-# Check processing progress
+# Query remote staging D1 (omit --local)
 wrangler d1 execute portfolio-sql-staging \
   --command "SELECT d.project, COUNT(c.id) as chunk_count
              FROM documents d
@@ -136,14 +131,12 @@ wrangler d1 execute portfolio-sql-staging \
              GROUP BY d.id;"
 ```
 
-**Note:** Be careful when modifying the staging database during local development, as it's shared with deployed staging workers.
-
 ## Environment Differences
 
 ### Local Development (wrangler dev)
 
 ```
-D1:        Remote staging (portfolio-sql-staging) - SHARED
+D1:        Local SQLite (wrangler-managed) - ISOLATED
 R2:        Local storage (.wrangler/state/v3/r2/portfolio-documents/) - ISOLATED
 Vectorize: Remote staging (portfolio-embeddings-staging) - SHARED
 Queue:     Local queue (portfolio-doc-processing-local) - ISOLATED (not used)
@@ -153,11 +146,12 @@ Queue:     Local queue (portfolio-doc-processing-local) - ISOLATED (not used)
 - Documents stored in **local R2** (use `./sync-experiments.sh` to populate)
 - Worker triggered via **HTTP fetch API** (not queue consumer)
 - Durable Objects process documents locally
-- Results stored in **remote staging D1** and **Vectorize**
+- Results stored in **local D1** and **remote staging Vectorize**
 
 **Important Notes:**
-- **D1 is shared** with staging deployment - be careful not to interfere with production-like testing
+- **D1 is local** — apply migrations before first use (`pnpm db:migrate:local`)
 - **R2 is local** - changes won't affect staging/production
+- **Vectorize is shared** with staging — embeddings written during local dev go to the staging index
 - **Queue exists but is not used** for current local testing workflow
 
 ### Staging Deployment

@@ -70,7 +70,7 @@ Content-Type: application/json
 ### Get Status
 
 ```bash
-GET /status?r2Key=experiments/webforms.md
+GET /status?r2key=experiments/webforms.md
 ```
 
 Response:
@@ -105,6 +105,23 @@ Cleans up existing data and restarts processing:
 
 ```bash
 POST /reprocess
+Content-Type: application/json
+
+{"r2Key": "experiments/webforms.md"}
+```
+
+### Query Document Data (Debug)
+
+Returns stored document, chunks, and embeddings from D1/Vectorize:
+
+```bash
+GET /data?r2key=experiments/webforms.md
+```
+
+### Delete Durable Object State
+
+```bash
+DELETE /delete
 Content-Type: application/json
 
 {"r2Key": "experiments/webforms.md"}
