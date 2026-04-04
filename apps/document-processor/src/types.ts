@@ -2,13 +2,17 @@
 // (Env is globally available after wrangler types)
 
 /**
- * Queue message format
+ * Queue message format — two variants:
+ * - Self-enqueued: { r2Key }
+ * - R2 event notification: { object: { key } }
  */
-export interface ProcessingMessage {
-  r2Key: string;
-  event?: "upload" | "update" | "delete";
-  timestamp?: string;
-}
+export type ProcessingMessage =
+  | {
+      r2Key: string;
+      event?: "upload" | "update" | "delete";
+      timestamp?: string;
+    }
+  | { object: { key: string }; action: string; bucket: string };
 
 /**
  * Document metadata for processing (extends shared DocumentMetadata)
