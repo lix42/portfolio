@@ -1,10 +1,10 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { ProcessResult } from "./types";
 
 /**
  * Write chunks and tags to the output folder.
- * Creates (or overwrites) <outputDir>/chunk1.md, chunk2.md, ..., tags.md
+ * Clears stale chunk/tags files from prior runs, then writes fresh output.
  */
 export async function writeOutput(
   result: ProcessResult,
@@ -12,7 +12,17 @@ export async function writeOutput(
 ): Promise<void> {
   await mkdir(outputDir, { recursive: true });
 
-  // Write each chunk file
+  // Remove stale files from previous runs
+  const existing = await readdir(outputDir).catch(() => []);
+  for (const file of existing) {
+    if (
+      (file.startsWith("chunk") && file.endsWith(".md")) ||
+      file === "tags.md"
+    ) {
+      await rm(join(outputDir, file), { force: true });
+    }
+  }
+
   for (const chunk of result.chunks) {
     const filename = `chunk${chunk.index + 1}.md`;
     await writeFile(join(outputDir, filename), chunk.content, "utf-8");

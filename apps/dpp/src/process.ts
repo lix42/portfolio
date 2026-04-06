@@ -1,8 +1,4 @@
-import {
-  chunkMarkdown,
-  generateTagsBatch,
-  TAG_BATCH_SIZE,
-} from "@portfolio/shared";
+import { chunkMarkdown, generateTagsBatch } from "@portfolio/shared";
 
 import type { ProcessedChunk, ProcessResult } from "./types";
 
@@ -23,15 +19,8 @@ export async function processDocument(
     return { documentTags: [], chunks: [] };
   }
 
-  // Generate tags in batches, matching the pipeline batch size
   const texts = chunks.map((c) => c.content);
-  const allTags: string[][] = [];
-
-  for (let i = 0; i < texts.length; i += TAG_BATCH_SIZE) {
-    const batch = texts.slice(i, i + TAG_BATCH_SIZE);
-    const batchTags = await generateTagsBatch(batch, { apiKey });
-    allTags.push(...batchTags);
-  }
+  const allTags = await generateTagsBatch(texts, { apiKey });
 
   const processedChunks: ProcessedChunk[] = chunks.map((chunk, i) => ({
     index: chunk.index,
