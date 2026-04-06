@@ -21,6 +21,7 @@
     "deploy:prod": "turbo run deploy:prod",
     "prepare": "husky",
     "sync:r2": "turbo run sync --filter=@portfolio/r2-sync",
+    "dpp": "turbo run exec --filter=@portfolio/dpp",
     "deps:outdated": "pnpm -r outdated",
     "db:migrate:local": "wrangler d1 execute portfolio-sql-staging --local --file",
     "db:migrate:staging": "wrangler d1 execute portfolio-sql-staging --remote --file",
