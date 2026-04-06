@@ -1,0 +1,18 @@
+{
+  "name": "@portfolio/dpp",
+  "version": "1.0.0",
+  "description": "Local document process preview — chunk + tag a markdown file",
+  "type": "module",
+  "scripts": {
+    "exec": "bun src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@portfolio/shared": "workspace:*",
+    "openai": "^6.17.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.11",
+    "typescript": "^5.9.3"
+  }
+}

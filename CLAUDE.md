@@ -30,6 +30,7 @@ Turborepo monorepo using pnpm workspaces.
 - `apps/r2-sync` — CLI to sync local documents to R2
 - `apps/r2-reconciliation` — R2 reconciliation tool
 - `apps/container-proto` — PoC: Worker + containerised FastAPI
+- `apps/dpp` — Local CLI (Bun) to preview chunking + tagging pipeline
 
 **Packages:**
 - `packages/shared` — Shared schemas, types, prompts, utilities
@@ -65,6 +66,9 @@ pnpm storybook
 
 # Sync documents to R2
 pnpm sync:r2 -- --env staging
+
+# Preview document chunking + tags locally
+pnpm dpp -- documents/experiments/webforms.md
 ```
 
 ## CI/CD & Document Pipeline
@@ -102,3 +106,6 @@ gh workflow run sync-documents.yml --field environment=staging
 - **Monorepo:** Turborepo + pnpm workspaces
 - **Frontend:** TanStack Start, TanStack Router (file based), Tailwind CSS v4, Shadcn/UI with Base UI, TanStack Query
 - **Backend:** Hono on Cloudflare Workers with D1 + Vectorize + R2 + OpenAI
+- **Local tooling:** Bun (dpp), Node/tsup (r2-sync)
+- **Bun tsconfig types:** Use `"types": ["bun"]` (resolves `@types/bun`), not `"types": ["bun-types"]`
+- **Turbo `exec` task for CLI apps:** Must include `"dependsOn": ["^build"]` to ensure workspace deps (e.g. `@portfolio/shared`) are built first

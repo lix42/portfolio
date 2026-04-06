@@ -65,6 +65,10 @@
     "sync": {
       "dependsOn": ["build"],
       "outputs": []
+    },
+    "exec": {
+      "dependsOn": ["^build"],
+      "cache": false
     }
   }
 }
