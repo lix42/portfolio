@@ -12,7 +12,7 @@ UiPath's web application is a dual-framework system — a mix of Angular and Rea
 
 1. **Angular components** — the original implementation for most UI components
 2. **WebComponent wrappers** — Angular components wrapped as WebComponents so React apps could use them
-3. **MUI theme** — a Material UI theme provided for React-native components, but locked to an older MUI version
+3. **MUI theme** — a Material UI theme provided for React components, but locked to an older MUI version
 
 Each layer introduced its own problems:
 

@@ -154,12 +154,14 @@ After validation and decoding, each span is narrowed to a strongly typed discrim
 
 ```tsx
 // Each view receives strongly typed span data
-case 'agentRun':
-  return <AgentRunSpanView span={span} />;
-case 'toolCall':
-  return <ToolCallSpanView span={span} />;
-default:
-  return <GenericSpanView span={span} />;
+switch (span.type) {
+  case 'agentRun':
+    return <AgentRunSpanView span={span} />;
+  case 'toolCall':
+    return <ToolCallSpanView span={span} />;
+  default:
+    return <GenericSpanView span={span} />;
+}
 ```
 
 Adding support for a new span type means adding a schema definition and a view component — no changes to the core TraceView code.
