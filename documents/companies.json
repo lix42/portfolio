@@ -1,5 +1,12 @@
 [
   {
+    "company": "UiPath",
+    "startDate": "2025-09-01",
+    "endDate": null,
+    "title": "Senior Software Engineer",
+    "description": "- Rewrote TraceView, UiPath's AI agent trace visualization component, from Angular to React.\n- Redesigned TraceView's internal state to improve performance and robustness, enabling rapid feature delivery including a new usage cost service.\n- Built a unified data layer to fetch trace data with schema validation, WebSocket real-time updates, and stable-reference caching.\n- Championed apollo-wind, a Tailwind-based CSS platform replacing legacy Angular WebComponent styling; gained cross-functional support and UI platform adoption for the next design system version."
+  },
+  {
     "company": "Databricks",
     "startDate": "2022-10-01",
     "endDate": "2025-01-01",
