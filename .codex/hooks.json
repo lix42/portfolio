@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd $(git rev-parse --show-toplevel 2>/dev/null || pwd) && pnpm lint:fix --files-ignore-unknown=true 2>/dev/null || true"
+            "command": "bash \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.codex/hooks/format-edited.sh\""
           }
         ]
       }
