@@ -65,13 +65,21 @@ ON CONFLICT(name) DO UPDATE SET
   start_time  = excluded.start_time,
   end_time    = excluded.end_time,
   title       = excluded.title,
-  description = excluded.description;
+  description = excluded.description,
+  updated_at  = datetime('now');  -- SQLite does not re-apply the column DEFAULT on UPDATE
 ```
 
-Run it per environment with parameterized values (handles apostrophes/newlines
-in descriptions) via the Cloudflare D1 MCP `d1_database_query`, or with
-`wrangler d1 execute portfolio-sql-staging --remote --command "..."`. Seed both
-`portfolio-sql-staging` and `portfolio-sql-prod` so they stay in sync.
+Run it once per environment, seeding both `portfolio-sql-staging` and
+`portfolio-sql-prod` so they stay in sync:
+
+- **Cloudflare D1 MCP / HTTP API** (`d1_database_query`) — preferred. Pass the
+  values as bound `params`; binding handles the apostrophes and newlines in the
+  descriptions. The `?` placeholders above are for this path.
+- **`wrangler d1 execute`** — only accepts `--command "<sql>"` or
+  `--file <file.sql>`; it has **no** bind-parameter option, so the `?`
+  placeholders will not work. Generate a `.sql` file with the values inlined
+  and SQL-escaped (double every single quote: `UiPath's` → `UiPath''s`), then
+  `wrangler d1 execute portfolio-sql-staging --remote --file=seed-companies.sql`.
 
 ## Databases
 
