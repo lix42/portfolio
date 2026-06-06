@@ -39,6 +39,48 @@ wrangler d1 execute portfolio-sql-staging --remote --file=apps/database/migratio
 wrangler d1 execute portfolio-sql-prod --remote --file=apps/database/migrations/0001_initial_schema.sql
 ```
 
+## Seeding companies
+
+The `companies` table is seeded manually from `documents/companies.json` (no
+automated ingest script yet — `scripts/ingest_companies.py` is dead Supabase-era
+code). Company data changes rarely, so a hand-run upsert is fine for now.
+
+**Field mapping** (`companies.json` → `companies` column):
+
+| JSON | Column | Notes |
+|------|--------|-------|
+| `company` | `name` | `UNIQUE` — the upsert conflict key |
+| `startDate` | `start_time` | ISO date, `NOT NULL` |
+| `endDate` | `end_time` | ISO date, or `null` for a current role (stored as `NULL`). **Do not use `"present"`** — it is not a valid ISO date and breaks ingestion. |
+| `title` | `title` | |
+| `description` | `description` | |
+
+**Upsert statement** (idempotent — safe to re-run; overwrites placeholder rows
+the document processor auto-creates via `getOrCreateCompany`):
+
+```sql
+INSERT INTO companies (name, start_time, end_time, title, description)
+VALUES (?, ?, ?, ?, ?)  -- pass NULL for end_time on a current role
+ON CONFLICT(name) DO UPDATE SET
+  start_time  = excluded.start_time,
+  end_time    = excluded.end_time,
+  title       = excluded.title,
+  description = excluded.description,
+  updated_at  = datetime('now');  -- SQLite does not re-apply the column DEFAULT on UPDATE
+```
+
+Run it once per environment, seeding both `portfolio-sql-staging` and
+`portfolio-sql-prod` so they stay in sync:
+
+- **Cloudflare D1 MCP / HTTP API** (`d1_database_query`) — preferred. Pass the
+  values as bound `params`; binding handles the apostrophes and newlines in the
+  descriptions. The `?` placeholders above are for this path.
+- **`wrangler d1 execute`** — only accepts `--command "<sql>"` or
+  `--file <file.sql>`; it has **no** bind-parameter option, so the `?`
+  placeholders will not work. Generate a `.sql` file with the values inlined
+  and SQL-escaped (double every single quote: `UiPath's` → `UiPath''s`), then
+  `wrangler d1 execute portfolio-sql-staging --remote --file=seed-companies.sql`.
+
 ## Databases
 
 | Environment | D1 Database Name |
