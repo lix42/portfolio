@@ -34,9 +34,9 @@ company: "Databricks"
 type: "action"
 tags: ["networking", "api-design", "testing"]
 refs:
-  situation: "nrm-situation.md"
-  task: "nrm-task.md"
-  result: "nrm-result.md"
+  situation: "databricks/nrm-situation.md"
+  task: "databricks/nrm-task.md"
+  result: "databricks/nrm-result.md"
 ---
 
 I designed a middleware layer that intercepts fetch calls...
@@ -46,7 +46,7 @@ I designed a middleware layer that intercepts fetch calls...
 
 - `type` is one of: `situation`, `task`, `action`, `result`
 - `project` + `company` link sections together (also stored in D1)
-- `refs` only on `action` type — points to related sections by R2 key. Optional — missing refs are fine
+- `refs` only on `action` type. Each value is the target section's **full R2 key** — its path relative to `documents/` (e.g. `databricks/nrm-situation.md`), not a bare filename — because `resolve-refs` looks sections up by `r2_key`, and the sync client keys objects by their path under `documents/`. At most one ref per type (`situation`/`task`/`result`). Optional — missing refs are fine
 - 1:n relationship per type per project (e.g., multiple `action` sections for one project)
 - `tags` on every section, but especially important on `action`
 - Target **2–6 KB** per section (~500–1500 tokens). If an action is longer, split into multiple action sections.
@@ -73,7 +73,10 @@ CREATE TABLE IF NOT EXISTS star_refs (
   action_id INTEGER NOT NULL,
   ref_type TEXT NOT NULL CHECK(ref_type IN ('situation', 'task', 'result')),
   target_id INTEGER NOT NULL,
-  PRIMARY KEY (action_id, ref_type, target_id),
+  -- One ref per type per action, matching the single-string refs in the
+  -- frontmatter/Zod schema. (Use (action_id, ref_type, target_id) only if
+  -- refs become arrays.)
+  PRIMARY KEY (action_id, ref_type),
   FOREIGN KEY (action_id) REFERENCES star_sections(id) ON DELETE CASCADE,
   FOREIGN KEY (target_id) REFERENCES star_sections(id) ON DELETE CASCADE
 );
@@ -90,8 +93,8 @@ CREATE TABLE IF NOT EXISTS star_section_tags (
 CREATE INDEX IF NOT EXISTS idx_star_sections_project ON star_sections(project);
 CREATE INDEX IF NOT EXISTS idx_star_sections_type ON star_sections(type);
 CREATE INDEX IF NOT EXISTS idx_star_sections_company ON star_sections(company_id);
-CREATE INDEX IF NOT EXISTS idx_star_sections_r2_key ON star_sections(r2_key);
-CREATE INDEX IF NOT EXISTS idx_star_refs_action ON star_refs(action_id);
+-- No index on star_sections(r2_key): UNIQUE already creates one.
+-- No index on star_refs(action_id): it is the leftmost column of the PK.
 CREATE INDEX IF NOT EXISTS idx_star_refs_target ON star_refs(target_id);
 CREATE INDEX IF NOT EXISTS idx_star_section_tags_tag ON star_section_tags(tag_id);
 ```
@@ -143,17 +146,29 @@ New Zod schema in `packages/shared/src/schemas.ts`:
 export const starSectionTypes = ["situation", "task", "action", "result"] as const;
 export type StarSectionType = (typeof starSectionTypes)[number];
 
-export const StarSectionMetadataSchema = z.object({
+const BaseStarSectionMetadataSchema = z.object({
   project: z.string().min(1),
   company: z.string().min(1),
-  type: z.enum(starSectionTypes),
   tags: z.array(z.string()).default([]),
-  refs: z.object({
-    situation: z.string().optional(),
-    task: z.string().optional(),
-    result: z.string().optional(),
-  }).optional(),
 });
+
+// Discriminated union on `type` so `refs` is only accepted on `action`.
+export const StarSectionMetadataSchema = z.discriminatedUnion("type", [
+  BaseStarSectionMetadataSchema.extend({ type: z.literal("situation") }),
+  BaseStarSectionMetadataSchema.extend({ type: z.literal("task") }),
+  BaseStarSectionMetadataSchema.extend({ type: z.literal("result") }),
+  BaseStarSectionMetadataSchema.extend({
+    type: z.literal("action"),
+    // Values are full R2 keys (path relative to documents/).
+    refs: z
+      .object({
+        situation: z.string().optional(),
+        task: z.string().optional(),
+        result: z.string().optional(),
+      })
+      .optional(),
+  }),
+]);
 ```
 
 New frontmatter parsing utility in `packages/shared` (or `document-processor` — depends on whether the RAG service also needs to parse frontmatter).
@@ -169,6 +184,8 @@ New frontmatter parsing utility in `packages/shared` (or `document-processor` �
 ## Risks / Open Questions
 
 1. **Ref resolution timing** — Files are uploaded independently. Action refs may point to sections not yet uploaded. Handled by: tolerant `resolve-refs` step + daily reconciliation re-runs ref resolution for actions with incomplete refs.
+
+   ⚠️ **Reconciliation must be made STAR-aware.** The current reconciler (`apps/r2-reconciliation/src/reconcile.ts`) decides whether an R2 object is processed via `SELECT id FROM documents WHERE r2_key = ?` — it only checks the `documents` table. STAR sections live in `star_sections`, so a fully-processed STAR file would look "missing" and be **requeued every day**. Migration 0004 must ship with a reconciler change: look STAR files up in `star_sections` (and re-resolve incomplete `star_refs`) instead of treating them as unprocessed.
 
 2. **Frontmatter parser dependency** — Need to add a YAML parsing package. `gray-matter` is popular but heavy; a lightweight `yaml` package may suffice since we just need frontmatter extraction.
 
