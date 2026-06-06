@@ -44,7 +44,7 @@ that can be safely applied.
    - `pnpm lint:check` (if available)
    - `pnpm build`
    - `pnpm test`
-   - Service smoking test (see `apps/service/AGENTS.md`)
+   - Service smoking test (see `apps/service/CLAUDE.md`)
 10. If any verification fails, investigate and fix the issues:
     - Reference changelog breaking changes
     - Add necessary type assertions or suppressions
