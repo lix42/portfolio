@@ -118,7 +118,9 @@ download-star → store-star → resolve-refs → complete
 - Download `.md` from R2
 - Parse YAML frontmatter (need a YAML parser — `yaml` package or `gray-matter`)
 - Validate frontmatter against `StarSectionMetadataSchema` (Zod)
-- Hash content (body only, excluding frontmatter)
+- Hash the **whole raw file** (frontmatter + body), so a frontmatter-only edit
+  (`tags`, `type`, `company`, `project`, `refs`) still changes `content_hash` and
+  is not skipped — those fields drive routing, tag retrieval, and ref resolution
 - Store parsed metadata + content in DO state
 
 ### Step 2: `store-star`
