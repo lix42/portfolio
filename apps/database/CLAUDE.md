@@ -39,6 +39,40 @@ wrangler d1 execute portfolio-sql-staging --remote --file=apps/database/migratio
 wrangler d1 execute portfolio-sql-prod --remote --file=apps/database/migrations/0001_initial_schema.sql
 ```
 
+## Seeding companies
+
+The `companies` table is seeded manually from `documents/companies.json` (no
+automated ingest script yet — `scripts/ingest_companies.py` is dead Supabase-era
+code). Company data changes rarely, so a hand-run upsert is fine for now.
+
+**Field mapping** (`companies.json` → `companies` column):
+
+| JSON | Column | Notes |
+|------|--------|-------|
+| `company` | `name` | `UNIQUE` — the upsert conflict key |
+| `startDate` | `start_time` | ISO date, `NOT NULL` |
+| `endDate` | `end_time` | ISO date, or `null` for a current role (stored as `NULL`). **Do not use `"present"`** — it is not a valid ISO date and breaks ingestion. |
+| `title` | `title` | |
+| `description` | `description` | |
+
+**Upsert statement** (idempotent — safe to re-run; overwrites placeholder rows
+the document processor auto-creates via `getOrCreateCompany`):
+
+```sql
+INSERT INTO companies (name, start_time, end_time, title, description)
+VALUES (?, ?, ?, ?, ?)  -- pass NULL for end_time on a current role
+ON CONFLICT(name) DO UPDATE SET
+  start_time  = excluded.start_time,
+  end_time    = excluded.end_time,
+  title       = excluded.title,
+  description = excluded.description;
+```
+
+Run it per environment with parameterized values (handles apostrophes/newlines
+in descriptions) via the Cloudflare D1 MCP `d1_database_query`, or with
+`wrangler d1 execute portfolio-sql-staging --remote --command "..."`. Seed both
+`portfolio-sql-staging` and `portfolio-sql-prod` so they stay in sync.
+
 ## Databases
 
 | Environment | D1 Database Name |
