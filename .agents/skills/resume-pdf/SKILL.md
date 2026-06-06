@@ -1,6 +1,6 @@
 ---
 name: resume-pdf
-description: Build a styled PDF resume from a markdown source file via headless Chrome. Use when the user wants to regenerate, recreate, or rebuild the resume PDF, update the PDF after editing the resume markdown, or convert a resume .md to .pdf. Default source is documents/Lix-Resume.md -> documents/Lix-Resume.pdf.
+description: Build a styled PDF resume from a markdown source file via headless Chrome. Use when the user wants to regenerate, recreate, or rebuild the resume PDF, update the PDF after editing the resume markdown, or convert a resume .md to .pdf. Default source is resume/Lix-Resume.md -> resume/Lix-Resume.pdf.
 ---
 
 # Build Resume PDF
@@ -15,7 +15,7 @@ This matches how the original `Lix-Resume.pdf` was produced (headless Chrome / S
 Run the build script from the repo root:
 
 ```bash
-.claude/skills/resume-pdf/build-resume.sh documents/Lix-Resume.md documents/Lix-Resume.pdf
+.claude/skills/resume-pdf/build-resume.sh resume/Lix-Resume.md resume/Lix-Resume.pdf
 ```
 
 - Arg 1 (required): input markdown path.
@@ -27,8 +27,8 @@ directory for the intermediate HTML and cleans it up automatically — no stray 
 
 ## Default paths
 
-- Source: `documents/Lix-Resume.md`
-- Output: `documents/Lix-Resume.pdf`
+- Source: `resume/Lix-Resume.md`
+- Output: `resume/Lix-Resume.pdf`
 
 When the user says "rebuild/recreate/regenerate the resume PDF" without specifying paths,
 use these defaults.

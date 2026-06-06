@@ -24,7 +24,7 @@ safety, and functionality.
    - `pnpm build`
 4. Run all tests:
    - `pnpm test`
-5. Run service smoke test (see `apps/service/AGENTS.md`):
+5. Run service smoke test (see `apps/service/CLAUDE.md`):
    - Follow the smoke testing procedure for the service
 
 ## Verification process

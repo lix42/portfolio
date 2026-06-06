@@ -31,7 +31,7 @@ import html
 
 def inline(text: str) -> str:
     """Apply inline markdown (links, code, bold) after HTML-escaping."""
-    text = html.escape(text, quote=False)
+    text = html.escape(text)
     text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r'<a href="\2">\1</a>', text)
     text = re.sub(r"`([^`]+)`", r"<code>\1</code>", text)
     text = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", text)
@@ -134,11 +134,11 @@ def render(doc, css):
         if section["kind"] == "experience":
             for job in section["jobs"]:
                 out.append('<div class="job"><div class="job-head">')
-                role = f' <span class="role">— {html.escape(job["role"])}</span>' if job["role"] else ""
+                role = f' <span class="role">— {inline(job["role"])}</span>' if job["role"] else ""
                 out.append(
-                    f'<div class="who"><span class="company">{html.escape(job["company"])}</span>{role}</div>'
+                    f'<div class="who"><span class="company">{inline(job["company"])}</span>{role}</div>'
                 )
-                out.append(f'<div class="when">{html.escape(job["dates"])}</div></div>')
+                out.append(f'<div class="when">{inline(job["dates"])}</div></div>')
                 if job["bullets"]:
                     out.append('<ul class="bullets">')
                     for b in job["bullets"]:
