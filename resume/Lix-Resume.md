@@ -12,13 +12,10 @@ Frontend architect with 15+ years building large-scale web applications at Micro
 ## Skills
 
 - **Languages:** TypeScript, JavaScript, HTML, CSS
-- **Frameworks:** React, TanStack Query, GraphQL
-- **Design Systems:** Tailwind CSS, shadcn/ui, Accessibility (WCAG), Component Architecture
+- **Frameworks & UI:** React, GraphQL, Accessibility (WCAG), Component Architecture, Testing (Jest, Playwright)
 - **Architecture:** Micro Frontends, Real-time/Streaming UIs, BFF APIs, Optimistic UI, State Management
 - **Platform:** Performance Optimization, Observability, Developer Experience, Feature-flagged Rollouts
 - **AI Development:** Coding Agent Skills, AI-Assisted Workflows, AI Agent Observability (LLMOps)
-- **Testing:** Jest, React Testing Library, Cypress, Playwright
-- **Tools:** Vite, Webpack
 
 ## Experience
 
@@ -26,12 +23,12 @@ Frontend architect with 15+ years building large-scale web applications at Micro
 
 *Sep 2025 – Present*
 
-- Rewrote **TraceView**, UiPath's AI agent trace visualization component, from Angular to React through a phased top-down migration: zero breaking changes across 7 consuming apps, restored native performance, and unblocked React 18 concurrent features.
-- Redesigned TraceView state around a custom **SpanIndex**: **O(1)** lookups for most operations and subtree-scoped mutations, enabling rapid feature delivery including a new usage cost service.
-- Built a unified **data layer** with TanStack Query for trace fetching, schema validation, WebSocket real-time updates, and stable-reference caching, exposed through both a `traceId` prop and `useTraceQuery` hook.
-- Added **telemetry** to TraceView and used interaction data to redesign navigation: identified low toggle discoverability (0.25% of renders) and shipped a Chrome DevTools-inspired unified panel that merges timeline and detail views.
-- Championed **apollo-wind**, a Tailwind-based CSS platform replacing legacy Angular WebComponent styling; gained cross-functional support and UI platform adoption for the next design system version.
-- Rebuilt the team's **AI-assisted oncall triage** skill with chunked task processing, custom telemetry queries, and a living architecture doc; diagnosed a Saturday 4 AM Sev 1 in 3 minutes.
+- Rewrote **TraceView**, UiPath's AI agent trace visualization experience, from Angular to React through a phased migration with zero breaking changes across 7 consuming apps.
+- Modernized the component architecture and state model to support faster feature development, stronger performance, and new product capabilities such as usage cost reporting.
+- Built a unified data access layer for trace loading, validation, and real-time updates, giving product teams a simpler and more reliable integration path.
+- Used product telemetry to identify navigation friction and redesigned the trace exploration workflow into a unified timeline and detail experience.
+- Championed a modern Tailwind-based styling platform to replace legacy Angular WebComponent styling and support the next generation of UiPath's design system.
+- Rebuilt the team's AI-assisted on-call triage workflow with better task decomposition, telemetry lookup, and architecture guidance, reducing time-to-diagnosis during high-severity incidents.
 
 ### Databricks — Senior Frontend Engineer
 
@@ -51,7 +48,6 @@ Frontend architect with 15+ years building large-scale web applications at Micro
 - Built high-performance rendering logic, key features like dynamic schema updates and user logic flows, and contributed to the drag-and-drop UX.
 - Partnered with DocuSign's accessibility team to design **WCAG-compliant** keyboard navigation for the Builder, including custom focus-skip controls for property panels.
 - Defined frontend coding standards and mentored new engineers.
-- Collaborated with backend, design, and QA teams to launch on schedule with strong product feedback.
 
 ### Amazon — Senior Frontend Engineer
 
@@ -60,11 +56,9 @@ Frontend architect with 15+ years building large-scale web applications at Micro
 - Led the **UI platform team** for **AWS SageMaker**, delivering foundational components used across the product.
 - Built a frontend **sync engine** for real-time collaborative editing in the **Honeycode** no-code builder: optimistic updates, conflict resolution, offline fallback.
 - Improved **frontend performance** for Honeycode by optimizing rendering and data sync.
-- Enhanced **Amazon.com** performance by refining caching strategies.
 
 ### Microsoft — Senior Software Design Engineer
 
 *Jan 2005 – Jan 2016*
 
-- Built frontend features and developer tools for Azure ML and Windows 8 apps.
-- Early contributor to JavaScript-based Windows Store apps and internal design system tooling.
+- Built frontend features and developer tools for Azure ML and early JavaScript-based Windows Store apps.
